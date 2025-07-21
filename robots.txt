@@ -1,0 +1,1 @@
+Sitemap: https://StateOfTheR.github.io/finistR2025/sitemap.xml
