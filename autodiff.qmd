@@ -150,7 +150,7 @@ x.grad, a.grad, b.grad
 
 ```{python}
 tangents = (torch.tensor([1, 0]).float(), torch.tensor([0, 0]).float(), torch.tensor(0).float())
-torch.func.jvp(func= f, primals = (x, a, b), tangents= tangents)
+# torch.func.jvp(func= f, primals = (x, a, b), tangents= tangents)
 ```
 
 :::
