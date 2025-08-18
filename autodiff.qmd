@@ -56,35 +56,35 @@ dim = 100
 
 a = jnp.arange(dim)/ (dim*10)
 b = 0.5
+x = (jnp.arange(dim) - 37) / (dim*10)
 
 def f(x, a, b):
     return jnp.tanh(jnp.dot(a, x) + b)
 
-x = (jnp.arange(dim) - 37) / (dim*10)
 f(x, a, b) 
+```
 
-## jax.grad calcule la formule backward par défaut
-grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) 
-grad_df_dab = jax.grad(lambda a_b: f(x, *a_b), argnums=0)
+On définit la fonction les gradients exacts à partir des formules analytiques. 
 
+```{python}
 def df_dx(x, a, b):
     return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)
-def df_dab(x, a, b):
-    return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2
+# def df_dab(x, a, b):
+#     return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2
+
+```
+
+Puis on définit les gradients via autograd et on vérifie que les résultats sont identiques.
+
+```{python}
+## jax.grad calcule la formule backward par défaut
+grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) 
+fwdgrad_df_dx = jax.jacfwd(lambda x: f(x, a, b), argnums=0) 
 
 assert jnp.allclose(grad_df_dx(x), df_dx(x, a, b))
-
-
-# assert jnp.allclose(jnp.array(grad_df_dab((a,b))), jnp.array(df_dab(x, a, b)))
-assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))
+assert jnp.allclose(grad_df_dx(x), fwdgrad_df_dx(x))
 
 print('All good, we are ready to go!')
 ```
-
-
-
-## Dérivée par rapport à $x$
-
-## Dérivée par rapport à $a$ et $b$
 
 ::: 
