@@ -1,0 +1,19 @@
+---
+title: "Tutoriel de différentiation automatique"
+from: markdown+emoji
+lang: fr
+format: html
+toc: true
+author:
+  - name: Mahendra Mariadassou
+    orcid: 0000-0003-2986-354X
+    email: mahendra.mariadassou@inrae.fr
+    affiliations:
+      - name: Migale bioinformatics facility
+        adress: Domaine de Vilvert
+        city: Jouy-en-Josas
+        state: France
+date: "2025-08-18"
+date-modified: today
+date-format: "[Last Updated on] MMMM, YYYY"
+---
