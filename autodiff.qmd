@@ -20,3 +20,11 @@ date: "2025-08-18"
 date-modified: today
 date-format: "[Last Updated on] MMMM, YYYY"
 ---
+
+::: callout-note
+L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP et le VJP d'une fonction simple:
+$$
+f: x \in \mathbb{R}^p \mapsto tanh(a^\top x + b) \in \mathbb{R}
+$$
+avec $a \in \math{R}^p$ et $b \in \mathbb{R}$
+:::
