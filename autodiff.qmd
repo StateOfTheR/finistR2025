@@ -185,6 +185,8 @@ Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode re
 
 Pour illustrer la différentiation automatique, nous allons utiliser JAX, sur une function simple dont nous connaissons les gradients analytiques.
 
+## Dérivée par rapport à $x$
+
 ```{python}
 import jax
 import jax.numpy as jnp
@@ -227,7 +229,6 @@ assert jnp.allclose(grad_df_dx(x), fwdgrad_df_dx(x))
 print('All good, we are ready to go!')
 ```
 
-
 ## Dérivée par rapport à $a$ et $b$
 
 On définit la fonction les gradients exacts à partir des formules analytiques. 
@@ -248,7 +249,6 @@ fwdgrad_df_dab = jax.jacfwd(lambda a_b: f(x, *a_b), argnums=0)
 
 assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))
 assert all(jnp.allclose(grad_df_dab((a,b))[i], fwdgrad_df_dab((a,b))[i]) for i in range(2))
-
 print('All good, we are ready to go!')
 ```
 
@@ -347,3 +347,114 @@ fwdgrad_g_jit = jax.jit(jax.jacfwd(lambda x: g_jit(x), argnums=0))
 ```
 
 :::
+=======
+
+<!--
+### Dérivée par rapport à $a$ et $b$
+#
+#::: 
+#
+#
+### JVP et VJP
+#
+#Save below
+#```{python}
+#import jax
+#import jax.numpy as jnp
+#from jax import grad, jit, vmap
+#from jax import random
+#
+#dim = 100
+#
+#a = jnp.arange(dim)/ (dim*10)
+#b = 0.5
+#
+#def f(x, a, b):
+#    return jnp.tanh(jnp.dot(a, x) + b)
+#
+#x = (jnp.arange(dim) - 37) / (dim*10)
+#f(x, a, b) 
+#
+### jax.grad calcule la formule backward par défaut
+#grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) 
+#grad_df_dab = jax.grad(lambda a_b: f(x, *a_b), argnums=0)
+#
+#def df_dx(x, a, b):
+#    return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)
+#def df_dab(x, a, b):
+#    return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2
+#
+#assert jnp.allclose(grad_df_dx(x), df_dx(x, a, b))
+#
+#
+## assert jnp.allclose(jnp.array(grad_df_dab((a,b))), jnp.array(df_dab(x, a, b)))
+#assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))
+-->
+::: panel-tabset
+
+### JVP 
+
+Retrouvons les mêmes résultats en redéfinissant les JVP [JAX doc](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#custom-jvps-with-jax-custom-jvp)
+Si un custom JVP est défini pour une fonction, il bypass tout les sous JVP qui pourraient y apparaître. Cette définion
+
+JVP est capable de dévoiler une colonne de la jacobienne à la fois. Ce n'est pas adapté pour cette fonction. Une passe JVP ne peut dévoiler qu'une seule dérivée. Si l'on veut la dérivée par rapport à tout $x$ il nous faut faire $dim$ fois des JVP.
+
+```{python}
+
+@jax.custom_jvp
+def f(x, a, b):
+    return jnp.tanh(jnp.dot(a, x) + b)
+
+@f.defjvp
+def f_jvp(primals, tangents):
+    x, a, b = primals
+    x_dot, a_dot, b_dot = tangents
+    primal_out = f(x, a, b)
+    return primal_out, (jnp.dot(df_dx(x, a, b), x_dot) +  jnp.dot((x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)), a_dot) + jnp.dot((1 - jnp.tanh(jnp.dot(a, x) + b) **2), b_dot))
+
+x0_tangents = jnp.zeros(dim)
+x0_tangents = x0_tangents.at[0].set(1)
+_, x_dot = jax.jvp(f, (x, a, b), (x0_tangents, jnp.zeros(dim), 0.))
+
+assert jnp.allclose(grad_df_dx(x)[0], x_dot)
+
+print("All right!")
+```
+
+### VJP
+
+[jax doc](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#use-jax-custom-vjp-to-define-custom-reverse-mode-only-rules)
+```{python}
+
+@jax.custom_vjp
+def f(x, a, b):
+    return jnp.tanh(jnp.dot(a, x) + b)
+
+def f_fwd(x, a, b):
+    return f(x, a, b), (a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2)
+
+def f_bwd(res, g):
+    x_, a_, b_ = res
+    print(g)
+    return (x_ * g,  a_ * g, b_ * g)
+    #return (jnp.dot(x_, g),  jnp.dot(a_, g), jnp.dot(b_, g))
+
+f.defvjp(f_fwd, f_bwd)
+
+print("A")
+print(grad_df_dx(x))
+print(jax.vjp(f, x, a, b))
+print("A")
+assert jnp.allclose(grad_df_dx(x), jax.vjp(f, x, a, b)[0])
+assert all(jnp.allclose(grad_df_dab((a,b))[i], jax.vjp(x, a, b)[i]) for i in range(2))
+
+print("All right!")
+```
+
+Note that redefining the VJP redefines the grad function as well as every call to f! (which passes by f_fwd)
+
+
+
+:::
+
+We conclude that it is much more natural to use the forward mode for this function because...
