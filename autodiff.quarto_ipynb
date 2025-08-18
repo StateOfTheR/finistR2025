@@ -1,0 +1,352 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Tutoriel de différentiation automatique\"\n",
+        "from: markdown+emoji\n",
+        "lang: fr\n",
+        "format: html\n",
+        "toc: true\n",
+        "author:\n",
+        "  - name: Mahendra Mariadassou\n",
+        "    orcid: 0000-0003-2986-354X\n",
+        "    email: mahendra.mariadassou@inrae.fr\n",
+        "    affiliations:\n",
+        "      - name: INRAE - MaIAGE\n",
+        "        adress: Domaine de Vilvert\n",
+        "        city: Jouy-en-Josas\n",
+        "        state: France\n",
+        "  - name: Hugo Gangloff\n",
+        "  - name: Arthur Leroy\n",
+        "  - name: Lucia Clarotto\n",
+        "date: \"2025-08-18\"\n",
+        "date-modified: today\n",
+        "date-format: \"[Last Updated on] MMMM, YYYY\"\n",
+        "---\n",
+        "\n",
+        "\n",
+        "::: callout-note\n",
+        "L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP et le VJP d'une fonction simple:\n",
+        "$$\n",
+        "f: x \\in \\mathbb{R}^p \\mapsto tanh(a^\\top x + b) \\in \\mathbb{R}\n",
+        "$$\n",
+        "avec $a \\in \\mathbb{R}^p$ et $b \\in \\mathbb{R}$. \n",
+        "On considère les dérivées par rapport à l'entrée $x$ puis par rapport aux paramètres $a, b$. \n",
+        ":::\n",
+        "\n",
+        "# Théorie [XX]\n",
+        "\n",
+        "# Exemple en Torch [MM, LC]\n",
+        "\n",
+        "::: panel-tabset\n",
+        "\n",
+        "## Dérivée par rapport à $x$\n",
+        "\n",
+        "## Dérivée par rapport à $a$ et $b$\n",
+        "\n",
+        ":::\n",
+        "\n",
+        "# Exemple en JAX [HG, AL]\n",
+        "\n",
+        "Pour illustrer la différentiation automatique, nous allons utiliser JAX, sur une function simple dont nous connaissons les gradients analytiques.\n"
+      ],
+      "id": "87edca33"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import jax\n",
+        "import jax.numpy as jnp\n",
+        "from jax import grad, jit\n",
+        "from jax import random\n",
+        "\n",
+        "dim = 100\n",
+        "\n",
+        "a = jnp.arange(dim)/ (dim*10)\n",
+        "b = 0.5\n",
+        "x = (jnp.arange(dim) - 37) / (dim*10)\n",
+        "\n",
+        "def f(x, a, b):\n",
+        "    return jnp.tanh(jnp.dot(a, x) + b)\n",
+        "\n",
+        "f(x, a, b) "
+      ],
+      "id": "a14c534d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: panel-tabset\n",
+        "\n",
+        "## Dérivée par rapport à $x$\n",
+        "\n",
+        "On définit la fonction les gradients exacts à partir des formules analytiques. \n"
+      ],
+      "id": "cd5c1ac0"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def df_dx(x, a, b):\n",
+        "    return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)"
+      ],
+      "id": "4aa46321",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Puis on définit les gradients via autograd et on vérifie que les résultats sont identiques.\n"
+      ],
+      "id": "96998856"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "## jax.grad calcule la formule backward par défaut\n",
+        "grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) \n",
+        "fwdgrad_df_dx = jax.jacfwd(lambda x: f(x, a, b), argnums=0) \n",
+        "\n",
+        "assert jnp.allclose(grad_df_dx(x), df_dx(x, a, b))\n",
+        "assert jnp.allclose(grad_df_dx(x), fwdgrad_df_dx(x))\n",
+        "\n",
+        "print('All good, we are ready to go!')"
+      ],
+      "id": "f474eebe",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Dérivée par rapport à $a$ et $b$\n",
+        "\n",
+        "On définit la fonction les gradients exacts à partir des formules analytiques. \n"
+      ],
+      "id": "08c20ad4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def df_dab(x, a, b):\n",
+        "    return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2"
+      ],
+      "id": "6f7ef2ef",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Puis on définit les gradients via autograd et on vérifie que les résultats sont identiques.\n"
+      ],
+      "id": "67d5aa41"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "## jax.grad calcule la formule backward par défaut\n",
+        "grad_df_dab = jax.grad(lambda a_b: f(x, *a_b), argnums=0)\n",
+        "fwdgrad_df_dab = jax.jacfwd(lambda a_b: f(x, *a_b), argnums=0)\n",
+        "\n",
+        "assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))\n",
+        "assert all(jnp.allclose(grad_df_dab((a,b))[i], fwdgrad_df_dab((a,b))[i]) for i in range(2))\n",
+        "\n",
+        "print('All good, we are ready to go!')"
+      ],
+      "id": "3ee96b2a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "::: \n",
+        "\n",
+        "Nous avons donc bien vérifié que les gradients calculés avec JAX sont identiques aux gradients analytiques.\n",
+        "\n",
+        "# Comparaison des temps de calcul en JAX entre autograd (backward et forward) et le calcul explicite des gradients\n",
+        "\n",
+        "Pour mettre en lumière les différences entre backward et forward, nous allons définir une nouvelle fonction dont les sorties sont de plus grandes dimensions que les entrées. \n",
+        "\n",
+        "::: panel-tabset\n",
+        "\n",
+        "## $x \\in \\mathbb{R}^d$, f(x) $\\in \\mathbb{R}$\n",
+        "\n",
+        "Comparaison des temps de calcul :"
+      ],
+      "id": "66524535"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "%timeit df_dx(x, a, b).block_until_ready()\n",
+        "%timeit grad_df_dx(x).block_until_ready()\n",
+        "%timeit fwdgrad_df_dx(x).block_until_ready()"
+      ],
+      "id": "17250d53",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## $x \\in \\mathbb{R}^d$, f(x) $\\in \\mathbb{R}$\n",
+        "On définit une nouvelle fonction $g$ multidimensionnelle:\n"
+      ],
+      "id": "51f7956a"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "dim_g = 100\n",
+        "\n",
+        "def g(x):\n",
+        "    return jnp.array([jnp.tanh(x + i/dim_g) for i in range(dim_g)])\n",
+        "\n",
+        "def dg_dx(x):\n",
+        "    return jnp.array([1- jnp.tanh(x + i/dim_g)**2 for i in range(dim_g)])\n",
+        "    \n",
+        "grad_dg_dx = jax.jacrev(lambda x: g(x), argnums=0)\n",
+        "fwdgrad_dg_dx = jax.jacfwd(lambda x: g(x), argnums=0)    \n",
+        "\n",
+        "x_g = 0.5"
+      ],
+      "id": "a64b9a94",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Comparaison des temps de calcul :"
+      ],
+      "id": "85c4d3a9"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "%timeit dg_dx(x_g).block_until_ready()\n",
+        "%timeit grad_dg_dx(x_g).block_until_ready()\n",
+        "%timeit fwdgrad_dg_dx(x_g).block_until_ready()"
+      ],
+      "id": "45d79761",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::\n",
+        "\n",
+        "On onbserve que le calcul explicite des gradients est plus rapide que les deux autres méthodes. Il y a donc un prix à payer pour la différentiation automatique, bien qu'elle est très utile pour les fonctions complexes. Cependant nous allons voir qu'en combinaison avec le jitting, les choses changent.\n",
+        "\n",
+        "# JIT compilation avec JAX \n",
+        "\n",
+        "La compilation JIT (Just-In-Time) permet d'optimiser les performances des fonctions en les compilant à la volée. JAX fournit la fonction `jit` pour cela.\n",
+        "\n",
+        "::: panel-tabset\n",
+        "\n",
+        "## Gradients jittés pour la fonction $f$"
+      ],
+      "id": "689f6a79"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "@jit\n",
+        "def f_jit(x, a, b):\n",
+        "    return jnp.tanh(jnp.dot(a, x) + b)\n",
+        "\n",
+        "@jit\n",
+        "def df_dx(x, a, b):\n",
+        "    return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)\n",
+        "\n",
+        "df_dx_jit = jax.jit(df_dx)\n",
+        "grad_f_jit = jax.jit(jax.grad(lambda x: f_jit(x, a, b), argnums=0))\n",
+        "fwdgrad_f_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x, a, b), argnums=0))\n",
+        "\n",
+        "%timeit df_dx_jit(x, a, b).block_until_ready()\n",
+        "%timeit grad_f_jit(x).block_until_ready()\n",
+        "%timeit fwdgrad_f_jit(x).block_until_ready()"
+      ],
+      "id": "a11f0fe4",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Gradients jittés pour $g$\n",
+        "\n",
+        "## Gradients jittés pour la fonction $g$"
+      ],
+      "id": "c0e1f77f"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "@jit\n",
+        "def g_jit(x):\n",
+        "    return jnp.array([jnp.tanh(x + i/dim_g) for i in range(dim_g)])\n",
+        "    \n",
+        "@jit\n",
+        "def dg_dx_jit(x):\n",
+        "    return jnp.array([1- jnp.tanh(x + i/dim_g)**2 for i in range(dim_g)])\n",
+        "\n",
+        "dg_dx_jit = jax.jit(dg_dx)\n",
+        "grad_g_jit = jax.jit(jax.jacrev(lambda x: g_jit(x), argnums=0))\n",
+        "fwdgrad_g_jit = jax.jit(jax.jacfwd(lambda x: g_jit(x), argnums=0))\n",
+        "\n",
+        "%timeit dg_dx_jit(x).block_until_ready()\n",
+        "%timeit grad_g_jit(x).block_until_ready()\n",
+        "%timeit fwdgrad_g_jit(x).block_until_ready()"
+      ],
+      "id": "34a645db",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        ":::"
+      ],
+      "id": "2a6136ff"
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
