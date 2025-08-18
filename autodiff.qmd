@@ -9,7 +9,7 @@ author:
     orcid: 0000-0003-2986-354X
     email: mahendra.mariadassou@inrae.fr
     affiliations:
-      - name: Migale bioinformatics facility
+      - name: INRAE - MaIAGE
         adress: Domaine de Vilvert
         city: Jouy-en-Josas
         state: France
@@ -26,5 +26,28 @@ L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour cal
 $$
 f: x \in \mathbb{R}^p \mapsto tanh(a^\top x + b) \in \mathbb{R}
 $$
-avec $a \in \math{R}^p$ et $b \in \mathbb{R}$
+avec $a \in \mathbb{R}^p$ et $b \in \mathbb{R}$. 
+On considère les dérivées par rapport à l'entrée $x$ puis par rapport aux paramètres $a, b$. 
 :::
+
+# Théorie [XX]
+
+# Exemple en Torch [MM, LC]
+
+::: panel-tabset
+
+## Dérivée par rapport à $x$
+
+## Dérivée par rapport à $a$ et $b$
+
+:::
+
+# Exemple en JAX [HG, AL]
+
+::: panel-tabset
+
+## Dérivée par rapport à $x$
+
+## Dérivée par rapport à $a$ et $b$
+
+::: 
