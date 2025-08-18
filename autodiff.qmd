@@ -24,21 +24,134 @@ date-format: "[Last Updated on] MMMM, YYYY"
 ::: callout-note
 L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP et le VJP d'une fonction simple:
 $$
-f: x \in \mathbb{R}^p \mapsto tanh(a^\top x + b) \in \mathbb{R}
+f: x \in \mathbb{R}^p \mapsto \tanh(a^\top x + b) \in \mathbb{R}
 $$
-avec $a \in \mathbb{R}^p$ et $b \in \mathbb{R}$. 
-On considère les dérivées par rapport à l'entrée $x$ puis par rapport aux paramètres $a, b$. 
+avec $a \in \mathbb{R}^p$ et $b \in \mathbb{R}$. On considère les dérivées par rapport à l'entrée $x$ puis par rapport aux paramètres $a, b$. 
+
+On rappelle que 
+$$
+tanh'(x) = 1 - \tanh^2(x)
+f'(x) = a*(1 - \tanh^2(a^\top x + b))
+$$
 :::
 
 # Théorie [XX]
 
 # Exemple en Torch [MM, LC]
 
+```{python}
+import torch
+import numpy as np
+```
+
+On definit notre fonction en torch
+
+```{python}
+def f_torch(x, a, b):
+    return torch.tanh(torch.dot(x, a) + b)
+```
+
+On définit des valeurs pour lesquelles on sait calculer facilement le gradient. 
+
+```{python}
+x = torch.tensor([2., 3.], requires_grad = True)
+a = torch.ones(2, requires_grad = True)
+b = torch.tensor(-2., requires_grad = True)
+```
+
+Et on calcule $f'(x)$. 
+
+```{python}
+## Définit y par rapport à x
+y = f_torch(x, a, b)
+y
+## Calcule et évalue le graphe de différentiation automatique de y par rapport à x 
+y.backward()
+## Renvoie dy/dx
+x.grad, a.grad, b.grad
+```
+
 ::: panel-tabset
 
-## Dérivée par rapport à $x$
+Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. 
 
-## Dérivée par rapport à $a$ et $b$
+## Définition de la fonction 
+
+```{python}
+class f_torch_manual(torch.autograd.Function):
+    """
+    We can implement our own custom autograd Functions by subclassing
+    torch.autograd.Function and implementing the forward and backward passes
+    which operate on Tensors.
+    """
+
+    @staticmethod
+    def forward(x, a, b):
+        """
+        In the forward pass we receive a Tensor containing the input and return
+        a Tensor containing the output. ctx is a context object that can be used
+        to stash information for backward computation. You can cache tensors for
+        use in the backward pass using the ``ctx.save_for_backward`` method. Other
+        objects can be stored directly as attributes on the ctx object, such as
+        ``ctx.my_object = my_object``. Check out `Extending torch.autograd <https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd>`_
+        for further details.
+        """
+        output = torch.tanh(torch.dot(a, x) + b)
+        return output
+
+    @staticmethod
+    def setup_context(ctx, inputs, output):
+        x, a, b = inputs
+        ctx.result = output
+        ctx.save_for_backward(x, a, b)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        """        
+        In the backward pass we receive a Tensor containing the gradient of the loss
+        with respect to the output, and we need to compute the gradient of the loss
+        with respect to the input.
+        It corresponds to a Vector Jacobian Product (vjp), used for reverse auto-differentiation
+        """
+        x, a, b = ctx.saved_tensors
+        mult_fact = (1 - torch.tanh(torch.dot(a, x) + b).pow(2))
+        grad_x = grad_output * a * mult_fact
+        grad_a = grad_output * x * mult_fact
+        grad_b = grad_output * mult_fact
+        return grad_x, grad_a, grad_b # on doit calculer les grad par rapport à tous les arguments rajouter grad par rapport à a et b
+
+    @staticmethod
+    def jvp(ctx, grad_input, tangents):
+        """                
+        It corresponds to a Jacobian Vector Product (jvp), used for forward auto-differentiation
+        """
+        grad_x, grad_a, grad_b = grad_input
+        res = ctx.result
+        return res * np.dot(grad_x, tangents[0]) + res * np.dot(grad_a, tangents[1]) + grad_b * res * tangents[2]  # on doit calculer les grad par rapport à tous les arguments rajouter grad par rapport à a et b
+```
+
+## Dérivée par rapport à $x$, $a$ et $b$ 
+
+### En mode reverse
+
+```{python}
+## Définit f
+f = f_torch_manual.apply
+z = f(x, a, b)
+## Calcule et évalue le graphe de différentiation automatique de y par rapport à x 
+## Réinitialise les gradients à zéro avant tout calcul 
+x.grad.zero_(), a.grad.zero_(), b.grad.zero_()
+z.backward()
+## Renvoie dy/dx
+x.grad, a.grad, b.grad
+```
+
+### En mode forward
+
+```{python}
+tangents = (torch.tensor([1, 0]).float(), torch.tensor([0, 0]).float(), torch.tensor(0).float())
+torch.func.jvp(func= f, primals = (x, a, b), tangents= tangents)
+```
 
 :::
 
