@@ -103,6 +103,7 @@ class f_torch_manual(torch.autograd.Function):
     def setup_context(ctx, inputs, output):
         x, a, b = inputs
         ctx.result = output
+        ## save output to cut computation time
         ctx.save_for_backward(x, a, b)
 
     @staticmethod
@@ -114,20 +115,28 @@ class f_torch_manual(torch.autograd.Function):
         It corresponds to a Vector Jacobian Product (vjp), used for reverse auto-differentiation
         """
         x, a, b = ctx.saved_tensors
-        mult_fact = (1 - torch.tanh(torch.dot(a, x) + b).pow(2))
+        result  = ctx.result
+        mult_fact = (1 - result.pow(2))
         grad_x = grad_output * a * mult_fact
         grad_a = grad_output * x * mult_fact
         grad_b = grad_output * mult_fact
         return grad_x, grad_a, grad_b # on doit calculer les grad par rapport à tous les arguments rajouter grad par rapport à a et b
 
     @staticmethod
-    def jvp(ctx, grad_input, tangents):
+    def jvp(x, a, b, tangents):
         """                
         It corresponds to a Jacobian Vector Product (jvp), used for forward auto-differentiation
         """
-        grad_x, grad_a, grad_b = grad_input
-        res = ctx.result
-        return res * np.dot(grad_x, tangents[0]) + res * np.dot(grad_a, tangents[1]) + grad_b * res * tangents[2]  # on doit calculer les grad par rapport à tous les arguments rajouter grad par rapport à a et b
+        ## Vector v of small perturbations
+        tx, ta, tb = tangents
+        ## Matrix (in this case vector) of first order gradient
+        result = torch.tanh(torch.dot(a, x) + b)
+        mult_fact = (1 - result.pow(2))
+        Jx = a * mult_fact
+        Ja = x * mult_fact
+        Jb = mult_fact
+        ## Return J(x, a, b)v
+        return torch.dot(Jx, tx) + torch.dot(Ja, ta) + Jb * tb
 ```
 
 ## Dérivée par rapport à $x$, $a$ et $b$ 
@@ -150,7 +159,7 @@ x.grad, a.grad, b.grad
 
 ```{python}
 tangents = (torch.tensor([1, 0]).float(), torch.tensor([0, 0]).float(), torch.tensor(0).float())
-# torch.func.jvp(func= f, primals = (x, a, b), tangents= tangents)
+f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 ```
 
 :::
