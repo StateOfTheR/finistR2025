@@ -13,6 +13,9 @@ author:
         adress: Domaine de Vilvert
         city: Jouy-en-Josas
         state: France
+  - name: Hugo Gangloff
+  - name: Arthur Leroy
+  - name: Lucia Clarotto
 date: "2025-08-18"
 date-modified: today
 date-format: "[Last Updated on] MMMM, YYYY"
