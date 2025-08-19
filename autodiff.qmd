@@ -39,6 +39,8 @@ $$
 
 # Exemple en Torch [MM, LC]
 
+<!---
+
 ```{python}
 import torch
 import numpy as np
@@ -180,6 +182,7 @@ f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode reverse et directement en utilisant `torch` :grin:
 
 :::
+--->
 
 # Exemple en JAX [HG, AL]
 
@@ -328,6 +331,7 @@ fwdgrad_f_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x, a, b), argnums=0))
 ### Gradients jittés pour $g$
 
 ## Gradients jittés pour la fonction $g$
+
 ```{python}
 @jit
 def g_jit(x):
@@ -347,7 +351,6 @@ fwdgrad_g_jit = jax.jit(jax.jacfwd(lambda x: g_jit(x), argnums=0))
 ```
 
 :::
-=======
 
 <!--
 ### Dérivée par rapport à $a$ et $b$
@@ -424,6 +427,7 @@ print("All right!")
 ### VJP
 
 [jax doc](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#use-jax-custom-vjp-to-define-custom-reverse-mode-only-rules)
+
 ```{python}
 
 @jax.custom_vjp
@@ -435,24 +439,23 @@ def f_fwd(x, a, b):
 
 def f_bwd(res, g):
     x_, a_, b_ = res
-    print(g)
     return (x_ * g,  a_ * g, b_ * g)
     #return (jnp.dot(x_, g),  jnp.dot(a_, g), jnp.dot(b_, g))
 
 f.defvjp(f_fwd, f_bwd)
+_, f_vjp = jax.vjp(f, x, a, b)
 
-print("A")
-print(grad_df_dx(x))
-print(jax.vjp(f, x, a, b))
-print("A")
-assert jnp.allclose(grad_df_dx(x), jax.vjp(f, x, a, b)[0])
-assert all(jnp.allclose(grad_df_dab((a,b))[i], jax.vjp(x, a, b)[i]) for i in range(2))
-
+assert jnp.allclose(grad_df_dx(x), f_vjp(1.)[0])
+assert all(jnp.allclose(grad_df_dab((a,b))[i], f_vjp(1.)[i + 1]) for i in range(2))
 print("All right!")
 ```
 
-Note that redefining the VJP redefines the grad function as well as every call to f! (which passes by f_fwd)
+Note that redefining the VJP redefines the grad function (which passes by f_fwd), and note the equivalency:
 
+```{python}
+assert jnp.allclose(f_vjp(1.)[0], jax.grad(f)(x, a, b))
+print("All right!")
+```
 
 
 :::
