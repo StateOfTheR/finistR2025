@@ -37,6 +37,8 @@ $$
 
 # Théorie [XX]
 
+Pour un rapide résumé de ce qu'est l'auto différentiation, et de son intérêt par rapport à d'autres stratégies de calcul numérique ou d'approximation des gradients d'une fonction, voici une vidéo assez complète en 14 min : {{< video https://www.youtube.com/watch?v=wG_nF1awSSY >}}
+
 # Exemple en Torch [MM, LC]
 
 ```{python}
