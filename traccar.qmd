@@ -1,0 +1,43 @@
+---
+title: "Traccar"
+subtitle: "Collecting GPS records (almost) for free"
+format: html
+---
+
+Traccar is an **open-source GPS tracking platform**. It allows to track vehicles, people, or any GPS-enabled device in real time. It comes with a web User Interface to view devices on a map and can integrate a huge amount of GPS tracking devices.
+
+It works with:
+
+- a GPS device (can be a smartphone) which sends location data to the Traccar server.
+
+- a server that stores data in a database (e.g. OVH server).
+
+- a web app and APIs that allows to visualize, analyze, or forward that data.
+
+We first provide a tutorial to test the traccar system (a demo provided by the developpers). Then, we give the main steps to build your own tracking system (setting up the server, connecting devices and extracting the data from the database).
+
+## Demo of the Traccar system
+
+First, download the **Traccar client** application and perform the different steps of installation.
+
+![](images/traccar_client.png){fig-align="center"}
+
+By default, it should be connected to a server (http://demo.traccar.org) and have a specific device identifier.
+
+You can connect to the server on the web via this same link, and add a system device (+ symbol on the top of the left bar).
+
+![](images/traccar_demo.png){fig-align="center"}
+
+To connect your system device, you must enter your device with your identifier on the **Traccar client** app in the identifier box.
+
+![](images/identifier.png){fig-align="center"}
+
+From the client app, send your location. This should be visible on the traccar manager.
+
+Carreful, there are several servers. If one server is not working properly (e.g. you can't connect your device to the server), try another server. Here is the [link](https://www.traccar.org/demo-server/) to the other servers.
+
+You can follow your own track through time by clicking on the replay button.
+
+![](images/replay.png){fig-align="left"}
+
+![](images/track.png){fig-align="center"}
