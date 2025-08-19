@@ -23,7 +23,7 @@ author:
   - name: Lucia Clarotto
 date: "2025-08-18"
 date-modified: today
-date-format: "[Last Updated on] MMMM, YYYY"
+date-format: "DD MMMM YYYY"
 ---
 
 ::: callout-note
@@ -31,9 +31,10 @@ L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour cal
 
 - l'utilisation d'une fonction non différentiable pour lesquels on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX/Torch
 - l'utilisation d'une fonction donc une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX/Torch 
+:::: 
 
 Dans ce tutoriel, on considère une fonction jouet $f$ qui dépend d'une entrée $x$ et de paramètres $a, b$.
-:::: 
+
 $$
 f: (x, a, b) \in \mathbb{R}^p \times \mathbb{R}^p \times \mathbb{R} \mapsto \tanh(a^\top x + b) \in \mathbb{R}
 $$
@@ -57,18 +58,18 @@ $$
 
 On peut calculer $\nabla h(z)$ de deux façons: 
 
-- en mode forward (ou `jvp`): on commence par calculer $v = \nabla g(z)$ (aussi appelé `tangents`) et $g(z)$ et le gradient $J = \nabla f(g(z))$ avant de calculer le produit scalaire $J^\top v$. En pratique on écrit une fonction `jvp` $(x, v) \mapsto \nabla f(x)^\top v$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla f$. 
-- en mode reverse (ou `vjp`): on rétro-propage le gradient en calculant $v = \frac{\partial h(z)}{\partial g(z)} = \nabla f(g(z))$ (:warning: il faut avoir calculé et stocké $g(z)$ au préalable) et $J = \frac{\partial g(z)}{\partial z}$ et on calcule le produit scalaire $v J$. En pratique, on écrit une fonction `vjp` (ou `backward`) $(x, v) \mapsto v \nabla g(x)$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla g$. 
+- en mode forward (ou `jvp`): on commence par calculer $v = \nabla g(z)$ (aussi appelé `tangents`) et $g(z)$ et le gradient $J = \nabla f(g(z))$ avant de calculer le produit scalaire $J v$. En pratique on écrit une fonction `jvp` $(x, v) \mapsto \nabla f(x) v (\symeq f(x + v) - f(x))$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla f$. 
+- en mode reverse (ou `vjp`): on rétro-propage le gradient en calculant $J = \frac{\partial h(z)}{\partial g(z)} = \nabla f(g(z))$ (:warning: il faut avoir calculé et stocké $g(z)$ au préalable) et $v = \frac{\partial g(z)}{\partial z}$ et on calcule le produit scalaire $v^\top J$. En pratique, on écrit une fonction `vjp` (ou `backward`) $(x, v) \mapsto v^\top \nabla f(x)$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla f$. 
 
 En pratique il faut écrire `jvp` et `vjp` pour chaque fonction utilisée dans la composition. 
-
-:::
 
 # Théorie [XX]
 
 Pour un rapide résumé de ce qu'est l'auto différentiation, et de son intérêt par rapport à d'autres stratégies de calcul numérique ou d'approximation des gradients d'une fonction, voici une vidéo assez complète en 14 min : {{< video https://www.youtube.com/watch?v=wG_nF1awSSY >}}
 
 # Exemple en Torch [MM, LC]
+
+## En utilisant les primitives de torch
 
 ```{python}
 import torch
@@ -118,7 +119,7 @@ On vérifie que les deux façons de faire donnent le même résultat.
 assert torch.allclose(df_torch_dx(x, a, b), x.grad)
 ```
 
-::: panel-tabset
+## En utilisant notre propre fonction
 
 Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. 
 
@@ -128,7 +129,7 @@ On doit définir 4 méthodes:
 - `backward` (ou `vjp`) qui reçoit le gradient calculé en aval et renvoie le gradient, pour faire de la différentiation automatique en mode reverse. 
 - `jvp` qui reçoit une différentielle calculée en amont et la multiplie en amont avant de la renvoyer, pour faire de la différentiation automatique en mode forward. 
 
-## Définition de la fonction 
+### Définition de la fonction 
 
 ```{python}
 class f_torch_manual(torch.autograd.Function):
@@ -142,21 +143,23 @@ class f_torch_manual(torch.autograd.Function):
     def forward(x, a, b):
         """
         In the forward pass we receive a Tensor containing the input and return
-        a Tensor containing the output. ctx is a context object that can be used
-        to stash information for backward computation. You can cache tensors for
-        use in the backward pass using the ``ctx.save_for_backward`` method. Other
-        objects can be stored directly as attributes on the ctx object, such as
-        ``ctx.my_object = my_object``. Check out `Extending torch.autograd <https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd>`_
-        for further details.
+        a Tensor containing the output.
         """
         output = torch.tanh(torch.dot(a, x) + b)
         return output
 
     @staticmethod
     def setup_context(ctx, inputs, output):
+        """
+        ctx is a context object that can be used
+        to stash information for backward computation. You can cache tensors for
+        use in the backward pass using the ``ctx.save_for_backward`` method. Other
+        objects can be stored directly as attributes on the ctx object, such as
+        ``ctx.my_object = my_object``.
+        """
         x, a, b = inputs
-        scaling = 1 - output.pow(2) # \tanh' = 1 - \tanh^2
         ## save output to cut computation time
+        scaling = 1. - output.pow(2) # tanh' = 1 - tanh^2
         ctx.save_for_backward(x, a, scaling)
 
     @staticmethod
@@ -182,7 +185,7 @@ class f_torch_manual(torch.autograd.Function):
         tx, ta, tb = tangents
         ## Matrix (in this case vector) of first order gradient
         result = torch.tanh(torch.dot(a, x) + b)
-        scaling = (1 - result.pow(2))
+        scaling = (1. - result.pow(2))
         Jx = a * scaling
         Ja = x * scaling
         Jb = scaling
@@ -190,7 +193,9 @@ class f_torch_manual(torch.autograd.Function):
         return torch.dot(Jx, tx) + torch.dot(Ja, ta) + Jb * tb
 ```
 
-## Dérivée par rapport à $x$, $a$ et $b$ 
+### Vérification des dérivées
+
+::: panel-tabset
 
 ### En mode reverse
 
@@ -208,25 +213,52 @@ x.grad, a.grad, b.grad
 
 On vérifie qu'on obtient bien le même résultat qu'en laissant `torch` faire le calcul :party:. 
 
+On aurait aussi pu utiliser les opérateurs *fonctionnels* pour calculer la fonction dérivée (en utilisant le mode reverse)
+
+```{python}
+f_grad_rev = torch.func.jacrev(func=f, argnums=(0, 1, 2))
+```
+
+et vérifier que le résultat coincide avec le calcul fait à la main. 
+
+```{python}
+assert all(torch.allclose(f_grad_rev(x, a, b)[i], (x.grad, a.grad, b.grad)[i]) for i in range(2))
+```
+
 ### En mode forward
 
 On calcule la dérivée par rapport à la première coordonnée de $x$
 
 ```{python}
-tangents = (torch.tensor([1, 0]).float(), torch.tensor([0, 0]).float(), torch.tensor(0).float())
+tangents = (torch.tensor([1., 0.]), torch.tensor([0., 0.]), torch.tensor(0.))
 f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 ```
 
 puis par rapport à la deuxième coordonnée de $a$
 
 ```{python}
-tangents = (torch.tensor([0, 0]).float(), torch.tensor([0, 1]).float(), torch.tensor(0).float())
+tangents = (torch.tensor([0., 0.]), torch.tensor([0., 1.]), torch.tensor(0.))
 f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 ```
 
 Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode reverse et directement en utilisant `torch` :grin:
 
-## Comparaison des temps de calculs en mode reverse et forward
+::: {.callout-warning collapse="true"}
+
+En théorie, on pourrait utiliser les opérateurs *fonctionnels* pour calculer la fonction dérivée (en utilisant le mode forward)
+```{python}
+#| eval: false
+f_grad_fwd = torch.func.jacfwd(func=f, argnums=(0, 1, 2))
+```
+
+mais il faut définir une méthode statique `vmap` et je n'ai pas compris comment faire :cry:
+:::
+
+:::
+
+## Comparaison des temps de calculs
+
+On compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version. 
 
 ```{python}
 dim = 100
@@ -236,57 +268,29 @@ x = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)
 ```
 
 ```{python}
-def grad_torch_reverse(x, a, b):
-    z = f_torch(x, a, b)
-    z.backward()
-    return x.grad, a.grad, b.grad
-def grad_torch_forward(x, a, b):
-    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
-    tangents[0][0] = 1    
-    return torch.func.jvp(f_torch, (x, a, b), tangents)   
-def grad_torch_manual_reverse(x, a, b):
-    f = f_torch_manual.apply
-    z = f(x, a, b)
-    z.backward()    
-    return x.grad, a.grad, b.grad
-def grad_torch_manual_forward(x, a, b):
-    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
-    tangents[0][0] = 1    
-    return f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)  
-```
-
-```{python}
-%timeit grad_torch_reverse(x, a, b)
-%timeit grad_torch_forward(x, a, b)
-%timeit grad_torch_manual_reverse(x, a, b)
-%timeit grad_torch_manual_forward(x, a, b)
+f_torch_grad_rev = torch.func.jacrev(func=f_torch, argnums=(0, 1, 2))
+%timeit f_torch_grad_rev(x, a, b)
+f_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))
+%timeit f_torch_grad_fwd(x, a, b)
+%timeit f_grad_rev(x, a, b)
 ```
 
 ## Impact de JIT
 
+On essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients. 
+
 ```{python}
-f_torch_jit = torch.jit.trace(f_torch, (x, a, b))
-def grad_torch_reverse_jit(x, a, b):
-    z = f_torch_jit(x, a, b)
-    z.backward()
-    return x.grad, a.grad, b.grad
-def grad_torch_forward_jit(x, a, b):
-    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
-    tangents[0][0] = 1    
-    return torch.func.jvp(f_torch_jit, (x, a, b), tangents)
+f_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))
+f_torch_grad_fwd_jit = torch.jit.trace(f_torch_grad_fwd, (x, a, b))
+# f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))
 ```
 
 
 ```{python}
-%timeit grad_torch_reverse_jit(x, a, b)
-%timeit grad_torch_forward_jit(x, a, b)
-# grad_torch_manual_reverse_jit = torch.jit.trace(grad_torch_manual_reverse, (x, a, b))
-# %timeit grad_torch_manual_reverse_jit(x, a, b))
-# grad_torch_manual_forward_jit = torch.jit.trace(grad_torch_manual_forward, (x, a, b))
-# %timeit grad_torch_manual_forward_jit(x, a, b)
+%timeit f_torch_grad_rev_jit(x, a, b)
+%timeit f_torch_grad_fwd_jit(x, a, b)
+# %timeit f_grad_rev_jit(x, a, b)
 ```
-
-:::
 
 # Exemple en JAX [HG, AL]
 
@@ -531,7 +535,7 @@ On note que, s'il est défini, le `custom_jvp` sera utilisé par JAX, en mode fo
 
 [Lien vers la documentation de JAX](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#use-jax-custom-vjp-to-define-custom-reverse-mode-only-rules)
 
-Un VJP est capable de dévoiler une ligne de la jacobienne à la fois. Cela va donc nous permettre de calculer toute la matrice jacobienne de $f$ en un seul appel à JVP car c'est une matrice à une seule ligne. Nous l'avons vu dans la section précédente où en fait, `jax.jacrec` doit en fait appeler tous ces JVPs (ce qui est fait de manière cachée à l'utilisateur).
+Un VJP est capable de dévoiler une ligne de la jacobienne à la fois. Cela va donc nous permettre de calculer toute la matrice jacobienne de $f$ en un seul appel à JVP car c'est une matrice à une seule ligne. Nous l'avons vu dans la section précédente où en fait, `jax.jacrec` doit en fait appeler tous ces VJPs (ce qui est fait de manière cachée à l'utilisateur).
 
 Si nous souhaitons explicitement définir le VJP, nous devons d'abord écrire une fonction qui décrit la passe forward. C'est ici `f_fwd` qui retourne `f(primal)` et des valeurs stockées pour le moment de la passe backward (à la manière de `save_for_backward` vu dans la section `pytorch` !). Il faut ici bien réfléchir à ce qui est nécessaire de stocker et ce qui est superflu, afin d'optimiser au mieux le code. Ici nous stockons `f(x,a,b)`, `x` et `a` car ces valeurs sont réutilisées dans la passe backward où nous calculons $g. \frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial x}$, $g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial a}$ et $g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial b}$. Avec $g$ le gradient provenant de l'aval du graphe pour calculer les VJPs (rappelons que nous les calculons de manière backward en remontant le graphe).
 
