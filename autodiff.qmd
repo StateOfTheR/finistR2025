@@ -24,15 +24,41 @@ date-format: "[Last Updated on] MMMM, YYYY"
 ---
 
 ::: callout-note
-L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP et le VJP d'une fonction simple:
+L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP (Jacobian Vector Product) et le VJP (Vector Jacobian Product) d'une fonction qui n'est disponible dans les primitives fournies par JAX/Torch. Les deux cas d'usage envisagées sont:
+
+- l'utilisation d'une fonction non différentiable pour lesquels on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX/Torch
+- l'utilisation d'une fonction donc une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX/Torch 
+
+Dans ce tutoriel, on considère une fonction jouet $f$ qui dépend d'une entrée $x$ et de paramètres $a, b$.
+:::: 
 $$
 f: (x, a, b) \in \mathbb{R}^p \times \mathbb{R}^p \times \mathbb{R} \mapsto \tanh(a^\top x + b) \in \mathbb{R}
 $$
-On considère les dérivées par rapport à l'entrée $x$ et aux paramètres $a, b$. On rappelle que $tanh'(x) = 1 - \tanh^2(x)$ et que 
 
+On rappelle que $tanh'(x) = 1 - \tanh^2(x)$ et que 
 $$
-\frac{\partial d}{\partial x} = a.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial d}{\partial a} = x.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial d}{\partial b} = (1 - \tanh^2(a^\top x + b))
+\frac{\partial f}{\partial x} = a.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial d}{\partial f} = x.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial f}{\partial b} = (1 - \tanh^2(a^\top x + b))
 $$
+ou en mode matriciel 
+$$
+\nabla f(x, a, b) = \left(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial a}, \frac{\partial f}{\partial b}\right)^\top
+$$
+
+On rappelle que la différentiation automatique fait appel à la *chain-rule*. Pour une fonction $g$ à valeurs dans $\mathbb{R}^p \times \mathbb{R}^p \times \mathbb{R}$, et en notant $h = f \circ g$, on a 
+$$
+\begin{align}
+\nabla h(z) & = \frac{\partial (f \circ g)(z)}{\partial z} = \nabla f(g(z))^\top \nabla g(z) \\
+            & = \frac{\partial (f \circ g)(z)}{\partial z} = \frac{\partial h(z)}{\partial g(z)} \frac{\partial g(z)}{\partial z}
+\end{align}            
+$$
+
+On peut calculer $\nabla h(z)$ de deux façons: 
+
+- en mode forward (ou `jvp`): on commence par calculer $v = \nabla g(z)$ (aussi appelé `tangents`) et $g(z)$ et le gradient $J = \nabla f(g(z))$ avant de calculer le produit scalaire $J^\top v$. En pratique on écrit une fonction `jvp` $(x, v) \mapsto \nabla f(x)^\top v$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla f$. 
+- en mode reverse (ou `vjp`): on rétro-propage le gradient en calculant $v = \frac{\partial h(z)}{\partial g(z)} = \nabla f(g(z))$ (:warning: il faut avoir calculé et stocké $g(z)$ au préalable) et $J = \frac{\partial g(z)}{\partial z}$ et on calcule le produit scalaire $v J$. En pratique, on écrit une fonction `vjp` (ou `backward`) $(x, v) \mapsto v \nabla g(x)$ qui calcule directement le produit scalaire pour éviter d'avoir à matérialiser $\nabla g$. 
+
+En pratique il faut écrire `jvp` et `vjp` pour chaque fonction utilisée dans la composition. 
+
 :::
 
 # Théorie [XX]
@@ -61,7 +87,7 @@ a = torch.ones(2, requires_grad = True)
 b = torch.tensor(-2., requires_grad = True)
 ```
 
-Et on calcule les dérivées partielles ($\partial f / \partial x = `x.grad`).
+Et on calcule les dérivées partielles (avec la convention $\partial f / \partial x =$ `x.grad`).
 
 ```{python}
 ## Définit y par rapport à x
@@ -73,15 +99,31 @@ y.backward()
 x.grad, a.grad, b.grad
 ```
 
+On peut être plus concis pour calculer notre gradient (ici par rapport à $x$) en définissant directement la fonction $(x, a, b) \mapsto \frac{\partial f}{\partial x}(x, a, b)$ dans `df_torch_dx`
+
+::: callout-note
+Le paramètre `argnums=0` précise qu'on calcule la dérivée par rapport au premier argument de $f$, en l'occurence $x$. 
+:::
+
+```{python}
+df_torch_dx = torch.func.grad(f_torch, argnums=0)
+```
+
+On vérifie que les deux façons de faire donnent le même résultat. 
+
+```{python}
+assert torch.allclose(df_torch_dx(x, a, b), x.grad)
+```
+
 ::: panel-tabset
 
 Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. 
 
 On doit définir 4 méthodes: 
 - `forward` qui reçoit les entrées et calcule la sortie
-- `setup_context` qui stocke dans un objet `ctx` des tenseurs qui peuvent être réutilisés au moment du calcul de la dérivée
+- `setup_context` qui stocke dans un objet `ctx` des tenseurs qui peuvent être réutilisés au moment du calcul de la dérivée (dans notre exemple, on a juste besoin de $x$, $a$ et $1 - \tanh^2(a^\top x + b)$. 
 - `backward` (ou `vjp`) qui reçoit le gradient calculé en aval et renvoie le gradient, pour faire de la différentiation automatique en mode reverse. 
-- `jvp` qui reçoit le gradient calculé en amont et renvoie le gradient, pour faire de la différentiation automatique en mode forward. 
+- `jvp` qui reçoit une différentielle calculée en amont et la multiplie en amont avant de la renvoyer, pour faire de la différentiation automatique en mode forward. 
 
 ## Définition de la fonction 
 
@@ -110,9 +152,9 @@ class f_torch_manual(torch.autograd.Function):
     @staticmethod
     def setup_context(ctx, inputs, output):
         x, a, b = inputs
-        ctx.result = output
+        scaling = 1 - output^2 # \tanh' = 1 - \tanh^2
         ## save output to cut computation time
-        ctx.save_for_backward(x, a, b)
+        ctx.save_for_backward(x, a, scaling)
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -122,12 +164,10 @@ class f_torch_manual(torch.autograd.Function):
         with respect to the input.
         It corresponds to a Vector Jacobian Product (vjp), used for reverse auto-differentiation
         """
-        x, a, b = ctx.saved_tensors
-        result  = ctx.result
-        mult_fact = (1 - result.pow(2))
-        grad_x = grad_output * a * mult_fact
-        grad_a = grad_output * x * mult_fact
-        grad_b = grad_output * mult_fact
+        x, a, scaling = ctx.saved_tensors
+        grad_x = grad_output * a * scaling
+        grad_a = grad_output * x * scaling
+        grad_b = grad_output * scaling
         return grad_x, grad_a, grad_b # on doit calculer les grad par rapport à tous les arguments rajouter grad par rapport à a et b
 
     @staticmethod
@@ -139,10 +179,10 @@ class f_torch_manual(torch.autograd.Function):
         tx, ta, tb = tangents
         ## Matrix (in this case vector) of first order gradient
         result = torch.tanh(torch.dot(a, x) + b)
-        mult_fact = (1 - result.pow(2))
-        Jx = a * mult_fact
-        Ja = x * mult_fact
-        Jb = mult_fact
+        scaling = (1 - result.pow(2))
+        Jx = a * scaling
+        Ja = x * scaling
+        Jb = scaling
         ## Return J(x, a, b)v
         return torch.dot(Jx, tx) + torch.dot(Ja, ta) + Jb * tb
 ```
@@ -162,6 +202,8 @@ z.backward()
 ## Renvoie dy/dx
 x.grad, a.grad, b.grad
 ```
+
+On vérifie qu'on obtient bien le même résultat qu'en laissant `torch` faire le calcul :party:. 
 
 ### En mode forward
 
