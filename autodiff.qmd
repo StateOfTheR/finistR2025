@@ -3,6 +3,8 @@ title: "Tutoriel de différentiation automatique"
 from: markdown+emoji
 lang: fr
 format: html
+execute:
+    cache: true
 toc: true
 author:
   - name: Mahendra Mariadassou
@@ -24,14 +26,12 @@ date-format: "[Last Updated on] MMMM, YYYY"
 ::: callout-note
 L'obectif de ce tutoriel est de montrer comment utiliser JAX et PyTorch pour calculer le JVP et le VJP d'une fonction simple:
 $$
-f: x \in \mathbb{R}^p \mapsto \tanh(a^\top x + b) \in \mathbb{R}
+f: (x, a, b) \in \mathbb{R}^p \times \mathbb{R}^p \times \mathbb{R} \mapsto \tanh(a^\top x + b) \in \mathbb{R}
 $$
-avec $a \in \mathbb{R}^p$ et $b \in \mathbb{R}$. On considère les dérivées par rapport à l'entrée $x$ puis par rapport aux paramètres $a, b$. 
+On considère les dérivées par rapport à l'entrée $x$ et aux paramètres $a, b$. On rappelle que $tanh'(x) = 1 - \tanh^2(x)$ et que 
 
-On rappelle que 
 $$
-tanh'(x) = 1 - \tanh^2(x)
-f'(x) = a*(1 - \tanh^2(a^\top x + b))
+\frac{\partial d}{\partial x} = a.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial d}{\partial a} = x.(1 - \tanh^2(a^\top x + b)) \qquad \frac{\partial d}{\partial b} = (1 - \tanh^2(a^\top x + b))
 $$
 :::
 
@@ -44,7 +44,7 @@ import torch
 import numpy as np
 ```
 
-On definit notre fonction en torch
+On definit notre fonction $f$ en torch. 
 
 ```{python}
 def f_torch(x, a, b):
@@ -59,7 +59,7 @@ a = torch.ones(2, requires_grad = True)
 b = torch.tensor(-2., requires_grad = True)
 ```
 
-Et on calcule $f'(x)$. 
+Et on calcule les dérivées partielles ($\partial f / \partial x = `x.grad`).
 
 ```{python}
 ## Définit y par rapport à x
@@ -74,6 +74,12 @@ x.grad, a.grad, b.grad
 ::: panel-tabset
 
 Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. 
+
+On doit définir 4 méthodes: 
+- `forward` qui reçoit les entrées et calcule la sortie
+- `setup_context` qui stocke dans un objet `ctx` des tenseurs qui peuvent être réutilisés au moment du calcul de la dérivée
+- `backward` (ou `vjp`) qui reçoit le gradient calculé en aval et renvoie le gradient, pour faire de la différentiation automatique en mode reverse. 
+- `jvp` qui reçoit le gradient calculé en amont et renvoie le gradient, pour faire de la différentiation automatique en mode forward. 
 
 ## Définition de la fonction 
 
@@ -157,10 +163,21 @@ x.grad, a.grad, b.grad
 
 ### En mode forward
 
+On calcule la dérivée par rapport à la première coordonnée de $x$
+
 ```{python}
 tangents = (torch.tensor([1, 0]).float(), torch.tensor([0, 0]).float(), torch.tensor(0).float())
 f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 ```
+
+puis par rapport à la deuxième coordonnée de $a$
+
+```{python}
+tangents = (torch.tensor([0, 0]).float(), torch.tensor([0, 1]).float(), torch.tensor(0).float())
+f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
+```
+
+Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode reverse et directement en utilisant `torch` :grin:
 
 :::
 
