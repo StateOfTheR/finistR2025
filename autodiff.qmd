@@ -193,15 +193,19 @@ import jax.numpy as jnp
 from jax import grad, jit
 from jax import random
 
+## On définit une dimension arbitraire pour nos inputs
 dim = 100
 
+## On initialise les paramètres et le vecteur d'input de la fonction
 a = jnp.arange(dim)/ (dim*10)
 b = 0.5
 x = (jnp.arange(dim) - 37) / (dim*10)
 
+## On définit une fonction simple dont on connaît les gradients analytiques
 def f(x, a, b):
     return jnp.tanh(jnp.dot(a, x) + b)
 
+## On affiche la valeur de la fonction pour vérifier que tout est ok
 f(x, a, b) 
 ```
 
@@ -209,7 +213,7 @@ f(x, a, b)
 
 ## Dérivée par rapport à $x$
 
-On définit la fonction les gradients exacts à partir des formules analytiques. 
+Dans un premier temps, on peut définir les gradients exacts de cette fonction à partir d'une formule analytique. 
 
 ```{python}
 def df_dx(x, a, b):
@@ -221,34 +225,39 @@ Puis on définit les gradients via autograd et on vérifie que les résultats so
 ```{python}
 ## jax.grad calcule la formule backward par défaut
 grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) 
+## On peut aussi calculer la formule forward via jax.jacfwd
 fwdgrad_df_dx = jax.jacfwd(lambda x: f(x, a, b), argnums=0) 
 
+## On vérifie que les gradients retournent des valeurs identiques
 assert jnp.allclose(grad_df_dx(x), df_dx(x, a, b))
 assert jnp.allclose(grad_df_dx(x), fwdgrad_df_dx(x))
 
+## Si les assertions ne retournent pas d'erreur, les gradients sont corrects
 print('All good, we are ready to go!')
 ```
 
 ## Dérivée par rapport à $a$ et $b$
 
-On définit la fonction les gradients exacts à partir des formules analytiques. 
+On définit également les gradients exacts par rapport aux paramètres $a$ et $b$ pour vérifier que l'on pourrait les optimiser dans un algorithme d'apprentissage.
 
 ```{python}
-
 def df_dab(x, a, b):
     return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2
-
 ```
 
-Puis on définit les gradients via autograd et on vérifie que les résultats sont identiques.
+Puis on définit ces gradients via autograd et on vérifie que les résultats sont identiques.
 
 ```{python}
 ## jax.grad calcule la formule backward par défaut
 grad_df_dab = jax.grad(lambda a_b: f(x, *a_b), argnums=0)
+## On peut aussi calculer la formule forward via jax.jacfwd
 fwdgrad_df_dab = jax.jacfwd(lambda a_b: f(x, *a_b), argnums=0)
 
+## On vérifie que les gradients retournent des valeurs identiques
 assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))
 assert all(jnp.allclose(grad_df_dab((a,b))[i], fwdgrad_df_dab((a,b))[i]) for i in range(2))
+
+## Si les assertions ne retournent pas d'erreur, les gradients sont corrects
 print('All good, we are ready to go!')
 ```
 
@@ -258,7 +267,7 @@ Nous avons donc bien vérifié que les gradients calculés avec JAX sont identiq
 
 # Comparaison des temps de calcul en JAX entre autograd (backward et forward) et le calcul explicite des gradients
 
-Pour mettre en lumière les différences entre backward et forward, nous allons définir une nouvelle fonction dont les sorties sont de plus grandes dimensions que les entrées. 
+Pour mettre en lumière les différences entre l'autograd backward et forward, nous allons définir une nouvelle fonction $g$ dont les sorties sont de plus grandes dimensions que les entrées. 
 
 ::: panel-tabset
 
@@ -266,27 +275,36 @@ Pour mettre en lumière les différences entre backward et forward, nous allons 
 
 Comparaison des temps de calcul :
 ```{python}
+
+## On lance une quantification du temps de calcul pour les trois méthodes (la commande .block_until_ready() est spécifique à JAX pour forcer l'évaluation des opérations asynchrones)
 %timeit df_dx(x, a, b).block_until_ready()
 %timeit grad_df_dx(x).block_until_ready()
 %timeit fwdgrad_df_dx(x).block_until_ready()
 ```
 
-## $x \in \mathbb{R}^d$, f(x) $\in \mathbb{R}$
-On définit une nouvelle fonction $g$ multidimensionnelle:
+## $x \in \mathbb{R}$, g(x) $\in \mathbb{R}^d$
+
+On définit une nouvelle fonction $g$ qui retourne un vecteur de dimension $d$:
 
 ```{python}
-dim_g = 100
 
+## On définit la dimension du vecteur de sortie
+dim_g = 100
+## On initialise un point d'évaluation pour la fonction $g$
+x_g = 0.5
+
+## On définit la nouvelle fonction $g$ qui retourne un vecteur de dimension $dim_g$
 def g(x):
     return jnp.array([jnp.tanh(x + i/dim_g) for i in range(dim_g)])
 
+## On définit le gradient analytique de la fonction $g$
 def dg_dx(x):
     return jnp.array([1- jnp.tanh(x + i/dim_g)**2 for i in range(dim_g)])
     
+## jax.grad calcule la formule backward par défaut
 grad_dg_dx = jax.jacrev(lambda x: g(x), argnums=0)
+## On peut aussi calculer la formule forward via $jax.jacfwd$
 fwdgrad_dg_dx = jax.jacfwd(lambda x: g(x), argnums=0)    
-
-x_g = 0.5
 ```
 
 Comparaison des temps de calcul :
@@ -298,7 +316,7 @@ Comparaison des temps de calcul :
 
 :::
 
-On onbserve que le calcul explicite des gradients est plus rapide que les deux autres méthodes. Il y a donc un prix à payer pour la différentiation automatique, bien qu'elle est très utile pour les fonctions complexes. Cependant nous allons voir qu'en combinaison avec le jitting, les choses changent.
+On onbserve que le calcul explicite des gradients est plus rapide que les deux autres méthodes. Il y a donc un prix à payer pour la différentiation automatique, bien qu'elle soit très utile pour des fonctions complexes. Cependant, nous allons voir qu'en combinaison avec une autre stratégie clef en JAX, le jitting, les choses changent.
 
 # JIT compilation avec JAX 
 
@@ -306,30 +324,38 @@ La compilation JIT (Just-In-Time) permet d'optimiser les performances des foncti
 
 ::: panel-tabset
 
+La syntaxe JAX est très confortable, il suffit d'ajouter le décorateur `@jit` avant la définition de la fonction. De manière analogue, on peut utiliser `jax.jit` à la suite de la fonction `jax.grad` ou `jax.jacfwd` pour compiler les gradients.
+
 ## Gradients jittés pour la fonction $f$
 ```{python}
+
+## On redéfinit la fonction $f$ et ses gradients avec JIT
 @jit
 def f_jit(x, a, b):
     return jnp.tanh(jnp.dot(a, x) + b)
 
 @jit
-def df_dx(x, a, b):
+def df_dx_jit(x, a, b):
     return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)
 
-df_dx_jit = jax.jit(df_dx)
+## On compile les gradients de la fonction $f$ avec JIT
 grad_f_jit = jax.jit(jax.grad(lambda x: f_jit(x, a, b), argnums=0))
 fwdgrad_f_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x, a, b), argnums=0))
 
+## On peut maintenant mesurer le temps de calcul des gradients avec JIT
 %timeit df_dx_jit(x, a, b).block_until_ready()
 %timeit grad_f_jit(x).block_until_ready()
 %timeit fwdgrad_f_jit(x).block_until_ready()
 ```
 
-### Gradients jittés pour $g$
-
 ## Gradients jittés pour la fonction $g$
 
 ```{python}
+
+## On redéfinit la dimension du vecteur de sortie pour la fonction $g$ (les gradients sont sensibles à la dimension du vecteur de sortie, même avec JIT, notamment lorsque l'on compare l'autograd backward et forward)
+dim_g = 10
+
+## On redéfinit la fonction $f$ et ses gradients avec JIT
 @jit
 def g_jit(x):
     return jnp.array([jnp.tanh(x + i/dim_g) for i in range(dim_g)])
@@ -338,16 +364,19 @@ def g_jit(x):
 def dg_dx_jit(x):
     return jnp.array([1- jnp.tanh(x + i/dim_g)**2 for i in range(dim_g)])
 
-dg_dx_jit = jax.jit(dg_dx)
-grad_g_jit = jax.jit(jax.jacrev(lambda x: g_jit(x), argnums=0))
-fwdgrad_g_jit = jax.jit(jax.jacfwd(lambda x: g_jit(x), argnums=0))
+## Pour que le calcul soit rapide aussi, il faut ajouter un 'vmap' avant le 'jit' pour que la fonction soit vectorisée et puisse tirer parti de la compilation JIT.
+grad_g_jit = jax.jit(jax.vmap(jax.jacrev(lambda x: g_jit(x), argnums=0)))
+fwdgrad_g_jit = jax.jit(jax.vmap(jax.jacfwd(lambda x: g_jit(x), argnums=0)))
 
+## On peut maintenant mesurer le temps de calcul des gradients avec JIT
 %timeit dg_dx_jit(x).block_until_ready()
 %timeit grad_g_jit(x).block_until_ready()
 %timeit fwdgrad_g_jit(x).block_until_ready()
 ```
 
 :::
+
+On peut constater dans les deux cas que la compilation JIT permet d'accélérer considérablement le calcul des gradients, et rendre l'autograd négligeable d'un point de vue computationel. Dans le cas de la fonction $g$ qui retourne un vecteur, la vectorisation permet aussi d'accélérer le calcul. Ainsi la combinaison de l'autograd, du jitting et de la vectorisation permet d'obtenir des performances optimales et rendre la différentiation automatique aussi efficace que l'analytique, même pour des fonctions complexes.
 
 <!--
 ### Dérivée par rapport à $a$ et $b$
