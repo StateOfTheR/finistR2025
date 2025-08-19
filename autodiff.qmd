@@ -179,6 +179,46 @@ f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 
 Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode reverse et directement en utilisant `torch` :grin:
 
+## Comparaison des temps de calculs en mode reverse et forward
+
+```{python}
+dim = 100
+a = torch.tensor(np.arange(dim)/ (dim*10), requires_grad = True)
+b = torch.tensor(0.5, requires_grad = True)
+x = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)
+```
+
+```{python}
+def grad_torch_reverse(x, a, b):
+    z = f_torch(x, a, b)
+    z.backward()
+    x.grad, a.grad, b.grad
+    return
+def grad_torch_forward(x, a, b):
+    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
+    tangents[0][0] = 1
+    torch.func.jvp(f_torch, (x, a, b), tangents)
+    return    
+def grad_torch_manual_reverse(x, a, b):
+    f = f_torch_manual.apply
+    z = f(x, a, b)
+    z.backward()
+    x.grad, a.grad, b.grad
+    return
+def grad_torch_manual_forward(x, a, b):
+    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
+    tangents[0][0] = 1
+    f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
+    return   
+```
+
+```{python}
+%timeit grad_torch_reverse(x, a, b)
+%timeit grad_torch_forward(x, a, b)
+%timeit grad_torch_manual_reverse(x, a, b)
+%timeit grad_torch_manual_forward(x, a, b)
+```
+
 :::
 
 # Exemple en JAX [HG, AL]
