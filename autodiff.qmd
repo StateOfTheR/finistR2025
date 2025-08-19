@@ -155,7 +155,7 @@ class f_torch_manual(torch.autograd.Function):
     @staticmethod
     def setup_context(ctx, inputs, output):
         x, a, b = inputs
-        scaling = 1 - output^2 # \tanh' = 1 - \tanh^2
+        scaling = 1 - output.pow(2) # \tanh' = 1 - \tanh^2
         ## save output to cut computation time
         ctx.save_for_backward(x, a, scaling)
 
