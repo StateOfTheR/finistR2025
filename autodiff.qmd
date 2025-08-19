@@ -192,24 +192,20 @@ x = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)
 def grad_torch_reverse(x, a, b):
     z = f_torch(x, a, b)
     z.backward()
-    x.grad, a.grad, b.grad
-    return
+    return x.grad, a.grad, b.grad
 def grad_torch_forward(x, a, b):
     tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
-    tangents[0][0] = 1
-    torch.func.jvp(f_torch, (x, a, b), tangents)
-    return    
+    tangents[0][0] = 1    
+    return torch.func.jvp(f_torch, (x, a, b), tangents)   
 def grad_torch_manual_reverse(x, a, b):
     f = f_torch_manual.apply
     z = f(x, a, b)
-    z.backward()
-    x.grad, a.grad, b.grad
-    return
+    z.backward()    
+    return x.grad, a.grad, b.grad
 def grad_torch_manual_forward(x, a, b):
     tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
-    tangents[0][0] = 1
-    f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
-    return   
+    tangents[0][0] = 1    
+    return f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)  
 ```
 
 ```{python}
@@ -217,6 +213,30 @@ def grad_torch_manual_forward(x, a, b):
 %timeit grad_torch_forward(x, a, b)
 %timeit grad_torch_manual_reverse(x, a, b)
 %timeit grad_torch_manual_forward(x, a, b)
+```
+
+## Impact de JIT
+
+```{python}
+f_torch_jit = torch.jit.trace(f_torch, (x, a, b))
+def grad_torch_reverse_jit(x, a, b):
+    z = f_torch_jit(x, a, b)
+    z.backward()
+    return x.grad, a.grad, b.grad
+def grad_torch_forward_jit(x, a, b):
+    tangents = (torch.zeros_like(x), torch.zeros_like(a), torch.zeros_like(b))
+    tangents[0][0] = 1    
+    return torch.func.jvp(f_torch_jit, (x, a, b), tangents)
+```
+
+
+```{python}
+%timeit grad_torch_reverse_jit(x, a, b)
+%timeit grad_torch_forward_jit(x, a, b)
+# grad_torch_manual_reverse_jit = torch.jit.trace(grad_torch_manual_reverse, (x, a, b))
+# %timeit grad_torch_manual_reverse_jit(x, a, b))
+# grad_torch_manual_forward_jit = torch.jit.trace(grad_torch_manual_forward, (x, a, b))
+# %timeit grad_torch_manual_forward_jit(x, a, b)
 ```
 
 :::
