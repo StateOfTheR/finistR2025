@@ -16,6 +16,9 @@ author:
         city: Jouy-en-Josas
         state: France
   - name: Hugo Gangloff
+    email: hugo.gangloff@inrae.fr
+    affiliations:
+      - name: INRAE - MIA Paris Saclay
   - name: Arthur Leroy
   - name: Lucia Clarotto
 date: "2025-08-18"
@@ -482,58 +485,26 @@ fwdgrad_g_jit = jax.jit(jax.vmap(jax.jacfwd(lambda x: g_jit(x), argnums=0)))
 
 On peut constater dans les deux cas que la compilation JIT permet d'accélérer considérablement le calcul des gradients, et rendre l'autograd négligeable d'un point de vue computationel. Dans le cas de la fonction $g$ qui retourne un vecteur, la vectorisation permet aussi d'accélérer le calcul. Ainsi la combinaison de l'autograd, du jitting et de la vectorisation permet d'obtenir des performances optimales et rendre la différentiation automatique aussi efficace que l'analytique, même pour des fonctions complexes.
 
-<!--
-### Dérivée par rapport à $a$ et $b$
-#
-#::: 
-#
-#
-### JVP et VJP
-#
-#Save below
-#```{python}
-#import jax
-#import jax.numpy as jnp
-#from jax import grad, jit, vmap
-#from jax import random
-#
-#dim = 100
-#
-#a = jnp.arange(dim)/ (dim*10)
-#b = 0.5
-#
-#def f(x, a, b):
-#    return jnp.tanh(jnp.dot(a, x) + b)
-#
-#x = (jnp.arange(dim) - 37) / (dim*10)
-#f(x, a, b) 
-#
-### jax.grad calcule la formule backward par défaut
-#grad_df_dx = jax.grad(lambda x: f(x, a, b), argnums=0) 
-#grad_df_dab = jax.grad(lambda a_b: f(x, *a_b), argnums=0)
-#
-#def df_dx(x, a, b):
-#    return a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)
-#def df_dab(x, a, b):
-#    return x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2
-#
-#assert jnp.allclose(grad_df_dx(x), df_dx(x, a, b))
-#
-#
-## assert jnp.allclose(jnp.array(grad_df_dab((a,b))), jnp.array(df_dab(x, a, b)))
-#assert all(jnp.allclose(grad_df_dab((a,b))[i], df_dab(x, a, b)[i]) for i in range(2))
--->
+
+## Avec VJP et JVP
+
+Dans les sections précédentes, `jax.jacrev` et `jax.jacfwd` utilisent, respectivement, les VJP et les JVP des opérations élémentaires de la fonction `f`. Dans certains cas, nous pouvons avoir besoin de définir nous-mêmes les VJP et JVP comme vu en introduction.
+
+Nous allons alors définir les VJP et JVP pour `f` à l'aide de gradients que nous connaissons analytiquement. Les VJP et JVP des fonctions élémentaires sous-jacentes ne seront alors plus utilisés.
+
 ::: panel-tabset
 
 ### JVP 
 
-Retrouvons les mêmes résultats en redéfinissant les JVP [JAX doc](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#custom-jvps-with-jax-custom-jvp)
-Si un custom JVP est défini pour une fonction, il bypass tout les sous JVP qui pourraient y apparaître. Cette définion
+[Lien vers la documentation de JAX](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#custom-jvps-with-jax-custom-jvp)
 
-JVP est capable de dévoiler une colonne de la jacobienne à la fois. Ce n'est pas adapté pour cette fonction. Une passe JVP ne peut dévoiler qu'une seule dérivée. Si l'on veut la dérivée par rapport à tout $x$ il nous faut faire $dim$ fois des JVP.
+Un JVP est capable de dévoiler une colonne de la jacobienne à la fois. Ce n'est pas adapté pour cette fonction dont la jacobienne est large. Une passe JVP ne peut dévoiler qu'une seule dérivée partielle : si l'on veut la dérivée par rapport à chaque dimension de $x$, chaque dimension de $a$ et $b$, il nous faut faire $dim + dim + 1$ fois des JVPs ce qui n'est pas du tout efficace. Nous l'avons vu dans la section précédente où en fait, `jax.jacfwd` doit en fait appeler tous ces JVPs (ce qui est fait de manière cachée à l'utilisateur).
+
+Pour définir un `custom_jvp` en JAX, il faut attacher à `f`, une fonction `f_jvp`, qui prend deux entrées `primals` le point où l'on calcule le gradient et `tangents` le vecteur tangent (à voir aussi comme les gradients en amont du graphe que l'on parcourt en descendant). `f_jvp` retourne un tuple de deux vecteurs, `f(primals)` et le JVP `df_dx @ tangents`, où, bien sûr, `df_dx` contient l'expression analytique de la dérivée (c'est une matrice jacobienne mais elle n'est jamais stockée en mémoire car tout de suite *réduite* par le produit matriciel).
+
+Nous avons vu que si `tangents` est un vecteur *one-hot encoded* nous dévoilons **une colonne** de la matrice jacobienne (celle où se situe le $1$). Dans l'exemple ci-dessous nous calculons de manière *forward* $\frac{\partial f}{\partial x_0}$.
 
 ```{python}
-
 @jax.custom_jvp
 def f(x, a, b):
     return jnp.tanh(jnp.dot(a, x) + b)
@@ -543,7 +514,7 @@ def f_jvp(primals, tangents):
     x, a, b = primals
     x_dot, a_dot, b_dot = tangents
     primal_out = f(x, a, b)
-    return primal_out, (jnp.dot(df_dx(x, a, b), x_dot) +  jnp.dot((x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2)), a_dot) + jnp.dot((1 - jnp.tanh(jnp.dot(a, x) + b) **2), b_dot))
+    return primal_out, (jnp.dot(df_dx(x, a, b), x_dot) +  jnp.dot((x * (1 - primal_out ** 2)), a_dot) + jnp.dot((1 - primal_out ** 2), b_dot))
 
 x0_tangents = jnp.zeros(dim)
 x0_tangents = x0_tangents.at[0].set(1)
@@ -554,40 +525,49 @@ assert jnp.allclose(grad_df_dx(x)[0], x_dot)
 print("All right!")
 ```
 
+On note que, s'il est défini, le `custom_jvp` sera utilisé par JAX, en mode forward **et** en mode backward. Notons aussi la syntaxe particulière émanant du fait que `f` prend trois arguments en entrée.
+
 ### VJP
 
-[jax doc](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#use-jax-custom-vjp-to-define-custom-reverse-mode-only-rules)
+[Lien vers la documentation de JAX](https://docs.jax.dev/en/latest/notebooks/Custom_derivative_rules_for_Python_code.html#use-jax-custom-vjp-to-define-custom-reverse-mode-only-rules)
+
+Un VJP est capable de dévoiler une ligne de la jacobienne à la fois. Cela va donc nous permettre de calculer toute la matrice jacobienne de $f$ en un seul appel à JVP car c'est une matrice à une seule ligne. Nous l'avons vu dans la section précédente où en fait, `jax.jacrec` doit en fait appeler tous ces JVPs (ce qui est fait de manière cachée à l'utilisateur).
+
+Si nous souhaitons explicitement définir le VJP, nous devons d'abord écrire une fonction qui décrit la passe forward. C'est ici `f_fwd` qui retourne `f(primal)` et des valeurs stockées pour le moment de la passe backward (à la manière de `save_for_backward` vu dans la section `pytorch` !). Il faut ici bien réfléchir à ce qui est nécessaire de stocker et ce qui est superflu, afin d'optimiser au mieux le code. Ici nous stockons `f(x,a,b)`, `x` et `a` car ces valeurs sont réutilisées dans la passe backward où nous calculons $g. \frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial x}$, $g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial a}$ et $g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial b}$. Avec $g$ le gradient provenant de l'aval du graphe pour calculer les VJPs (rappelons que nous les calculons de manière backward en remontant le graphe).
+
+
+Nous comprenons à nouveau que si `g` est un vecteur *one-hot encoded* nous dévoilons **une ligne** de la matrice jacobienne (celle où se situe le $1$).
+
+Nous devons également écrire une fonction `f_bwd` qui prend en argument les valeurs stockées dans la passe forward ainsi que `g` défini dans le paragraphe précédent. Ici `g` est scalaire `f` a valeurs dans $\mathbb{R}$. `f_bwd` retourne autant de sorties que `f` compte d'entrées.
 
 ```{python}
-
 @jax.custom_vjp
 def f(x, a, b):
     return jnp.tanh(jnp.dot(a, x) + b)
 
 def f_fwd(x, a, b):
-    return f(x, a, b), (a * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), x * (1 - jnp.tanh(jnp.dot(a, x) + b) **2), 1 - jnp.tanh(jnp.dot(a, x) + b) **2)
+    primal_out = f(x, a, b)
+    return primal_out, (x, a, primal_out)
 
 def f_bwd(res, g):
-    x_, a_, b_ = res
-    return (x_ * g,  a_ * g, b_ * g)
-    #return (jnp.dot(x_, g),  jnp.dot(a_, g), jnp.dot(b_, g))
+    x, a, primal_out = res
+    return (a * (1 - primal_out **2) * g, x * (1 - primal_out **2) * g, (1 - primal_out **2) * g)
 
 f.defvjp(f_fwd, f_bwd)
-_, f_vjp = jax.vjp(f, x, a, b)
+_, f_vjp = jax.vjp(f, x, a, b) # renvoie f(primal) et f_vjp qui est une fonction qui doit être évaluée en `g`
 
 assert jnp.allclose(grad_df_dx(x), f_vjp(1.)[0])
 assert all(jnp.allclose(grad_df_dab((a,b))[i], f_vjp(1.)[i + 1]) for i in range(2))
 print("All right!")
 ```
 
-Note that redefining the VJP redefines the grad function (which passes by f_fwd), and note the equivalency:
+Notons que la définition d'un `custom_vjp` redéfinit la fonction `grad` qui utilise donc aussi `f_fwd`. Ainsi, nous avons l'équivalence :
 
 ```{python}
 assert jnp.allclose(f_vjp(1.)[0], jax.grad(f)(x, a, b))
 print("All right!")
 ```
 
-
 :::
 
-We conclude that it is much more natural to use the forward mode for this function because...
+## Conclusion
