@@ -39,8 +39,6 @@ $$
 
 # Exemple en Torch [MM, LC]
 
-<!---
-
 ```{python}
 import torch
 import numpy as np
@@ -182,7 +180,6 @@ f_torch_manual.jvp(x = x, a = a, b = b, tangents = tangents)
 Et on valide que les résultats obtenus coïncident avec ceux obtenus en mode reverse et directement en utilisant `torch` :grin:
 
 :::
---->
 
 # Exemple en JAX [HG, AL]
 
