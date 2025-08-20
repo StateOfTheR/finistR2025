@@ -1,0 +1,25 @@
+---
+title: "Hierarchical Modelling of Species Communities"
+subtitle: "Joint species distribution models for community ecology"
+format: html
+---
+
+**HMSC (Hierarchical Modelling of Species Communities)** is a statistical model of the joint distribution of species communities. 
+It aims to understand the assemblage of potentially interacting species at a given time and location.
+HMSC lays over the **Assembly Rule**. In the Assembly Rule framework, ecological processes (*e.g.* competitive processes) can favour or disfavour the occurrence of species and lead to well-defined species combinations. Following the **Theory of Ecological Communities** [(Vollend, 2010)](https://www.jstor.org/stable/j.ctt1kt82jg), these processes can be categorized into four fundamental processes:
+
+- selection : deterministic ﬁtness differences between individuals of different species (biotic and environmental ﬁlters fall in this category)
+
+- ecological drift : random component that drives community dynamics when demographic events occur randomly with respect to species’ identities
+
+- dispersal : movement of species
+
+- speciation : variation in community composition at larger scales by the emergence of new species
+
+HMSC implements these ideas within a Multivariate Hierarchical Generalised Linear Mixed Model ﬁtted through Bayesian inference. It is not a mechanistic model (which explicitly model the mechanisms of the assembly processes), but a correlative model.
+
+# Overall structure of HMSC
+
+Below is the Direct Acyclic Graph (DAG) of HMSC. The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities
+
+![](images/dag_hmsc.png){fig-align="center" width="70%"}
