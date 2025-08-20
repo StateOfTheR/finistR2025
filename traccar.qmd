@@ -44,3 +44,33 @@ You can follow your own track through time by clicking on the replay button.
 
 ## Build your own traccar system from OVH servers
 
+### Setting up the OVH server
+
+First we suscribe a OVH account for a virtual private server (VPS). We choose a Ubuntu 24.04 distribution 
+
+As Traccar relies on mysql and we want to be able to administrate the mysql Database, we first have to install th so called LAMP stack
+
+- Linux
+- apache
+- mysql
+- phpmyadmin
+
+We used the procedure found on 
+
+
+```{bash}
+#| echo: true
+#| eval: false
+sudo apt update
+sudo apt install apache2 -y
+sudo systemctl start apache2
+sudo systemctl enable apache2
+sudo apt install mysql-server -y
+sudo systemctl start mysql
+sudo systemctl enable mysql
+sudo apt install php libapache2-mod-php php-mysql php-mbstring php-zip php-gd php-json php-curl -y
+sudo systemctl restart apache2
+sudo apt install phpmyadmin -y
+sudo systemctl restart apache2
+```
+
