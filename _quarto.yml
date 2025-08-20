@@ -9,7 +9,10 @@ website:
         href: https://github.com/StateOfTheR/finistR2025
         aria-label: GitHub
       - text: "Instructions"
-        href: instructions.qmd 
+        href: instructions.qmd
+    right:
+      - text: Différentiation automatique
+        href: autodiff.qmd
 format:
   html:
     theme: flatly
