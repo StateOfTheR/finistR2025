@@ -13,6 +13,8 @@ website:
     right:
       - text: Différentiation automatique
         href: autodiff.qmd
+      - text: animint2
+        href: inimint.qmd
 format:
   html:
     theme: flatly
