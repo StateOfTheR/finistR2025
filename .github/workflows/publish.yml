@@ -6,20 +6,43 @@ on:
 name: Quarto Publish
 
 jobs:
-  build-deploy:
+  build:
+    name: Build website with rmarkdown and Julia
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    container: mpetienne/finistr2025:0.1
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Additional R packages
+        run: |
+          Rscript -e "install.packages(c('tictoc'))"
+      - name: Generate slides
+        run: "quarto render"
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #   steps:
+  # 
+  # build-deploy:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v3
+  # 
+  #     - name: Set up Quarto
+  #       uses: quarto-dev/quarto-actions/setup@v2
+  # 
+  #     - name: Render and Publish
+  #       uses: quarto-dev/quarto-actions/publish@v2
+  #       with:
+  #         target: gh-pages
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
