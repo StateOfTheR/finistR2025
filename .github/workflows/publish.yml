@@ -3,13 +3,13 @@ on:
   push:
     branches: main
 
-name: Quarto Publish
-
 jobs:
   build:
-    name: Build website with rmarkdown and Julia
+    name: Build website with rmarkdown
     runs-on: ubuntu-latest
     container: mpetienne/finistr2025:0.1
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
