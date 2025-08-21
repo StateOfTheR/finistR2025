@@ -16,6 +16,7 @@ jobs:
       - name: Additional R packages
         run: |
           Rscript -e "install.packages(c('tictoc'))"
+          Rscript -e "install.packages(c('lubridate'))"
       - name: Generate slides
         run: "quarto render"
  
