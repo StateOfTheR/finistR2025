@@ -1,6 +1,9 @@
 ---
 title: "Traccar"
 subtitle: "Collecting GPS records (almost) for free"
+execute:
+  echo: true
+  eval: false
 format: html
 ---
 
@@ -278,3 +281,86 @@ sudo service apache2 restart
 sudo apt install certbot python3-certbot-apache
 sudo certbot --apache
 ```
+The server mysql is now ready and the database which will be used to record the position data is named traccar.
+
+
+## Setting up the individual device
+
+The traccar client is available on the Apple store and the Google store. Once downladed, there is a few step to set up the client
+
+Enter the server address `http://51.91.58.42:5055`, 
+
+Choose Précision de la localisation : la plus éllevée
+
+Intervalle (secondes) 30
+
+
+The user has to send the device id to the traccar administrator
+
+On the traccar server, click on the + to add a device and enter the device id.
+
+
+The traccar app records the position when the traacar app is on. The user click on Envoyer la position to send the recoded positions to the traccar database.
+
+## Accès à la base de données tracca
+
+TO access the traccar database, one ption which works  is to first create a ssh tunnel which links local port 3307 to remote port 3306 on the server via
+
+```bash
+ssh -L 3307:localhost:3306 root@51.91.58.42
+```
+
+Then you can access to the database via mysql or through the following R script
+
+
+
+
+```{r}
+library(DBI)
+library(RMySQL)
+
+
+# Connexion
+con <- dbConnect(RMySQL::MySQL(),
+                 host = "127.0.0.1",
+                 port = 3307,
+                 dbname = "traccar",
+                 username = "user_db_name",
+                 password = "user_db_passwd")
+
+# Exemples de requêtes
+devices <- dbGetQuery(con, "SELECT * FROM tc_devices")
+positions <- dbGetQuery(con, "SELECT * FROM tc_positions")
+
+# Fermer connexion
+dbDisconnect(con)
+
+```
+
+
+```{r}
+#| echo: false
+#| eval: true
+load(file='positions.RData')
+```
+
+
+
+```{r}
+#| echo: true
+#| eval: true
+
+library(tidyverse)
+library(lubridate)
+library(sf)
+
+positions |> select(id, deviceid, devicetime, latitude,longitude) |> group_by(deviceid) |> count()
+  
+positions |> select(id, deviceid, devicetime, latitude,longitude) |>  ggplot() +aes(x=longitude, y = latitude, col = as.factor(deviceid)) + geom_path() 
+
+positionseva |> 
+  mutate(temps = ymd_hms(devicetime)) |>  
+  group_by(deviceid) |>
+  mutate(elapse_time = temps - lag(temps)) |> 
+  ggplot() + aes(x=as.factor(deviceid), y = elapse_time) + geom_point() 
+```  
