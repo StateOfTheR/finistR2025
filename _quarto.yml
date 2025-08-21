@@ -9,7 +9,10 @@ website:
         href: https://github.com/StateOfTheR/finistR2025
         aria-label: GitHub
       - text: "Instructions"
-        href: instructions.qmd 
+        href: instructions.qmd
+      - text: "Echantillonnage pour GNN"
+        href: GNNpytgeo.qmd
+        icon: share-fill 
 format:
   html:
     theme: flatly
