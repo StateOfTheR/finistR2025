@@ -77,6 +77,153 @@
     "text": "Accès à la base de données tracca\nTO access the traccar database, one ption which works is to first create a ssh tunnel which links local port 3307 to remote port 3306 on the server via\nssh -L 3307:localhost:3306 root@51.91.58.42\nThen you can access to the database via mysql or through the following R script\n\nlibrary(DBI)\nlibrary(RMySQL)\n\n\n# Connexion\ncon &lt;- dbConnect(RMySQL::MySQL(),\n                 host = \"127.0.0.1\",\n                 port = 3307,\n                 dbname = \"traccar\",\n                 username = \"user_db_name\",\n                 password = \"user_db_passwd\")\n\n# Exemples de requêtes\ndevices &lt;- dbGetQuery(con, \"SELECT * FROM tc_devices\")\npositions &lt;- dbGetQuery(con, \"SELECT * FROM tc_positions\")\n\n# Fermer connexion\ndbDisconnect(con)\n\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.2     ✔ tibble    3.3.0\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.1.0     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(lubridate)\nlibrary(sf)\n\nLinking to GEOS 3.12.1, GDAL 3.8.4, PROJ 9.4.0; sf_use_s2() is TRUE\n\npositions |&gt; select(id, deviceid, devicetime, latitude,longitude) |&gt; group_by(deviceid) |&gt; count()\n\n# A tibble: 3 × 2\n# Groups:   deviceid [3]\n  deviceid     n\n     &lt;int&gt; &lt;int&gt;\n1        1    62\n2        2  1216\n3        3     9\n\npositions |&gt; select(id, deviceid, devicetime, latitude,longitude) |&gt;  ggplot() +aes(x=longitude, y = latitude, col = as.factor(deviceid)) + geom_path() \n\n\n\n\n\n\n\npositions |&gt; \n  mutate(temps = ymd_hms(devicetime)) |&gt;  \n  group_by(deviceid) |&gt;\n  mutate(elapse_time = temps - lag(temps)) |&gt; \n  ggplot() + aes(x=as.factor(deviceid), y = elapse_time) + geom_point() \n\nDon't know how to automatically pick scale for object of type &lt;difftime&gt;.\nDefaulting to continuous.\n\n\nWarning: Removed 3 rows containing missing values or values outside the scale range\n(`geom_point()`)."
   },
   {
+    "objectID": "animint.html",
+    "href": "animint.html",
+    "title": "Animint 2",
+    "section": "",
+    "text": "We follow a simplified version of the tutorial given here: https://rcdata.nau.edu/genomic-ml/animint2-manual/Ch08-WorldBank-facets.html"
+  },
+  {
+    "objectID": "animint.html#data-loading-and-formatting",
+    "href": "animint.html#data-loading-and-formatting",
+    "title": "Animint 2",
+    "section": "Data loading and formatting",
+    "text": "Data loading and formatting\n\ndata(WorldBank)\nWorldBank$Region &lt;- sub(\" (all income levels)\", \"\", WorldBank$region, fixed=TRUE)\n\n# Remove NAs\ndf &lt;- data.table(WorldBank)[!(is.na(life.expectancy) | is.na(fertility.rate))] \n\n# Display only the region south asia for ease of vizualization\ndf &lt;- df[df$region == \"South Asia\"]\nyears &lt;- unique(df[, .(year)])\n\nThe helper functions FACETS etc will be used to generate adequate facet grids.\n\nadd_facets &lt;- function(df, top, side){\n  data.frame(df,\n             top=factor(top, c(\"Fertility rate\", \"Years\")),\n             side=factor(side, c(\"Years\", \"Life expectancy\")))\n}\nfacet_right &lt;- function(df) add_facets(df, \"Years\", \"Life expectancy\")\nfacet_left  &lt;- function(df) add_facets(df, \"Fertility rate\", \"Life expectancy\")"
+  },
+  {
+    "objectID": "animint.html#first-animint-plot-show-life-expectancy-for-each-country-over-time",
+    "href": "animint.html#first-animint-plot-show-life-expectancy-for-each-country-over-time",
+    "title": "Animint 2",
+    "section": "First animint plot: show life expectancy for each country over time",
+    "text": "First animint plot: show life expectancy for each country over time\n\nlife_expect_plot &lt;- ggplot()+\n                          geom_line(aes(year, life.expectancy,\n                                        group = country, colour = country),\n                                        clickSelects = \"country\", data = facet_right(df),\n                                        size = 4, alpha = 3/5)\nlife_expect_plot\n\n\n\n\n\n\n\n\nWith animint, the plot is shown in the “Viewer” panel and one can select which countries should be left in the plot.\n\nanimint(life_expect_plot)"
+  },
+  {
+    "objectID": "animint.html#adding-a-bar-to-highlights-a-year",
+    "href": "animint.html#adding-a-bar-to-highlights-a-year",
+    "title": "Animint 2",
+    "section": "Adding a bar to highlights a year",
+    "text": "Adding a bar to highlights a year\nThe important parameter here is ‘clickSelects’.\n\n# facet_right(years) contains the unique years of the df and 2 columns for facet used later in the tutorial\nplot_with_bar &lt;- life_expect_plot +\n                 geom_tallrect(aes(xmin = year-1/2, xmax = year+1/2),\n                               clickSelects=\"year\", data = facet_right(years),\n                               alpha=1/2, show.legend = T)\nanimint(plot_with_bar)"
+  },
+  {
+    "objectID": "animint.html#modify-the-vertical-cursor-text-display-to-show-the-average-life-expectancy",
+    "href": "animint.html#modify-the-vertical-cursor-text-display-to-show-the-average-life-expectancy",
+    "title": "Animint 2",
+    "section": "Modify the vertical cursor text display to show the average life expectancy",
+    "text": "Modify the vertical cursor text display to show the average life expectancy\nBy default, the text displayed at the current state of the bar is the current value of the bar. Use the ‘toolkit’ argument in aes() to change what is displayed.\n\nyears_df &lt;- df %&gt;% group_by(year) %&gt;% dplyr::summarise(mean_life_expectancy = mean(life.expectancy))\n\nplot_with_bar &lt;- life_expect_plot +\n                        geom_tallrect(aes(xmin=year-1/2, xmax=year+1/2,\n                                          tooltip = paste0(\"Mean life expectancy: \",\n                                                           round(mean_life_expectancy, 1))),\n                                          clickSelects=\"year\",\n                                      data = facet_right(years_df), alpha=1/2) \n\nanimint(plot_with_bar)"
+  },
+  {
+    "objectID": "animint.html#add-points-to-get-exact-value-of-life-expectancy-for-each-country",
+    "href": "animint.html#add-points-to-get-exact-value-of-life-expectancy-for-each-country",
+    "title": "Animint 2",
+    "section": "Add points to get exact value of life expectancy for each country",
+    "text": "Add points to get exact value of life expectancy for each country\nLike the bar above, we use the ‘tooltip’ argument\n\nfull_plot &lt;- plot_with_bar +\n                    geom_point(aes(year, life.expectancy, color = country,\n                                   tooltip = paste0(country, \" - Life expectancy :\",\n                                                 round(life.expectancy, 1))),\n                                   showSelected = \"country\",\n                                   clickSelects = \"country\",\n                               size = 2,\n                               data = facet_right(df)) \nanimint(full_plot)"
+  },
+  {
+    "objectID": "animint.html#let-us-add-a-second-facet",
+    "href": "animint.html#let-us-add-a-second-facet",
+    "title": "Animint 2",
+    "section": "Let us add a second facet",
+    "text": "Let us add a second facet\nIn this part, this is where the functions facet_right and facet_left are useful. These functions creates columns to order the axis. Like ggplot, the variable used for facet must be a factor.\n\n# First add the facet grid\nplot_right &lt;- full_plot + theme_bw() +\n                theme(panel.margin=grid::unit(0, \"lines\")) +\n                facet_grid(side ~ top, scales=\"free\") + xlab(\"\") + ylab(\"\") +\n                theme_animint(width=600)\n\nWhen adding the second plot, we use the ‘showSelected’ argument, the variable must correspond to the one used in the first plot with the argument ‘clickSelected’\n\n# Add the 2nd plot\nplot_both &lt;- plot_right +\n  geom_point(aes(fertility.rate, life.expectancy,\n                colour=country, size=population, key=country),\n            clickSelects=\"country\",\n            showSelected = \"year\",\n            data = facet_left(df)) +\n      scale_size_animint(pixel.range=c(2, 20), breaks=10^(9:5))\n\n\nanimint(plot_both)"
+  },
+  {
+    "objectID": "animint.html#generating-a-us-map",
+    "href": "animint.html#generating-a-us-map",
+    "title": "Animint 2",
+    "section": "Generating a US map",
+    "text": "Generating a US map\nWe first generate an animint map of the US on which each state can be selected\n\nUSpolygons &lt;- map_data(\"state\") # Animint function to create a map, \"state\" is for US states\n\nmap = ggplot() + \n      theme_animint(width=750, height=500) +\n      geom_polygon(aes(x=long, y=lat, group=group, tooltip = region),\n                   clickSelects=\"region\",\n                   data=USpolygons, \n                   fill=\"#000000\",\n                   colour=\"white\", \n                   size=0.5, \n                  alpha=1)\nanimint(map)"
+  },
+  {
+    "objectID": "animint.html#adding-the-tornadoes-segments",
+    "href": "animint.html#adding-the-tornadoes-segments",
+    "title": "Animint 2",
+    "section": "Adding the tornadoes segments",
+    "text": "Adding the tornadoes segments\nLet us add to the maps segments that give the tornadoes trajectory (segment from start point to end point). We also use the parameter ‘showSelected’ so the the map displays the tornado only for a specific year.\n\nseg.color &lt;- \"#55B1F7\"\ntornadoes_map &lt;- map + \n                 geom_segment(aes(x=startLong, y=startLat,\n                                 xend=endLong, yend=endLat),\n                              colour=seg.color, size = 1.2,\n                              showSelected=\"year\",\n                              data=UStornadoes) \nanimint(tornadoes_map)"
+  },
+  {
+    "objectID": "animint.html#adding-the-tornadoes-points",
+    "href": "animint.html#adding-the-tornadoes-points",
+    "title": "Animint 2",
+    "section": "Adding the tornadoes points",
+    "text": "Adding the tornadoes points\nSuperposing tornadoes end point to tornadoes segments.\n\npt.color &lt;- \"#9999F9\"\ntornadoes_map &lt;- tornadoes_map +\n                  geom_point(aes(endLong, endLat),               \n                             colour=pt.color, \n                             showSelected=\"year\",\n                             data=UStornadoes,\n                             size=1)\nanimint(tornadoes_map)"
+  },
+  {
+    "objectID": "animint.html#creating-histograms-with-the-number-of-tornadoes-per-state-year",
+    "href": "animint.html#creating-histograms-with-the-number-of-tornadoes-per-state-year",
+    "title": "Animint 2",
+    "section": "Creating histograms with the number of tornadoes per (state, year)",
+    "text": "Creating histograms with the number of tornadoes per (state, year)\n\nUStornadoCounts &lt;- ddply(UStornadoes, .(region, year), summarize, count=length(region))\n\nThe tornadoes histogram per (state, year). We use the parameter ‘showSelected’ = region so that it can be linked to the map later. Similarly for the argument ‘clickSelects’ = year, it corresponds to ‘showSelected’ in the map.\n\ntornadoes_hist &lt;- ggplot() + \n                  xlab(\"year\") +\n                  ylab(\"Number of tornadoes\") +\n                  geom_bar(aes(year, count),\n                          clickSelects=\"year\", \n                          showSelected=\"region\",\n                          data=UStornadoCounts, \n                          stat=\"identity\", \n                          color = \"black\",\n                          fill = \"#22212100\",\n                          alpha = 1,\n                          position=\"identity\")\nanimint(tornadoes_hist)\n\n\n\n\n\n\nAdding value on top of the bar when it is clicked.\n\ntornadoes_hist &lt;- tornadoes_hist +\n                   geom_text(aes(year, count + 5, label=count),\n                             showSelected=c(\"region\", \"year\"),\n                             data=UStornadoCounts, size=20)\nanimint(tornadoes_hist)"
+  },
+  {
+    "objectID": "animint.html#combining-the-map-and-histogram",
+    "href": "animint.html#combining-the-map-and-histogram",
+    "title": "Animint 2",
+    "section": "Combining the map and histogram",
+    "text": "Combining the map and histogram\n\nanimint(tornadoes_map, tornadoes_hist)"
+  },
+  {
+    "objectID": "animint.html#get-the-data-to-plot",
+    "href": "animint.html#get-the-data-to-plot",
+    "title": "Animint 2",
+    "section": "Get the data to plot",
+    "text": "Get the data to plot\nFirst, let us get the data and usefull functions\n\nfrance_temperature=rast(\"data/EOBS_FR31.nc\")\n\n\nlibrary(lubridate)\n\n\nAttaching package: 'lubridate'\n\n\nThe following objects are masked from 'package:terra':\n\n    intersect, union\n\n\nThe following objects are masked from 'package:data.table':\n\n    hour, isoweek, mday, minute, month, quarter, second, wday, week,\n    yday, year\n\n\nThe following objects are masked from 'package:base':\n\n    date, intersect, setdiff, union\n\ndates = seq.Date(ymd(\"1985-01-01\"),ymd(\"2015-12-31\"),by='day')\ndates = dates[\n  -which((month(dates)==2 & day(dates)==29))]\nfrance_temperature = france_temperature[[1:length(dates)]]\n\ndatessummers = dates[(month(dates)%in%6:8) & ( year(dates) %in% c(2003,2015,1990,1999)) ]\nsummers =subset(france_temperature, month(time(france_temperature)) %in% c(6,7,8))\nsummers =subset(summers, year(time(summers)) %in% c(2003,2015,1990,1999))\n\nnames(summers)=datessummers\n\n## function to get quantile map ----\n\nget_qmap=function(raster,li_q){\n  n=length(li_q)\n  s = c()\n  for(i in 1:n){\n    q=li_q[i]\n    s &lt;-c(s,app(raster, fun=function(i){quantile(i,q,na.rm=T)}))\n    \n  }\n  s=rast(s)\n  names(s) = li_q\n  return(s)\n}\n## get quantile maps from observation 1985-2015-------\nqmaps = (get_qmap(summers,c(0.9,0.95,0.98,0.99)))\nplot(qmaps)\n\n\n\n\n\n\n\n\nThe different maps are quantiles of temperature for each pixels.\n\n## function to get percentage of area over quantiles ----\nget_area_over_qmaps=function(raster,qmaps){\n  #returns a time dataframe of % of area over the maps in qmaps\n  # n+1 columns with n the number of layers in qmaps, named after quantiles.\n  \n  ngrid = global((not.na(raster)),sum)\n  \n  depsummer =data.frame(t=time(raster))\n  for(i in 1:nlyr(qmaps)){\n    qmap = qmaps[[i]]\n    summersq = raster&gt;qmap\n    depsummer[,i+1]= global(summersq,sum,na.rm=T)/ngrid\n  }\n  names(depsummer)=c('t',names(qmaps))\n  return(depsummer)\n}\n\ndata=get_area_over_qmaps(summers,qmaps)\ndepsummer=data\nlongdep=gather(depsummer,quantile,percentage,-t)\nlongdep$year =year(longdep$t)\nlongdep$day_of_year=yday(longdep$t)\nhead(depsummer)\n\n           t 0.9 0.95 0.98 0.99\n1 1990-06-01   0    0    0    0\n2 1990-06-02   0    0    0    0\n3 1990-06-03   0    0    0    0\n4 1990-06-04   0    0    0    0\n5 1990-06-05   0    0    0    0\n6 1990-06-06   0    0    0    0\n\nhead(longdep)\n\n           t quantile percentage year day_of_year\n1 1990-06-01      0.9          0 1990         152\n2 1990-06-02      0.9          0 1990         153\n3 1990-06-03      0.9          0 1990         154\n4 1990-06-04      0.9          0 1990         155\n5 1990-06-05      0.9          0 1990         156\n6 1990-06-06      0.9          0 1990         157\n\n\nlongdep contains for each date t, each quantile, each year and day_of_year the percentage of location over their quantile."
+  },
+  {
+    "objectID": "animint.html#objective-number-1-getting-percentage-fyear-with-colorquantile-selecting-only-chosen-year-and-highlighting-only-chosen-quantile.",
+    "href": "animint.html#objective-number-1-getting-percentage-fyear-with-colorquantile-selecting-only-chosen-year-and-highlighting-only-chosen-quantile.",
+    "title": "Animint 2",
+    "section": "Objective number 1 : getting percentage = f(year) with color=quantile , selecting only chosen year and highlighting only chosen quantile.",
+    "text": "Objective number 1 : getting percentage = f(year) with color=quantile , selecting only chosen year and highlighting only chosen quantile.\n\nlibrary(animint2)\n\ngobs &lt;- animint2::ggplot() +\n  animint2::geom_line(\n   animint2::aes(x=day_of_year, y= percentage,group = interaction(quantile,year),color=quantile), data = longdep\n  ) +\n  animint2::labs(title = \"some summers - proportion of FR map exceeding given quantile - observations\")\n\ngobs\n\n\n\n\n\n\n\n\nThis is not very pretty ! There is too much info at once. We want to only plot a given year, selected using showSelected=c( “year”). And also, why not choosing the quantiles to plot ?\n\nplot_QER &lt;- animint2::ggplot()+\n\n animint2::geom_line(animint2::aes(\n    day_of_year,percentage,group=quantile,color=quantile),\n    clickSelects=c(\"year\",\"quantile\"), #use selection to choose the year.\n     showSelected=c( \"year\"), #only show the selected year\n    data=(longdep), size=4, alpha=3/5)+\n  theme_bw()+\n  xlab(\"Day of year\")+\n  ylab(\"Percentage\")\n\nanimint(plot_QER)\n\n\n\n\n\n\nWe can add a rectangle, higlighting a selected day (will be useful later)\n\nplot_QER &lt;- animint2::ggplot()+\n  \n  # highlight the chosen year again\n  geom_tallrect(animint2::aes(\n    xmin=day_of_year-1/2, xmax=day_of_year+1/2),\n    clickSelects=\"day_of_year\",\n    data=(longdep), alpha=1/2)+\n  \n animint2::geom_line(animint2::aes(\n    day_of_year,percentage,group=quantile,color=quantile),\n    clickSelects=c(\"year\",\"quantile\"), #use selection to choose the year.\n     showSelected=c( \"year\"), #only show the selected year\n    data=(longdep), size=4, alpha=3/5)+\n  theme_bw()+\n  xlab(\"Day of year\")+\n  ylab(\"Percentage\")\n\nanimint(plot_QER)"
+  },
+  {
+    "objectID": "animint.html#objective-2-plot-the-temperature-for-chosen-day-t-of-a-given-year",
+    "href": "animint.html#objective-2-plot-the-temperature-for-chosen-day-t-of-a-given-year",
+    "title": "Animint 2",
+    "section": "Objective 2 : plot the temperature for chosen day t of a given year",
+    "text": "Objective 2 : plot the temperature for chosen day t of a given year\n\n# --- palette and limits ---\npal &lt;- c(\"black\",\"#67001f\",'#d73027','#f46d43','#fdae61','#fee090',\n         '#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4','#313695')\nmm &lt;- c(0,36)\n# be careful, this is heavy data\nsummers_small &lt;- terra::aggregate(summers, fact = 1, fun = mean)\n\nWarning: [aggregate] all values in argument 'fact' are 1, nothing to do\n\n# --- 1. Raster data prepared for ggplot/animint2 ---\n# Extract one value per cell per date -&gt; convert to data.frame\n# summers is a SpatRaster with layers named as dates\nmap_df &lt;- as.data.frame(summers_small, xy = TRUE, na.rm = FALSE)\nmap_df &lt;- tidyr::pivot_longer(map_df, -c(x,y),\n                              names_to = \"t\",\n                              values_to = \"temperature\")\nmap_df$t &lt;- as.Date(map_df$t)\nmap_df$year &lt;- lubridate::year(map_df$t)\nmap_df$day_of_year &lt;- lubridate::yday(map_df$t)\n\n# --- 2. Map plot (left) ---\nmap_plot &lt;- animint2::ggplot() +\n  animint2::geom_tile(animint2::aes(x, y, fill = temperature),\n            data = map_df,\n            showSelected = c(\"year\",\"day_of_year\"),colour=NA) +\n  animint2::ggtitle(\"Date t (selected)\")+\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                       na.value = \"transparent\",\n                       limits = mm) +\n  animint2::coord_equal() +\n  animint2::labs(fill = \"temperature\")+theme_bw()\nanimint(map_plot)"
+  },
+  {
+    "objectID": "animint.html#objective-3-plot-together-the-map-of-temperature-at-a-day-highlighting-that-day-on-my-first-plot",
+    "href": "animint.html#objective-3-plot-together-the-map-of-temperature-at-a-day-highlighting-that-day-on-my-first-plot",
+    "title": "Animint 2",
+    "section": "Objective 3 : plot together the map of temperature at a day, highlighting that day on my first plot",
+    "text": "Objective 3 : plot together the map of temperature at a day, highlighting that day on my first plot\nCan take a while, because the dataframe for plotting is large. We have used shared variables names, so selecting from (year,day_of_year) has the same meaning in both graphs.\n\nanimint2::animint(plot_QER,map_plot, first = list(year = c(2003), day_of_year = c(200)))"
+  },
+  {
+    "objectID": "animint.html#objective-4-show-maps-at-different-time-steps-t-1-t-and-t1-to-show-temporal-evolution",
+    "href": "animint.html#objective-4-show-maps-at-different-time-steps-t-1-t-and-t1-to-show-temporal-evolution",
+    "title": "Animint 2",
+    "section": "Objective 4 : Show maps at different time steps : t-1, t and t+1, to show temporal evolution",
+    "text": "Objective 4 : Show maps at different time steps : t-1, t and t+1, to show temporal evolution\n\n# Map t-1\nmap_t_minus1 &lt;- animint2::ggplot() +\n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = map_df %&gt;% mutate(day_of_year = day_of_year + 1),\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 0.4,\n    colour = NA\n  ) +\n  ggtitle(\"t-1\") +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw()\n\n# Map t\nmap_t &lt;- animint2::ggplot() +\n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = map_df,\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 1,\n    colour = NA\n  ) +\n  ggtitle(\"t\") +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw()\n\n# Map t+1\nmap_t_plus1 &lt;- animint2::ggplot() +\n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = map_df %&gt;% mutate(day_of_year = day_of_year - 1),\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 0.4,\n    colour = NA\n  ) +\n  ggtitle(\"t+1\") +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw()\n\nanimint(map_t_minus1,map_t,map_t_plus1)"
+  },
+  {
+    "objectID": "animint.html#final-objective",
+    "href": "animint.html#final-objective",
+    "title": "Animint 2",
+    "section": "Final objective",
+    "text": "Final objective\nPut everything togeteher I wanted a specific layout but nothing worked. It does not give an error, but does not work anyway…\n\nanimint2::animint(map_t_minus1,map_t,map_t_plus1,plot_QER, first = list(year = c(2003), day_of_year = c(200)),arrange = list(\n    top_row = c(\"map_t_minus1\", \"map_t\", \"map_t_plus1\"),  # top row\n    bottom_row   = \"plot_QER\"                               # bottom row\n  ))"
+  },
+  {
+    "objectID": "animint.html#final-final-objective-add-facets-to-make-it-pretty",
+    "href": "animint.html#final-final-objective-add-facets-to-make-it-pretty",
+    "title": "Animint 2",
+    "section": "Final Final Objective : add facets to make it pretty",
+    "text": "Final Final Objective : add facets to make it pretty\nMany thanks to Blanche who did not let me leave the room with an ugly plot.\nHelper functions add_facets add a column to a dataframe, allowing us to make a facet name. We choose to only put a top name for the date.\n\nadd_facets &lt;- function(df, top){\n  data.frame(df,\n             top=factor(top, c(\"t-1\", \"t\", \"t+1\")))\n}\nfacet_left  &lt;- function(df) add_facets(df, \"t-1\")\nfacet_middle &lt;- function(df) add_facets(df, \"t\")\nfacet_right  &lt;- function(df) add_facets(df, \"t+1\")\n\n\n# Map t-1\nmap_t &lt;- animint2::ggplot() +\n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = facet_left(map_df %&gt;% mutate(day_of_year = day_of_year + 1)),\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 0.4,\n    colour = NA\n  ) +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw() +\n  \n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = facet_middle(map_df),\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 1,\n    colour = NA\n  ) +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw() +\n  animint2::geom_tile(\n    animint2::aes(x, y, fill = temperature),\n    data = facet_right(map_df %&gt;% mutate(day_of_year = day_of_year - 1)),\n    showSelected = c(\"year\", \"day_of_year\"),\n    alpha = 0.4,\n    colour = NA\n  ) +\n  animint2::scale_fill_gradientn(colors = rev(pal),\n                                na.value = \"transparent\",\n                                limits = mm) +\n  animint2::coord_equal() +\n  theme_bw()+\n  \n  facet_wrap(~top)\n\nScale for 'fill' is already present. Adding another scale for 'fill', which\nwill replace the existing scale.\nScale for 'fill' is already present. Adding another scale for 'fill', which\nwill replace the existing scale.\n\nmap_t\n\n\n\n\n\n\n\nanimint(map_t,plot_QER, first = list(year = c(2003), day_of_year = c(200)))"
+  },
+  {
+    "objectID": "animint.html#option-1-in-rmd-and-qmd",
+    "href": "animint.html#option-1-in-rmd-and-qmd",
+    "title": "Animint 2",
+    "section": "Option 1: in rmd and qmd",
+    "text": "Option 1: in rmd and qmd\nOutput directory auto-generated, be careful use only one animint per named code chunk."
+  },
+  {
+    "objectID": "animint.html#option-2-html",
+    "href": "animint.html#option-2-html",
+    "title": "Animint 2",
+    "section": "Option 2: html",
+    "text": "Option 2: html\n\nanimint2dir(animint(plot_both),\n            out.dir = \"myplot\", \n            open.browser = FALSE)\n\nThe plot can be viewed with index.html. If the web page is blank, configure your browser to allow execution of local JavaScript code, as explained on the FAQ."
+  },
+  {
     "objectID": "autodiff.html",
     "href": "autodiff.html",
     "title": "Tutoriel de différentiation automatique",
@@ -102,14 +249,14 @@
     "href": "autodiff.html#comparaison-des-temps-de-calculs",
     "title": "Tutoriel de différentiation automatique",
     "section": "Comparaison des temps de calculs",
-    "text": "Comparaison des temps de calculs\nOn compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version.\n\ndim = 100\na = torch.tensor(np.arange(dim)/ (dim*10), requires_grad = True)\nb = torch.tensor(0.5, requires_grad = True)\nx = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)\n\n\nf_torch_grad_rev = torch.func.jacrev(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_rev(x, a, b)\nf_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_fwd(x, a, b)\n%timeit f_grad_rev(x, a, b)\n\n433 μs ± 1.88 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n501 μs ± 1.68 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n778 μs ± 1.44 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)"
+    "text": "Comparaison des temps de calculs\nOn compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version.\n\ndim = 100\na = torch.tensor(np.arange(dim)/ (dim*10), requires_grad = True)\nb = torch.tensor(0.5, requires_grad = True)\nx = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)\n\n\nf_torch_grad_rev = torch.func.jacrev(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_rev(x, a, b)\nf_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_fwd(x, a, b)\n%timeit f_grad_rev(x, a, b)\n\n425 μs ± 888 ns per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n497 μs ± 958 ns per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n762 μs ± 1.86 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)"
   },
   {
     "objectID": "autodiff.html#impact-de-jit",
     "href": "autodiff.html#impact-de-jit",
     "title": "Tutoriel de différentiation automatique",
     "section": "Impact de JIT",
-    "text": "Impact de JIT\nOn essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients.\nPlus d’info sur le JIT dans pytorch sont disponibles dans cette documentation.\n\nf_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))\nf_torch_grad_fwd_jit = torch.jit.trace(f_torch_grad_fwd, (x, a, b))\n# f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))\n\n\n%timeit f_torch_grad_rev_jit(x, a, b)\n%timeit f_torch_grad_fwd_jit(x, a, b)\n# %timeit f_grad_rev_jit(x, a, b)\n\n56.4 μs ± 419 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)\n123 μs ± 528 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)"
+    "text": "Impact de JIT\nOn essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients.\nPlus d’info sur le JIT dans pytorch sont disponibles dans cette documentation.\n\nf_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))\nf_torch_grad_fwd_jit = torch.jit.trace(f_torch_grad_fwd, (x, a, b))\n# f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))\n\n\n%timeit f_torch_grad_rev_jit(x, a, b)\n%timeit f_torch_grad_fwd_jit(x, a, b)\n# %timeit f_grad_rev_jit(x, a, b)\n\n56.4 μs ± 92.3 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)\n123 μs ± 411 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)"
   },
   {
     "objectID": "autodiff.html#dérivée-par-rapport-à-x",
