@@ -358,7 +358,7 @@ positions |> select(id, deviceid, devicetime, latitude,longitude) |> group_by(de
   
 positions |> select(id, deviceid, devicetime, latitude,longitude) |>  ggplot() +aes(x=longitude, y = latitude, col = as.factor(deviceid)) + geom_path() 
 
-positionseva |> 
+positions |> 
   mutate(temps = ymd_hms(devicetime)) |>  
   group_by(deviceid) |>
   mutate(elapse_time = temps - lag(temps)) |> 
