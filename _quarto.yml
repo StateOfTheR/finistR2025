@@ -15,6 +15,10 @@ website:
         href: autodiff.qmd
       - text: animint2
         href: inimint.qmd
+      - icon: Bicycle
+        href: traccar.qmd
+        text: GPS -- traccar
+>>>>>>> main
 format:
   html:
     theme: flatly
