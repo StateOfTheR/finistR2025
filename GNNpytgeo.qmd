@@ -1,5 +1,5 @@
 ---
-title: "Apprentissage de réseaux bipartites avec pytorch-geometrics"
+title: "Apprentissage de réseaux bipartites avec pytorch-geometric"
 lang: fr
 author: 
   - Julie Aubert
@@ -19,7 +19,7 @@ L'apprentissage de la représentation latente se fait sur l'optimisation d'une p
 L'évaluation de la performance se fait sur un autre sous-ensemble d'arêtes et de non arêtes, appelé le jeu de test et est inconnu lors de l'entraînement et n'est pas utilisé pour l'encodage (succession de couches de GNN projetant les nœuds dans l'espace latent). Un autre jeu de données du même type peut être créé comme jeu de validation.
 
 
-Pour ce faire la fonction `RandomLinkSplit(...)` de `pytorch-geometrics` permet de faire cette séparation en trois jeux de données (ensemble d'arêtes et non arêtes) d'un objet de type `BipartiteData` qui n'est pas une classe nativement définie dans `pytorch-geometrics` mais c'est la recommandation trouvée en ligne pour définir ce genre de réseaux.
+Pour ce faire la fonction `RandomLinkSplit(...)` de `pytorch-geometric` permet de faire cette séparation en trois jeux de données (ensemble d'arêtes et non arêtes) d'un objet de type `BipartiteData` qui n'est pas une classe nativement définie dans `pytorch-geometric` mais c'est la recommandation trouvée en ligne pour définir ce genre de réseaux.
 
 ```{python}
 import numpy as np
