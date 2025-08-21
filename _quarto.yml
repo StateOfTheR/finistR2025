@@ -18,7 +18,6 @@ website:
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
->>>>>>> main
 format:
   html:
     theme: flatly
