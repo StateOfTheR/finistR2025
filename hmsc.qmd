@@ -20,6 +20,11 @@ HMSC implements these ideas within a Multivariate Hierarchical Generalised Linea
 
 # Overall structure of HMSC
 
-Below is the Direct Acyclic Graph (DAG) of HMSC. The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities
+Below is the Direct Acyclic Graph (DAG) of HMSC. The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities.
 
-![](images/dag_hmsc.png){fig-align="center" width="70%"}
+![](images/hmsc_figure.png){fig-align="center"}
+
+We summarise the main equations of the model below. Observations are denoted $y_{ij}$ with the sampled points $i \in \{1,\cdots,n\}$ and the species $j \in \{1,\cdots,m\}$
+
+$$y_{i j} \sim D\left(L_{i j}, \sigma_j^2\right)$$
+
