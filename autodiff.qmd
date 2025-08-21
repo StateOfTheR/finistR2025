@@ -121,7 +121,7 @@ assert torch.allclose(df_torch_dx(x, a, b), x.grad)
 
 ## En utilisant notre propre fonction
 
-Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. 
+Le code qui suit correspond à l'application des informations disponibles dans la [documentation de torch](https://docs.pytorch.org/docs/stable/notes/extending.html#extending-torch-autograd) sur notre fonction example. Un autre tutoriel intéressant est [le suivant](https://apxml.com/courses/advanced-pytorch/chapter-1-pytorch-internals-autograd/custom-autograd-functions).
 
 On doit définir 4 méthodes: 
 - `forward` qui reçoit les entrées et calcule la sortie
@@ -278,6 +278,8 @@ f_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))
 ## Impact de JIT
 
 On essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients. 
+
+Plus d'info sur le JIT dans `pytorch` sont disponibles dans [cette documentation](https://docs.pytorch.org/docs/stable/jit.html).
 
 ```{python}
 f_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))
