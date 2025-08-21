@@ -20,11 +20,92 @@ HMSC implements these ideas within a Multivariate Hierarchical Generalised Linea
 
 # Overall structure of HMSC
 
-Below is the Direct Acyclic Graph (DAG) of HMSC. The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities.
+Below is the Direct Acyclic Graph (DAG) of HMSC taken from [(Ovaskainen and Abrego, 2020)](https://www.cambridge.org/core/books/joint-species-distribution-modelling/0D9FA93EA1DD408332A17266449668B3). The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities.
 
 ![](images/hmsc_figure.png){fig-align="center"}
 
-We summarise the main equations of the model below. Observations are denoted $y_{ij}$ with the sampled points $i \in \{1,\cdots,n\}$ and the species $j \in \{1,\cdots,m\}$
+We summarise the main equations of the model below based on the paper of [Ovaskainen et al. (2017)](https://onlinelibrary.wiley.com/doi/full/10.1111/ele.12757). Observations are denoted $y_{ij}$ with the sampled points $i \in \{1,\cdots,n\}$ and the species $j \in \{1,\cdots,p\}$. 
 
 $$y_{i j} \sim D\left(L_{i j}, \sigma_j^2\right)$$
 
+$D$ is a statistical distribution suited for the data of interest, $L_{ij}$ is the linear predictor, $\sigma^2$ is the residual variance term.
+
+$L_{i j}$ is a combination of a fixed term $L_{i j}^F$ (reflecting the influence of environmental covariates on observations) and of a random term $L_{i j}^R$. $x_{i k}$ is the $k^{th}$ covariate at the $i^{th}$ location and $\beta_{j k}$ is the effect of the $k^{th}$ covariate related for the $j^{th}$ species. This term describes the **environmental niche** of the species.
+
+$$L_{i j}=L_{i j}^F+L_{i j}^R$$
+
+### Fixed term $\boldsymbol L^F$
+
+$$L_{i j}^F=\sum_k x_{i k} \beta_{j k}$$
+
+The species-specific niche (caracterized by the parameters $\boldsymbol \beta_{j .}$) are supposed to arise from a global niche shared by all the species. Accordingly, for all species $j$, $\boldsymbol \beta_{j .}$ follow a multivariate normal distribution:
+
+$$\boldsymbol{\beta}_{j \cdot} \sim N\left(\boldsymbol{\mu}_{j \cdot}, \mathbf{V}\right)$$
+
+$\boldsymbol{\mu}_{j \cdot}$ is the the expected environmental niche of species $j$.
+
+The expected niche $\boldsymbol{\mu}_{j \cdot}$ (1) can either be assumed to be the same for all species, or (2) can model the **influence of species-specific traits on species' niche** so that:
+
+$$\mu_{j k}=\sum_l t_{j l} \gamma_{l k}$$
+
+$t_{j l}$ is the value of trait $l$ for species $j$ and $\gamma_{l k}$ the effect of trait $l$ on response to covariate $k$.
+
+Phylogenetic relationship information is contained in the matrix $\mathbf{C}$ and parameter $\rho$.
+
+$$\boldsymbol{\beta}_{..} \sim N(\boldsymbol{\mu}_{..}, \mathbf{V} \otimes[\rho \mathbf{C}+(\mathbf{1}-\rho) \mathbf{I}])$$
+
+when $\rho=0$ the residual variance is independent among the species. When $\rho=1$, species environmental niches are fully structured by their phylogeny.
+
+
+### The residual term $\boldsymbol L^R$
+
+#### None-spatial formulation
+
+Now moving to the random term, if the study design consists of sampling units without any spatial structure then:
+
+$$L_{i j}^R=\varepsilon_{i j}^S$$
+
+$$\varepsilon_i^S . \sim N(0, \boldsymbol \Omega)$$
+
+$\boldsymbol \Omega$ is a residual species-to-species variance-covariance matrix. Such matrix can be represented as a reduced rank matrix with a small amount of latent factors and loadings denoted $p_c$ where $p_c << p$ so that:
+
+$$\varepsilon_{i j}^S=\sum_m^{p_c} \eta_{i m}^R \lambda_{m j}^R,$$
+
+where $m$ runs over the latent factor. $\eta_{im}$ are gathered in the matrix denoted $\boldsymbol H$ and $\lambda_{m j}$ in the matrix denoted $\boldsymbol \Lambda$..
+
+$\eta_{i m}$ are the latent factors. They are parameterized as: 
+
+$$\eta_{i m}^R \sim \mathcal{N}(0,1)$$
+
+$\lambda_{m j}^R$ are the loadings. They are gathered in the matrix $\boldsymbol \Lambda$. They are parameterized so that:
+
+$$
+\begin{aligned}
+& \lambda_{\mathrm{mj}} \sim N\left(0, \phi_{\mathrm{mj}}^{-1} \tau_{j}^{-1}\right) \\
+& \tau_{\mathrm{j}}=\prod_{l=1}^j \delta_{\mathrm{l}}
+\end{aligned}
+$$
+
+Such parameterization is described in [Ovaskainen et al. (2015)](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12501).
+
+The $\phi_{\mathrm{mj}}$ terms control the local shrinkage of species loadings (specific to a dimension $m$) and the $\delta_l$ control the global shrinkage of species loadings (concerns all the loadings of a species). This formulation allows for uncertainty in the number of factors and sparsity structure. The amount of shrinkage increases rapidly with factor index $m$, and thus, the model assigns non-negligible factor loadings only for those factors that are strongly supported by the data. 
+
+Note that the species assocations could be made covariate-dependent, but this is not described in the tutorial.
+
+#### Including the sampling design
+
+Now including the sampling design in the framework implies to add the matrix $\boldsymbol \Pi$ to the random term $\boldsymbol L^R$ so that:
+
+$$\boldsymbol L_R = \boldsymbol{\Pi H \Lambda}$$
+
+where $\boldsymbol L^R$ is a $n \times n_p$ matrix ($n_p$ being the number of plots over the spatial domain), with elements $\pi_{ip} = 1$ if sampling unit $i$ belongs to the plot $p$, and $\pi_{ip} = 0$ if this is not the case. This matrix is needed to copy the plot-level random effects to the sampling units that belong to each focal plot.
+
+*N.b.* A plot is the higher-level unit of sampling (e.g., transect, or experimental plot), while the sampling unit might be a replicate within that plot.
+
+#### Including spatial correlation
+
+Now moving to a framework where spatial correlation is accounted for, latent factors among sites can be considered to have a spatial structure so that : 
+
+$$\boldsymbol \eta_{.m}^R \sim \mathcal{N}(0,\boldsymbol R_{m})$$
+
+so that $\boldsymbol R_{m}$ is a spatial correlation matrix parameterized as an exponential correlation function so that $R_{m, i_1 i_2}=\exp \left(-d_{i_1 i_2} / \alpha_{m}\right)$. $d_{i_1 i_2}$ is the distance between locations $(i_1,i_2)$ and $\alpha_{m}$ is a parameter scale specific to dimension $m$.
