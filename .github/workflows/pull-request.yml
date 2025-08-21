@@ -1,0 +1,21 @@
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+
+jobs:
+  build:
+    name: Build website with rmarkdown
+    runs-on: ubuntu-latest
+    container: mpetienne/finistr2025:0.1
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Additional R packages
+        run: |
+          Rscript -e "install.packages(c('tictoc'))"
+      - name: Generate slides
+        run: "quarto render"
+ 
