@@ -70,8 +70,8 @@ def generate_random_graph(num_nodes: Union[tuple,int], num_edges):
 
 ```{python}
 # Generate a random bipartite graph
-num_nodes = (100, 30)  # 100 nodes in each partition
-num_edges = 500  # Total number of edges
+num_nodes = (10, 30)  # 100 nodes in each partition
+num_edges = 50  # Total number of edges
 edge_index = generate_random_graph(num_nodes, num_edges)
 # Convert to PyTorch tensor
 edge_index = torch.tensor(edge_index, dtype=torch.long)
@@ -95,3 +95,71 @@ où
   - `num_nodes` est le nombre de nœuds dans le réseau mais cela posera des problèmes comme nous le verrons.
   
   
+À présent, nous allons pouvoir proposer un sous-échantillonnage en jeu d'entraînement, de validation et de test.
+
+```{python}
+import torch_geometric.transforms as T
+
+transform = T.RandomLinkSplit(
+            num_test=0.2,
+            num_val=0.1,
+            split_labels=True
+        )
+        
+train_data, val_data, test_data = transform(random_network)        
+```
+
+où
+  
+  - `num_test` permet de choisir la proportion du jeu de test,
+  - `num_val` permet de choisir la proportion du jeu de validation,
+  - `split_labels` fixé à vrai permet de séparer en deux parties les arêtes et les non arêtes.
+  
+Si on regarde ce que contiennent les objets train_data, val_data et test_data, on a :
+
+```{python}
+print(train_data)
+print(val_data)
+print(test_data)
+```
+
+
+Chaque objet contient `edge_index` qui est le même entre `train_data` et `val_data` et qui contient les arêtes considérées comme connues et qui servent à faire les convolutions dans les GNN pour l'entraînement et la validation. 
+Pour le test, on ajoute les arêtes du jeu validation pour faire les convolutions.
+
+L'attribut pos_edge_label_index donne des indices d'arêtes (sous-ensemble des arêtes existantes dans le réseau) et l'attribut neg_edge_label_index donne des indices de non arêtes.
+
+Si on regarde
+
+```{python}
+print(test_data.pos_edge_label_index)
+print(test_data.neg_edge_label_index)
+```
+
+on s'aperçoit d'une incohérence sur les non-arêtes car nous obtenons des indices de nœuds strictement supérieurs au nombre de nœuds en ligne ou en colonne...
+Cela vient du fait qu'il fait l'échantillonnage des non-arêtes sur la conversion en matrice d'adjacence du réseau bipartite, c'est-à-dire sur une matrice de taille la somme des nombres de nœuds en ligne et en colonne ayant des blocs diagonaux vides (car il n'y a pas d'interaction au sein de chaque type de nœuds).
+Il faut donc utiliser "correctement" la fonction permettant d'échantillonner des non-arêtes au sein de la matrice d'incidence ce que ne fait pas la fonction `RandomLinkSplit` pour des graphes bipartites...
+
+```{python}
+from torch_geometric.utils import negative_sampling
+neg_edge_index = negative_sampling(
+                edge_index=train_data.edge_index,
+                num_nodes=(train_data.x_s.size(0), train_data.x_t.size(0)),
+                num_neg_samples=train_data.pos_edge_label_index.size(1),
+            )
+print(neg_edge_index)            
+            
+```
+
+
+Lors de l'optimisation de la perte sur le jeu d'entraînement, on utilise les mêmes arêtes que celles servant à la convolution et on ajoute des non arêtes (0 dans la matrice d'incidence) échantillonnées comme ci-dessus. 
+Pour le calcul des métriques de validation, on fait de même avec les arêtes dans `val_data` et en ajoutant des non-arêtes par rapport à celles utilisées lors de la convolution grâce à la fonction `negative_sampling`.
+
+À la fin de l'entraînement, on teste sur le jeu de test `test_data` mais en utilisant les convolutions sur la réunions des arêtes contenues dans `train_data` et `val_data`.
+Les non arêtes du jeu de test doivent être choisies par rapport aux non arêtes du réseau complet.
+
+
+
+
+
+
