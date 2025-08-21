@@ -12,7 +12,7 @@ date-format: "[Last Updated on] MMMM, YYYY"
 ---
 
 
-L'objectif est de proposer une représentation latente des nœuds d'un réseau bipartite (ou de plusieurs) dans un espace euclidien. Un sous-objectif peut être de prédire des dyades manquantes (non observées). Nous allons utiliser des "variational graph auto-encoder", il est possible d'aller consulter les tutoriels de ... et ... Dans ce document, nous nous concentrons sur l'aspect sous-échantillonnage du réseau permettant de créer les jeux de données d'apprentissage et d'entraînement.
+L'objectif est de proposer une représentation latente des nœuds d'un réseau bipartite (ou de plusieurs) dans un espace euclidien. Un sous-objectif peut être de prédire des dyades manquantes (non observées) que ce soient des arêtes ou des non-arêtes. Nous allons utiliser des "variational graph auto-encoder", il est possible d'aller consulter les tutoriels correspondant sur la page de [pytorch-geometrics](https://pytorch-geometric.readthedocs.io/en/latest/advanced/batching.html#bipartite-graphs) et celui présenté lors d'un précédent atelier *State of the R*. Dans ce document, nous nous concentrons sur l'aspect sous-échantillonnage du réseau permettant de créer les jeux de données d'apprentissage et d'entraînement.
 
 
 L'apprentissage de la représentation latente se fait sur l'optimisation d'une perte, à savoir l'entropie croisée, de la prédiction d'arêtes et de non arêtes (1 ou 0 dans la matrice d'incidence correspondant au réseau). Cet ensemble d'arêtes et de non arêtes choisies en proportions égales s'appelle le jeu d'entraînement et est considéré connu pour effectuer les convolutions au sein des couches de GNN (graph neural network).
@@ -95,7 +95,7 @@ où
   - `num_nodes` est le nombre de nœuds dans le réseau mais cela posera des problèmes comme nous le verrons.
   
   
-À présent, nous allons pouvoir proposer un sous-échantillonnage en jeu d'entraînement, de validation et de test.
+À présent, nous allons pouvoir proposer un sous-échantillonnage en jeux d'entraînement, de validation et de test.
 
 ```{python}
 import torch_geometric.transforms as T
@@ -111,8 +111,8 @@ train_data, val_data, test_data = transform(random_network)
 
 où
   
-  - `num_test` permet de choisir la proportion du jeu de test,
-  - `num_val` permet de choisir la proportion du jeu de validation,
+  - `num_test` permet de choisir la proportion de données dans le jeu de test,
+  - `num_val` permet de choisir la proportion de données dans le jeu de validation,
   - `split_labels` fixé à vrai permet de séparer en deux parties les arêtes et les non arêtes.
   
 Si on regarde ce que contiennent les objets train_data, val_data et test_data, on a :
@@ -125,7 +125,7 @@ print(test_data)
 
 
 Chaque objet contient `edge_index` qui est le même entre `train_data` et `val_data` et qui contient les arêtes considérées comme connues et qui servent à faire les convolutions dans les GNN pour l'entraînement et la validation. 
-Pour le test, on ajoute les arêtes du jeu validation pour faire les convolutions.
+Pour le test, on ajoute les arêtes du jeu validation au jeu d'entraînement pour faire les convolutions.
 
 L'attribut pos_edge_label_index donne des indices d'arêtes (sous-ensemble des arêtes existantes dans le réseau) et l'attribut neg_edge_label_index donne des indices de non arêtes.
 
@@ -136,7 +136,7 @@ print(test_data.pos_edge_label_index)
 print(test_data.neg_edge_label_index)
 ```
 
-on s'aperçoit d'une incohérence sur les non-arêtes car nous obtenons des indices de nœuds strictement supérieurs au nombre de nœuds en ligne ou en colonne...
+on s'aperçoit d'une incohérence sur les non-arêtes car nous obtenons des indices de nœuds strictement supérieurs aux nombres de nœuds en ligne ou en colonne...
 Cela vient du fait qu'il fait l'échantillonnage des non-arêtes sur la conversion en matrice d'adjacence du réseau bipartite, c'est-à-dire sur une matrice de taille la somme des nombres de nœuds en ligne et en colonne ayant des blocs diagonaux vides (car il n'y a pas d'interaction au sein de chaque type de nœuds).
 Il faut donc utiliser "correctement" la fonction permettant d'échantillonner des non-arêtes au sein de la matrice d'incidence ce que ne fait pas la fonction `RandomLinkSplit` pour des graphes bipartites...
 
