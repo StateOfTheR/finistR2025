@@ -10,9 +10,18 @@ website:
         aria-label: GitHub
       - text: "Instructions"
         href: instructions.qmd
-      - text: "Echantillonnage pour GNN"
+    right:
+      - text: Différentiation automatique
+        href: autodiff.qmd
+      - text: animint2
+        href: inimint.qmd
+      - icon: Bicycle
+        href: traccar.qmd
+        text: GPS -- traccar
+      - text: Échantillonnage pour GNN
         href: GNNpytgeo.qmd
         icon: share-fill 
+
 format:
   html:
     theme: flatly
