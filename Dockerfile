@@ -13,6 +13,7 @@ RUN apt-get --purge -y remove texlive.\*-doc$
 RUN apt-get clean
 RUN pip3 install --break-system-packages torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
 RUN pip3 install --break-system-packages jax==0.7.0 
+RUN pip3 install --break-system-packages torch_geometric nbclient nbformat numpy
 RUN R -e "install.packages('reticulate')"
 RUN R -e "install.packages('purrr')" # map function
 

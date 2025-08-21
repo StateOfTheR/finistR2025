@@ -18,6 +18,10 @@ website:
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
+      - text: Échantillonnage pour GNN
+        href: GNNpytgeo.qmd
+        icon: share-fill 
+
 format:
   html:
     theme: flatly
