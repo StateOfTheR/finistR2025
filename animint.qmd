@@ -263,7 +263,7 @@ library(tidyr)
 First, let us get the data and usefull functions
 
 ```{r}
-france_temperature=rast("EOBS_FR31.nc")
+france_temperature=rast("data/EOBS_FR31.nc")
 
 
 library(lubridate)
