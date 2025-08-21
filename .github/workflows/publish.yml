@@ -7,7 +7,7 @@ jobs:
   build:
     name: Build website with rmarkdown
     runs-on: ubuntu-latest
-    container: mpetienne/finistr2025:0.1
+    container: mpetienne/finistr2025:0.2
     permissions:
       contents: write
     steps:

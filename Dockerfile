@@ -11,18 +11,9 @@ RUN apt-get install -y --no-install-recommends unzip python3-pip dvipng  wget gi
 RUN pip3 install --break-system-packages jupyter jupyter-cache flatlatex matplotlib
 RUN apt-get --purge -y remove texlive.\*-doc$
 RUN apt-get clean
-
+RUN pip3 install --break-system-packages torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+RUN pip3 install --break-system-packages jax==0.7.0 
 RUN R -e "install.packages('reticulate')"
-RUN R -e "install.packages('remotes')"
-RUN R -e "install.packages('microbenchmark')"
 RUN R -e "install.packages('purrr')" # map function
-ENV R_CRAN_WEB="https://cran.rstudio.com/"
-RUN R -e "install.packages('cowplot')" # GET function
-RUN R -e "install.packages('torch')"
-RUN R -e "torch::install_torch(type = 'cpu')"
-RUN R -e "install.packages('PLNmodels')"
-RUN R -e "install.packages('torchvision')"
-RUN R -e "install.packages(c('inlabru', 'lme4', 'ggpolypath', 'RColorBrewer', 'geoR'))"
-RUN R -e "install.packages(c('poissonreg'))"
 
 
