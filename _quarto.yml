@@ -13,6 +13,9 @@ website:
     right:
       - text: Différentiation automatique
         href: autodiff.qmd
+      - icon: Bicycle
+        href: traccar.qmd
+        text: GPS -- traccar
 format:
   html:
     theme: flatly
