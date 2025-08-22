@@ -46,9 +46,9 @@ $\boldsymbol{\mu}_{j \cdot}$ is the the expected environmental niche of species 
 
 The expected niche $\boldsymbol{\mu}_{j \cdot}$ (1) can either be assumed to be the same for all species, or (2) can model the **influence of species-specific traits on species' niche** so that:
 
-$$\mu_{j k}=\sum_l t_{j l} \gamma_{l k}$$
+$$\mu_{j k}=\sum_\ell t_{j \ell} \gamma_{\ell k}$$
 
-$t_{j l}$ is the value of trait $l$ for species $j$ and $\gamma_{l k}$ the effect of trait $l$ on response to covariate $k$.
+$t_{j \ell}$ is the value of trait $\ell$ for species $j$ and $\gamma_{\ell k}$ the effect of trait $\ell$ on response to covariate $k$.
 
 Phylogenetic relationship information is contained in the matrix $\mathbf{C}$ and parameter $\rho$.
 
@@ -82,15 +82,15 @@ $\lambda_{m j}^R$ are the loadings. They are gathered in the matrix $\boldsymbol
 $$
 \begin{aligned}
 & \lambda_{\mathrm{mj}} \sim N\left(0, \phi_{\mathrm{mj}}^{-1} \tau_{j}^{-1}\right) \\
-& \tau_{\mathrm{j}}=\prod_{l=1}^j \delta_{\mathrm{l}}
+& \tau_{\mathrm{j}}=\prod_{l=1}^m \delta_{\mathrm{\ell}}
 \end{aligned}
 $$
 
 Such parameterization is described in [Ovaskainen et al. (2015)](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12501).
 
-The $\phi_{\mathrm{mj}}$ terms control the local shrinkage of species loadings (specific to a dimension $m$) and the $\delta_l$ control the global shrinkage of species loadings (concerns all the loadings of a species). This formulation allows for uncertainty in the number of factors and sparsity structure. The amount of shrinkage increases rapidly with factor index $m$, and thus, the model assigns non-negligible factor loadings only for those factors that are strongly supported by the data. 
+The $\phi_{\mathrm{mj}}$ terms control the local shrinkage of species loadings (specific to a dimension $m$) and the $\delta_\ell$ control the global shrinkage of species loadings (concerns all the loadings of a species). This formulation allows for uncertainty in the number of factors and sparsity structure. The amount of shrinkage increases rapidly with factor index $m$, and thus, the model assigns non-negligible factor loadings only for those factors that are strongly supported by the data. 
 
-Note that the species assocations could be made covariate-dependent, but this is not described in the tutorial.
+Note that the species associations could be made covariate-dependent, but this is not described in the tutorial.
 
 #### Including the sampling design
 
@@ -109,3 +109,24 @@ Now moving to a framework where spatial correlation is accounted for, latent fac
 $$\boldsymbol \eta_{.m}^R \sim \mathcal{N}(0,\boldsymbol R_{m})$$
 
 so that $\boldsymbol R_{m}$ is a spatial correlation matrix parameterized as an exponential correlation function so that $R_{m, i_1 i_2}=\exp \left(-d_{i_1 i_2} / \alpha_{m}\right)$. $d_{i_1 i_2}$ is the distance between locations $(i_1,i_2)$ and $\alpha_{m}$ is a parameter scale specific to dimension $m$.
+
+# Some alternatives
+
+Nordhausen and Taskinen proposed a review of Generalized Linear Latent Variable Models and Related Computational Approaches in [Nordhausen et Taskinen, 2024](https://wires.onlinelibrary.wiley.com/doi/10.1002/wics.70005). 
+
+[`{boral}`](https://cran.r-project.org/package=boral) [Hui 2016](https://doi.org/10.1111/2041-210X.12514) is another MCMC-based R package for analyzing multivariate ecological data, with numerous response distributions (such as (Zero-­truncated) Poisson and
+negative binomial, binomial, normal, Tweedie; beta, ordinal and more) but less flexible for complicated hierarchical structure or use of phylogenetic information. 
+
+It is also possible to create your own programms using Stan, Jags, TMB or other general modeling software, and their potential R interface.
+
+Some other more computationally approximation approach based on Laplace or variational of the marginal log-likelihood where the latent variables have been integrated out :
+
+
+| Package | Ref. | Method | Comments |
+|------|------|------|------|
+| glmmTMB    | Brooks et al. 2017    | LA | focus on mixed models, option to specify a reduced-­rank covariance structure|
+| gllvm    | Niku et al. 2023    | LA, VA    | Implements several schemes for model-­based ordination |
+
+: R packages, adapted from [Nordhausen et Taskinen, 2024](https://wires.onlinelibrary.wiley.com/doi/10.1002/wics.70005), LA : Laplace Approx., VA: Variational Approx. {.striped .hover}
+
+See the article to have a complete overview.
