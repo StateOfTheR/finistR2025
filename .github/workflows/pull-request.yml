@@ -3,6 +3,7 @@ on:
   workflow_run:
     workflows:
       - "Build and Push Docker image"
+    types: ["completed"]
 
 jobs:
   build:
