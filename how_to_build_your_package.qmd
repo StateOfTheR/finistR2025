@@ -1,0 +1,439 @@
+---
+title: "How To Build Your Package - Julia edition"
+lang: fr
+author: 
+  - Caroline Cognot
+  - Pierre Navaro
+format: html
+toc: true
+date: last-modified
+date-format: "[Last Updated on] MMMM, YYYY"
+---
+
+# Ressources
+
+
+- [make a package available on GitHub](https://syl1.gitbook.io/julia-language-a-concise-tutorial/language-core/11-developing-julia-packages) - used in this work
+- [Example template for GitHub](https://github.com/JuliaLang/Example.jl/tree/master)
+- [Best practices in Julia](https://modernjuliaworkflows.org/)
+- [Modules](https://docs.julialang.org/en/v1/manual/modules/)
+- [PkgTemplates.jl](https://juliaci.github.io/PkgTemplates.jl/stable/) (is used in following )
+- [make a package using PkgTemplates, then register it for the julia registry](https://julialang.org/contribute/developing_package) - way simpler !
+
+# Section 0 : issues with quarto in Julia. 
+
+- We have to add engine: julia in the yaml header.
+- Make sure VSCode finds the Julia executable by adding the folowwing lines in Preference : open user settings  
+```
+{
+  "julia.executablePath": "/path/to/julia"
+}
+```
+
+
+
+# Section 1 : modules
+
+The prerequisites for making Julia packages are
+
+- Install Julia (fair enough)
+- have an IDE (ok)
+- Understand how modules work
+- Create a GitHub account.
+
+Wait - what are modules ?
+
+Modules in Julia help organize code into coherent units. They are used to precompile code or build packages. 
+
+
+## Defining a module
+
+For large Julia packages, the code is usually organized in files, like
+
+```julia
+module SomeModule
+# export, public, using, import statements are usually here; we discuss these below
+include("file1.jl")
+include("file2.jl")
+end
+```
+
+## Export lists
+
+export list = name of the different functions, types, global variables, constants... that are visible from the outside of the module when using it. 
+
+
+
+```julia
+module NiceStuff
+       export nice, DOG
+       struct Dog end      # singleton type, not exported
+       const DOG = Dog()   # named instance, exported
+       nice(x) = "nice $x" # function, exported
+end;
+
+```
+
+means that when calling
+
+```julia
+ using .NiceStuff
+```
+
+functions *nice* and constant *DOG* will be available under their names *nice* and *DOG* , but that *Dog* will be available through *NiceStuff.Dog*.
+
+For example, it means that if we define helper functions used inside a *fit_mle* then we can keep them hidden in the package, and only export the final function !
+ 
+There can be as many *export* as wanted, located anywhere in the module block, but it is recommended to put it at the beggining of the code.
+
+## Using and Import a module
+
+Loading from a package : *using Module*. Loading locally : *using .Module*
+
+importing *import .Module* imports the module name, all of the objects must be named as *NiceStuff.nice* for example using the module name as a prefix. Or we can use *import .Module: something* to get the name *something* directly.
+
+To modify a function (for example proposing a new class and extending a function to this new class ), there are two ways :
+
+Call the function by its entire name
+```julia
+using .NiceStuff
+
+struct Cat end
+
+NiceStuff.nice(::Cat) = "nice 😸"
+@show(nice(Cat()))
+```
+
+Or import it like this (this is where import is useful)
+
+```julia
+import .NiceStuff: nice
+nice(::Cat) = "oo"
+@show nice(Cat())
+```
+
+We can rename an import like this 
+
+```julia
+import CSV as joli_csv
+```
+
+## Example of homemade module 
+
+```julia
+import Pkg;
+Pkg.add("Distributions");
+Pkg.add("ExtendedExtremes");
+Pkg.add("Plots");
+```
+```julia
+module MyModuleExtendedExtremes 
+#I chose my name !
+
+export MixedUniformTail, pdf, cdf, quantile, rand, fit_mix  #I export everything 
+
+import Base: rand
+import Distributions: pdf, cdf, quantile 
+# To extend these functions, I have to import their name explicitly. When doing using, they are not modifiable.
+
+using Distributions, Random #not sure this is necessary
+using ExtendedExtremes
+
+struct MixedUniformTail{T1<:ContinuousUnivariateDistribution, T2<:ContinuousUnivariateDistribution} <: ContinuousUnivariateDistribution
+    # I wanted to put an uniform on the left part, an EGPD on the bulk and tail. EGPD only works when filtering very low value but I want all the values ! 
+    p::Float64 # probability of the left part
+    uniform_part::T1 #left part
+    tail_part::T2 # right part
+    a::Float64 #minimum value, for precip it is 0.1
+    b::Float64 #threshold between both part, 0.5 for precips (included in left part)
+    end
+
+# PDF
+function pdf(d::MixedUniformTail, y::Real)
+    if y < d.a
+        return 0.0
+    elseif y <= d.b
+        return d.p * pdf(d.uniform_part, y)
+    else
+        return (1 - d.p) * pdf(d.tail_part, y - d.b)
+    end
+end
+
+# CDF
+function cdf(d::MixedUniformTail, y::Real)
+    if y < d.a
+        return NaN
+    elseif y <= d.b
+        return d.p * cdf(d.uniform_part, y)
+    else
+        return d.p + (1 - d.p) * cdf(d.tail_part, y - d.b)
+    end
+end
+
+# Quantile function
+function quantile(d::MixedUniformTail, q::Real)
+    if q < 0 || q > 1
+        throw(DomainError(q, "Quantile outside [0,1]"))
+    end
+    if q <= d.p
+        return quantile(d.uniform_part, q / d.p)
+    else
+        return d.b + quantile(d.tail_part, (q - d.p) / (1 - d.p))
+    end
+end
+
+# Random sampling
+function rand(rng::AbstractRNG, d::MixedUniformTail)
+    if rand(rng) <= d.p
+        return rand(rng, d.uniform_part)
+    else
+        return d.b + rand(rng, d.tail_part)
+    end
+end
+
+
+
+
+rand(d::MixedUniformTail) = rand(Random.GLOBAL_RNG, d)
+
+# estimation
+
+
+function fit_mix(::Type{MixedUniformTail}, data;left=0.1,middle=0.5)
+    u = middle
+    prop_smallrain = sum(left .<= data .<= u) / sum(data .> 0)
+    y = data[data.>u] .- u
+
+    tail_part = fit_mle(ExtendedGeneralizedPareto{TBeta}, y)
+
+    return MixedUniformTail(prop_smallrain, Uniform(left,middle), tail_part, left, middle)
+end
+
+end
+```
+
+Now, I have defined my module and I can use my new functions by using it:
+```julia
+using .MyModuleExtendedExtremes #it is a local module, so I have to use it like this
+using Distributions
+using ExtendedExtremes
+######### try the new functions ###############################"
+# Parameters
+a, b = 0.1, 0.5
+p = 0.3
+
+# Create the mixed distribution
+d = MixedUniformTail(p, Uniform(a, b), ExtendedGeneralizedPareto( TBeta(0.4), GeneralizedPareto(0.0,3, 0.1))   , a, b)
+
+# Example: use it like any Distributions.jl distribution
+println(pdf(d, 0.2))      # PDF in uniform part
+println(cdf(d, 0.2))      # CDF in uniform part
+println(quantile(d, 0.8)) # Quantile in tail part
+
+# Random draws
+samples = rand(d, 10000)
+
+using Plots
+histogram(samples, bins=50, normalize=true, label="Sampled PDF",alpha=0.3)
+Plots.plot!(x -> pdf(d, x), 0, 50, label="Theoretical PDF", lw=2)
+
+
+dd = fit_mix(MixedUniformTail,samples)
+samples2=rand(dd,10000)
+histogram!(samples2 , bins=50,normalize=true,label="samples from fitted on previous samples",alpha=0.3)
+
+```
+
+Conclusion here : we have a module and some tests, now, how do we make that a proper package ?
+
+# Section 2 : Creating a package using GitHub
+
+Tutorial from https://syl1.gitbook.io/julia-language-a-concise-tutorial/language-core/11-developing-julia-packages
+
+
+## Creating a package
+
+- Create repository on GitHub. Custom : name it PackageName.jl 
+
+For me, MyExtendedExtremes.jl
+
+- generate a basic package structure locally using `generate`
+    - cd to a folder where we want the package to be created. `cd julia_package` in my case 
+    - start Julia in this folder then in Julia REPL type `] generate PackageName` (in my case `] generate MyExtendedExtremes`)
+```
+(@v1.11) pkg> generate MyExtendedExtremes
+  Generating  project MyExtendedExtremes:
+    Project.toml
+    src/MyExtendedExtremes.jl
+```
+
+`generate` has created the following files and folders :
+```text
+MyExtendedExtremes/
+├── Project.toml
+├── src/
+    └── MyExtendedExtremes.jl
+```
+
+The Project.toml contains for now only this :
+```text
+name = "MyExtendedExtremes"
+uuid = "8f8ad11f-fafd-4bca-9428-2b36ffe65f47"
+authors = ["cognot <caroline.cognot@agroparistech.fr>"]
+version = "0.1.0"
+
+```
+
+
+- activate the package folder. In the same julia REPL : type `] activate Full/path/PackageName` (in my case `]activate MyExtendedExtremes`)
+
+Result in the REPL :
+```
+(@v1.11) pkg> activate MyExtendedExtremes
+  Activating project at `~/StateOfTheR/finistr2025/julia_package/MyExtendedExtremes`
+```
+
+Now, the REPL when typing `]` looks like this :
+` (MyExtendedExtremes) pkg> ` 
+
+- Adding the required packages : (in my case, it will be `Distributions`,`ExtendedExtremes`,`Plots`,`Random`)
+Activating has created an environment for the folder. This is when we can add packages dependencies, which will modify the Project.toml. (do not add unecessary packages). After adding the packages, now sections of the Project.toml have been created named `[deps]`and `[compat]`. 
+
+- Specify compatible functions in the  `[compat]` section :
+    - add `julia = "1.10.0"` for example (means, the package will work for versions of julia after 1.10.0)
+    - modify if necessary the versions of the packages needed for compatibility.
+
+Now, it is the time to put all this on GitHub.
+
+## Link the package to GitHub
+
+We can `exit()` julia.
+
+The tutorial says to put this in git. First, go in the folder 
+```
+cd MyExtendedExtremes #I added this.
+git init     # Initialise the git repository
+git add .    # Add all files, including in subfolders
+git commit -a -m "Initial package structure of MyAwasomePackage" # Create a first commit
+git branch -m main # Rename "master" to "main" as of the new GitHub policy
+git remote add origin git@github.com:caroline-cognot/MyExtendedExtremes.jl.git # Link the remote github repository to the local one
+git config pull.rebase false # Allow mering of remote vs local codebase for next step
+git pull origin main --allow-unrelated-histories # Fetch the Readme and gitignore we created when we created the repository
+git push --set-upstream origin main # Finally upload everything back to the GitHub repository
+```
+
+Now, the package exists : let us start julia, then we can add it by
+```julia
+using Pkg
+Pkg.add(url="git@github.com:caroline-cognot/MyExtendedExtremes.jl.git")
+
+```
+
+Now I can import my package without the "."
+
+```julia
+using MyExtendedExtremes #it is no longer a local module, so I have to use it like this now without the .
+
+```
+
+But there is no code inside yet. I have to add my module and make some tests.
+
+By doing this, the package is moved in the julia dev directory :
+```
+(@v1.11) pkg> dev MyExtendedExtremes
+```
+The package and its code is now located inside this folder. We have to modify this folder instead of our previous folder (the old files are useless).
+
+```
+(@v1.11) pkg> dev /home/caroline/.julia/dev/MyExtendedExtremes
+```
+
+## Adding the functionalities to the package 
+
+Now, I can edit my source by opening the file in VSCODE  :
+
+```
+code /home/caroline/.julia/dev/MyExtendedExtremes/src/MyExtendedExtremes.jl
+```
+
+After editing the file, restarting Julia then importing/using the package will make the functions available. 
+
+
+
+
+```julia
+using MyExtendedExtremes
+using Distributions,Random
+using ExtendedExtremes
+######### try the new functions ###############################"
+# Parameters
+a, b = 0.1, 0.5
+p = 0.3
+
+# Create the mixed distribution
+d = MixedUniformTail(p, Uniform(a, b), ExtendedGeneralizedPareto( TBeta(0.4), GeneralizedPareto(0.0,3, 0.1))   , a, b)
+```
+
+## Adding tests
+
+go in the package directory, add a test/runtests.jl file and open it in vscode
+```
+cd /home/caroline/.julia/dev/MyExtendedExtremes
+mkdir -p test 
+code test/runtests.jl
+```
+
+
+Now, when I want to test the package, type `] test MyExtendedExtremes `
+
+## Forgot a dependency ?
+
+- go in the package folder
+```
+cd /home/caroline/.julia/dev/MyExtendedExtremes
+
+- start julia 
+
+- activate the package
+
+```julia
+using Pkg
+Pkg.activate("/home/caroline/.julia/dev/MyExtendedExtremes")
+```
+
+- add the missing package
+
+```julia
+Pkg.add("Random")
+
+```
+If it still does not work : in doubt kill all terminals and restart.
+
+or do it the way the tutorial says it in when adding the Test package :
+```(@v1.x) pkg> activate [USER_HOME_FOLDER]/.julia/dev/MyAwesomePackage/test/ #(remove test/ if the package has to be added in the package and not just in the test folder)
+add Test
+(test) pkg> activate # Without arguments, "activate" brings back to the default environment
+(@v1.x) pkg> test MyAwesomePackage  # This perform the test
+```
+
+## Prepare for git commit
+
+The tutorial says to add a functionality that performs actions each time we `git push` by adding a file 
+`[USER_HOME_FOLDER]/.julia/dev/MyExtendedExtremes/.github/workflows/ci.yml ̀
+
+Then it says to add badges on the readme .
+
+From a terminal in the right folder (`~/.julia/dev/MyExtendedExtremes`)
+I can now do
+
+̀̀``` 
+git commit -a -m "Adding functions and testing"
+git push
+``` 
+
+## It is here !
+
+https://github.com/caroline-cognot/MyExtendedExtremes.jl/
+
+
+
