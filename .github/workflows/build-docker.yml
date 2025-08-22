@@ -13,7 +13,7 @@
 env:
   DOCKER_IMAGE_NAME: finistr2025
 
-name: Build and Push Docker Image
+name: Build and Push Docker image
 
 # Triggers
 on:
@@ -24,9 +24,11 @@ on:
     paths:
       - "Dockerfile"
       - ".github/workflows/build-docker.yml"
+    branches:
+      - main
 
 jobs:
-  build-and-push-landing-page:
+  build-and-push-docker-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -54,7 +56,7 @@ jobs:
         id: print_version
         run: echo "$VERSION"
 
-      - name: Build and push Landing Page Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
