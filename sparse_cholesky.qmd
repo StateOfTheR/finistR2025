@@ -167,13 +167,25 @@ def etree_base(A_indices, A_indptr):
 
 ```{python}
 parent, col_count = etree_base(A_csc.indices, A_csc.indptr)
-print("parent =", 1+parent)
+print("parent =", list(1+p for p in parent))
 print("col_count =", col_count)
 ```
 
-![On vérifie que les noeuds 1 et 2 ont pour parents le noeud 5, que 3 et 4 sont reliés à 6, etc :warning: pour coller avec la numérotation utilisée sur la figure on énumére les colonnes de 1 à 8 ici. ](images/cholesky/T.png){fig-align="center"}
+![On vérifie que les noeuds 1 et 2 ont pour parents le noeud 5, que 3 et 4 sont reliés à 6, etc :warning: pour coller avec la numérotation utilisée sur la figure on énumére les colonnes de 1 à 9 ici. ](images/cholesky/T.png){fig-align="center"}
 
-## 
+## Décomposition symbolique de Cholesky
+
+::: callout-note
+On sait grâce à l'arbre d'élimination **combien** d'éléments non nuls il y dans `L[:,j]`. La décomposition symbolique de Cholesky permet de déterminer **quels** sont les éléments non-nuls (formellement de déterminer les indices de ligne $i$ tels que $L_{ij}$) pour construire la représentation CSC de $L$.
+
+En parallèle de cette construction (et pour des raisons dans la section sur le calcul des coefficients), on trace les colonnes $i$ de $L$ (avec $i < j$ par construction) qui seront utilisées plus tard pour le calcul effectif des élements de `L[:,j]`. Il s'agit des colonnes $i$ pour lesquels $L_{ji} \neq 0$ (éléments non-nuls de la $j$-ème ligne). Cela revient en pratique à construire la représentation CSR de $L$.
+:::
+
+La procédure suivante permet de déterminer les éléments non nuls de `L[:,j]` comme suit. Pour la colonne courante $j$,
+
+-   on parcourt les **voisins directs** de $j$ dans $A$
+
+-   pour chacun de ces voisins $i$ , si c'est un descendant de $j$ dans $\mathcal{T}_A$ (c'est à dire si $i < j$), alors on rajoute tout le chemin qui relie $i$ à $j$ dans $\mathcal{T}_A$ dans le support de $L$ (à la fois en mode CSC et CSR).
 
 ```{python}
 def symbolic_cholesky_base(A_indices, A_indptr, parent, col_count):
@@ -191,7 +203,7 @@ def symbolic_cholesky_base(A_indices, A_indptr, parent, col_count):
   # la cinquième colonne de col_ptr ne sert à rien ?!
   col_ptr[1:] += np.cumsum(col_count)
 
-  print(len(L_indices), col_ptr)
+  # print(len(L_indices), col_ptr)
 
   # pour toutes les colonnes car j parcourt L_indptr et chaque slot de L_indptr
   # represente une colonne
@@ -222,14 +234,11 @@ def symbolic_cholesky_base(A_indices, A_indptr, parent, col_count):
 ```
 
 ```{python}
-L_indices, L_indptr, row_useful = symbolic_cholesky_base(A_indices, A_indptr, parent, col_count)
+L_indices, L_indptr, row_useful = symbolic_cholesky_base(A_csc.indices, A_csc.indptr, parent, col_count)
+print(L_indices[0:3], row_useful[5])
 ```
 
-Algo de base Cholesky réécrit pour faire apparaitre la même double structure que tous nos algos !
-
-Ce qu'on a envie de faire c'est remplacer la boucle sur k par la boucle sur les éléments non nuls seulement! L'algo du dessous le fait sans élimation tree mais on peut combiner l'algo qui donne la structure avec directement le calcul !
-
-À la fin d'une boucle du for extérieur de symbolic_cholesky_base on a le bloc haut gauche du fill-in
+![On vérifie que les éléments non-nuls de la première colonne (\`L_indices\[0:3\]\`) sont dans les lignes 1, 5 et 7 et que les éléments non nuls de la ligne 6 (\`row_useful\[5\]\`) sont dans les colonnes 3 et 4.](images/cholesky/L.png){fig-align="center"}
 
 ```{python}
 def _deep_copy_csc(A_indices, A_indptr, A_x, L_indices, L_indptr):
