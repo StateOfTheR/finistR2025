@@ -25,9 +25,87 @@ date-modified: today
 date-format: "[Last Updated on] MMMM, YYYY"
 ---
 
+::: callout-note
+L'objectif de ce tutoriel est d'appréhender (douloureusement) la factorisation de Cholesky pour des matrices sparses. Il s'inspire fortement de plusieurs ressources:
+
+-   2 posts de blog de Dan Simpson [post 1](https://dansblog.netlify.app/posts/2022-03-23-getting-jax-to-love-sparse-matrices/getting-jax-to-love-sparse-matrices) et [post 2](https://dansblog.netlify.app/posts/2022-11-27-sparse7/sparse7)
+-   1 [cours \[C1\]](https://solomonik.cs.illinois.edu/teaching/cs554_fall2017/slides/slides_08.pdf) de Michael T Heath et Edgar Solomonik sur les systèmes linéaires sparses
+-   1 [cours \[C2\]](https://gpichon.gitlabpages.inria.fr/m2if-numerical_algorithms/slides/lecture-etree.pdf) de Grégoire Pichon sur les arbres d'élimination
+:::
+
+# Stratégie
+
+::: callout-warning
+La décomposition de Cholesky de $A$ sous la forme $L^\top L$ est unique. Cependant le fait de permuter les lignes (et colonnes de $A$) peut changer drastiquement le taux de remplissage de $L$. Trouver la permutation optimale est NP-dur et de nombreuses heuristiques existent. On n'aborde pas ce problème ici et on suppose que $A$ a déjà été réordonnée de façon (pseudo-)optimale.
+:::
+
+La stratégie adoptée pour calculer une factorisation sparse de Cholesky $A = L^\top L$ est la suivante:
+
+-   Partir d'une matrice sparse $A$ (stockée au format [CSC](https://scipy-lectures.org/advanced/scipy_sparse/csc_matrix.html))
+-   Calculer l'arbre d'élimination de $A$, noté $\mathcal{T}_A$
+-   Utiliser $\mathcal{T}_A$ et $A$ pour calculer le support de $L$ (aussi appelée *décomposition symbolique* de $A$)
+-   Calculer les coefficients non-nuls de $L$ de façon récursive
+    -   la récursion est dite *left-looking* et se fait sur les colonnes, la construction de la colonne $j$ suppose que les colonnes $0$ à $j-1$ de $L$ ont déjà été reconstruites
+
+::: callout-note
+On utilisera l'indexation Python (*0-based*) pour numéroter les colonnes de $A$ et de $L$.
+:::
+
+On prendra comme exemple tout au long de ce document la matrice $A$ dont le support est:
+
+![](images/cholesky/A.png){fig-align="center"}
+
+et dont le graphe $G(A)$ est:
+
+![](images/cholesky/G_A.png){fig-align="center"}
+
 ```{python}
 import numpy as np
+from jax.experimental import sparse
+import jax.numpy as jnp
+A = jnp.array([[1, 0, 0, 0, 1, 0, 1, 0, 0],
+               [0, 1, 0, 0, 1, 0, 0, 1, 0],
+               [0, 0, 1, 0, 0, 1, 1, 0, 0],
+               [0, 0, 0, 1, 0, 1, 0, 1, 0],
+               [1, 1, 0, 0, 1, 0, 0, 0, 1],
+               [0, 0, 1, 1, 0, 1, 0, 0, 1],
+               [1, 0, 1, 0, 0, 0, 1, 0, 1],
+               [0, 1, 0, 1, 0, 0, 0, 1, 1],
+               [0, 0, 0, 0, 1, 1, 1, 1, 1]]) + 8 * jnp.eye(9)
+
+A_csc = sparse.CSC.fromdense(A)
+
+A_tril = np.tril(A)
+A_tril_csc = sparse.CSC.fromdense(A_tril)
 ```
+
+# Arbre d'élimination (*elimination tree*)
+
+::: callout-note
+L'arbre d'élimination est un des deux ingrédients (avec le graphe associé à $A$) qui permet de calculer le support de $L$ à partir du support de $A$.
+
+Soit $i > j$, $L_{ij} \neq 0$ si et seulement: - $j$ est un descendant de $i$ dans l'arbre $\mathcal{T}_A$ **et** - il existe un chemin qui relie $i$ à $j$ dans le graphe de $A$ (*i.e* le graphe dont la matrice d'adjacence est le support de $A$) en empruntant uniquement des descendants de $j$ dans $\mathcal{T}_A$.
+:::
+
+Dans notre exemple, on cherche à reconstruire l'arbre suivant:
+
+![](images/cholesky/T.png){fig-align="center"}
+
+::: {.callout-important collapse="true"}
+L'arbre d'élimination n'est **pas suffisant** pour reconstruire le support de $L$, on a besoin du graphe de $A$.
+:::
+
+La procédure suivante permet de reconstuire l'arbre d'élimination de $A$. Elle est tirée du cours C2.
+
+::: callout-note
+Informellement, la procédure est récursive et parcourt les colonnes de $A$ de gauche à droite. À l'étape $j$, si l'arbre d'élimination a été reconstruit sur `[0:j-1]`,
+
+-   identifier les voisins $i$ de $j$ (*i.e.* les $i$ tels que $A_{ij} \neq 0$)
+
+-   relier $j$ au parent de l'arbre qui contient $i$
+:::
+
+En pratique, on ne se contente pas de construire l'arbre, on en profite pour calculer à la volée le nombre d'éléments non-nuls dans la colonne `L[:,j]` en utilisant un parcours en profondeur de l'arbre raciné en `j`. La procédure suivante (tirée de post2) renvoie l'arbre (`parent`) et le nombre d'éléments non nuls de `L[:,j]` (`col_count`).
 
 ```{python}
 def etree_base(A_indices, A_indptr):
@@ -38,17 +116,17 @@ def etree_base(A_indices, A_indptr):
 
   # Pour toutes les colonnes: visualiser la triangulaire supérieure !
   for j in range(n): 
-    print("j=", j)
+    # print("j=", j)
     mark[j] = j
-    print("nodes=",[A_indices[indptr] for indptr in range(A_indptr[j], A_indptr[j+1])])
+    # print("nodes=",[A_indices[indptr] for indptr in range(A_indptr[j], A_indptr[j+1])])
 
     # NODES === ROWS === INDICES, we go through the rows
     # Pour toutes les lignes i(=node) tq Aij != 0 ie pour toutes les lignes i tq (i,j) \in G(A)
     for indptr in range(A_indptr[j], A_indptr[j+1]):
-      print("  new for")
+      # print("  new for")
       node = A_indices[indptr]
       
-      print("  node", node)
+      # print("  node", node)
 
       # Tant que node=i < j (ie. tant que je suis au dessus de la diag)
       # ET mark[i] != j (ie. va éviter de refaire la procédure pour une ligne (i=node)
@@ -62,8 +140,8 @@ def etree_base(A_indices, A_indptr):
       # qui pourrait reprendre depuis la prochaine valeur de node de la boucle for intérieure
            
       while node < j and mark[node] != j:
-        print("      new while")
-        print("      node", node)
+        # print("      new while")
+        # print("      node", node)
     
         #print("   mark[node]=", mark[node])
           
@@ -72,39 +150,30 @@ def etree_base(A_indices, A_indptr):
         # ie. there must be a path from i to j in the tree,
         # it means that the parent of this terminal node must be j.
         if parent[node] == -1:
-          print("      add link", node, "to", j)
+          # print("      add link", node, "to", j)
           parent[node] = j
         mark[node] = j
-        print("      new mark[node]=", mark[node])
+        # print("      new mark[node]=", mark[node])
         col_count[node] += 1 # on ajoute + 1 colonne pour la ligne dont on a pris le noeud
-        print("      col_count=", col_count)
+        # print("      col_count=", col_count)
         node = parent[node]
-        print("      new node", node)
-        print("      end while")
-      print("  end for")
+      #   print("      new node", node)
+      #   print("      end while")
+      # print("  end for")
 
-    print(parent, col_count, mark)
+    # print(parent, col_count, mark)
   return (parent, col_count)
 ```
 
 ```{python}
-A_indices = [0, 1, 3, 0, 1, 3, 2, 3, 0, 1, 2, 3]
-A_indptr = [0, 3, 6, 8, 12]
-A_x = [1, 2, 8, 2, 3, 5, 4, 6, 8, 5, 6, 7]
-
-# We assume that we are given the non-zero structure of tril(A) (aka the lower-triangle of ) for algo of part 2
-
-#A_tril = np.tril(A)
-A_tril_indices = [0, 1, 3, 1, 3, 2, 3, 3]
-A_tril_indptr = [0, 3, 5, 7, 8]
-A_tril_x = [1, 2, 8, 3, 5, 4, 6, 7]
-
-parent, col_count = etree_base(A_indices, A_indptr)
+parent, col_count = etree_base(A_csc.indices, A_csc.indptr)
+print("parent =", 1+parent)
+print("col_count =", col_count)
 ```
 
-Dire que à partir de e_tree on a le col_count, du coup, les algos complets de sparse cholesky ont une heuristique pour trouver des permutations de L qui minimisent col_cout (ie le fill-in de L) et travailler avec celle-ci
+![On vérifie que les noeuds 1 et 2 ont pour parents le noeud 5, que 3 et 4 sont reliés à 6, etc :warning: pour coller avec la numérotation utilisée sur la figure on énumére les colonnes de 1 à 8 ici. ](images/cholesky/T.png){fig-align="center"}
 
-Faire le lien avec le théorème qui donne les éléments non nuls de L via le path ! (on remonte dans l'arbre...)
+## 
 
 ```{python}
 def symbolic_cholesky_base(A_indices, A_indptr, parent, col_count):
@@ -243,23 +312,6 @@ etree_extended(A_indices, A_indptr)
 ```
 
 ```{python}
-from jax.experimental import sparse
-import jax.numpy as jnp
-A = jnp.array([[1, 0, 0, 0, 1, 0, 1, 0, 0],
-               [0, 1, 0, 0, 1, 0, 0, 1, 0],
-               [0, 0, 1, 0, 0, 1, 1, 0, 0],
-               [0, 0, 0, 1, 0, 1, 0, 1, 0],
-               [1, 1, 0, 0, 1, 0, 0, 0, 1],
-               [0, 0, 1, 1, 0, 1, 0, 0, 1],
-               [1, 0, 1, 0, 0, 0, 1, 0, 1],
-               [0, 1, 0, 1, 0, 0, 0, 1, 1],
-               [0, 0, 0, 0, 1, 1, 1, 1, 1]]) + 8 * jnp.eye(9)
-
-A_csc = sparse.CSC.fromdense(A)
-
-A_tril = np.tril(A)
-A_tril_csc = sparse.CSC.fromdense(A_tril)
-
 parents, col_count = etree_base(A_csc.indices, A_csc.indptr)
 
 print(col_count)
