@@ -23,5 +23,9 @@ We follow a simplified version of the tutorial given here: https://rcdata.nau.ed
 
 ```{python}
 import pandas as pd
+
+pd.DataFrame ({"pmid": [1, 1]})
 ```
+
+
 
