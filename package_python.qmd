@@ -1,0 +1,27 @@
+---
+title: "Python packaging"
+from: markdown+emoji
+lang: fr
+format: html
+execute:
+    cache: true
+toc: true
+author:
+  - name: Léo Micollet 
+  - name: Arthur Leroy
+  - name: Armand Favrot
+    affiliations:
+      - name: INRAE - MIA Paris Saclay
+date: "2025-08-22"
+date-modified: today
+date-format: "DD MMMM YYYY"
+---
+
+We follow a simplified version of the tutorial given here: https://rcdata.nau.edu/genomic-ml/animint2-manual/Ch08-WorldBank-facets.html
+
+# Loading useful libraries
+
+```{python}
+import pandas as pd
+```
+
