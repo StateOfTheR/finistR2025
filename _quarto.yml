@@ -18,6 +18,8 @@ website:
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
+      - text: Sparse Cholesky
+        href: sparse_cholesky.qmd
 format:
   html:
     theme: flatly
