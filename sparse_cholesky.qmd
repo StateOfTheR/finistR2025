@@ -241,143 +241,208 @@ print(L_indices[0:3], row_useful[5])
 
 # Calcul effectif des coefficients de $L$
 
+1. Initialisation
+$$
+\begin{pmatrix}
+t_{1}\\
+0\\
+t_{2}\\
+t_{3}\\
+t_{4}\\
+\end{pmatrix} =
+\begin{pmatrix}
+a_{55}\\
+0\\
+0\\
+0\\
+a_{95}\\
+\end{pmatrix} 
+$$
+
+2. Mise à jour
+$$
+\begin{pmatrix}
+t_{1}\\
+0\\
+t_{2}\\
+t_{3}\\
+t_{4}\\
+\end{pmatrix} =
+\begin{pmatrix}
+t_{1}\\
+0\\
+t_{2}\\
+t_{3}\\
+t_{4}\\
+\end{pmatrix} - l_{51} . \begin{pmatrix}
+l_{51}\\
+0\\
+l_{71}\\
+0\\
+0\\
+\end{pmatrix} - l_{52} . \begin{pmatrix}
+l_{52}\\
+0\\
+0\\
+l_{82}\\
+0\\
+\end{pmatrix}
+$$
+
+3. Calcul dans $L$
+$$
+\begin{pmatrix}
+l_{51}\\
+0\\
+l_{52}\\
+l_{53}\\
+l_{54}\\
+\end{pmatrix} = \frac{1}{\sqrt{t_{1}}} .
+\begin{pmatrix}
+t_{1}\\
+0\\
+t_{2}\\
+t_{3}\\
+t_{4}\\
+\end{pmatrix}
+$$
 
 
 
-```{python}
-def _deep_copy_csc(A_indices, A_indptr, A_x, L_indices, L_indptr):
-  n = len(A_indptr) - 1
-  L_x = np.zeros(len(L_indices))
-  
-  for j in range(0, n):
-    copy_idx = np.nonzero(np.isin(L_indices[L_indptr[j]:L_indptr[j + 1]],
-                                  A_indices[A_indptr[j]:A_indptr[j+1]]))[0]
-    L_x[L_indptr[j] + copy_idx] = A_x[A_indptr[j]:A_indptr[j+1]]
-  return L_x
-```
-
-```{python}
-L_x = _deep_copy_csc(A_tril_indices, A_tril_indptr, A_tril_x, L_indices, L_indptr) # il faut initialiser L_x avec la bonne longeur mais aussi les valeurs de A placées au bon endroit
-# c'est le rôle de deep_copy_csc
-print(L_x)
-```
-
-```{python}
-def _sparse_cholesky_csc_impl(L_indices, L_indptr, L_x):
-    n = len(L_indptr) - 1
-    descendant = [[] for j in range(0, n)]
-    for j in range(0, n):
-        tmp = L_x[L_indptr[j]:L_indptr[j + 1]] # j-eme colonne de L, ie il ne faut pas de valeur manquante (même structure de sparsité
-        # dans 1ere col de L et de A (oui il suffit de voir l'algo e_tree pour j=0, on a un seul noeud dans cet e_tree)
-
-        for bebe in descendant[j]: # voir eq slice 1/37 remplacer par un parcourt en profondeur de parents[:j] ? Non c'est inefficace
-            k = bebe[0] # est un indice de colonne (j precédemment dans le append)
-            Ljk= L_x[bebe[1]] # j devient ligne
-            pad = np.nonzero(                                                \
-              L_indices[L_indptr[k]:L_indptr[k+1]] == L_indices[L_indptr[j]])[0][0]
-            update_idx = np.nonzero(np.in1d(                                 \
-              L_indices[L_indptr[j]:L_indptr[j+1]],                          \
-              L_indices[(L_indptr[k] + pad):L_indptr[k+1]]))[0]
-            tmp[update_idx] = tmp[update_idx] -                              \
-              Ljk * L_x[(L_indptr[k] + pad):L_indptr[k + 1]]
-            
-        diag = np.sqrt(tmp[0])
-        L_x[L_indptr[j]] = diag
-        L_x[(L_indptr[j] + 1):L_indptr[j + 1]] = tmp[1:] / diag  # calcul de la j-eme col de L sauf diag.
-        # Pour le cas j=0 il nous faut bien
-        # que la struct de sparsité de A de la première col soit celle de L
-        
-        for idx in range(L_indptr[j] + 1, L_indptr[j + 1]): # boucle sur idx-> L_indices[idx] indices des lignes non nulles de la j-eme col
-            descendant[L_indices[idx]].append((j, idx))
-    return L_x
-```
-
-On souhaite ne pas construire la liste descendant à chaque fois, ce qu'on veux jitter c'est cette dernière fonction: à structure donnée on veut calculer les valeurs de L. L_indices et L_indptr ne changent pas ! On va essayer de modifier l'algorithme d'élimination tree pour quelle retourne la liste des descendants.
-
-
-```{python}
-parents, col_count = etree_base(A_csc.indices, A_csc.indptr)
-
-print(col_count)
-L_indices, L_indptr, row_useful = symbolic_cholesky_base(A_csc.indices, A_csc.indptr, parents, col_count)
-
-L_x = _deep_copy_csc(A_tril_csc.indices, A_tril_csc.indptr, A_tril_csc.data, L_indices, L_indptr) # il faut initialiser L_x avec la bonne longeur mais aussi les valeurs de A placées au bon endroit
-# c'est le rôle de deep_copy_csc
-print(L_x)
-```
-
-```{python}
-def _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, L_x, row_useful):
-    n = len(L_indptr) - 1
-    # parcours sur colonnes
-    for j in range(0, n):
-        tmp = np.copy(L_x[L_indptr[j]:L_indptr[j + 1]]) # j-eme colonne de L, ie il ne faut pas de valeur manquante (même structure de sparsité
-        # dans 1ere col de L et de A (oui il suffit de voir l'algo e_tree pour j=0, on a un seul noeud dans cet e_tree)
-
-        # MAJ de la colonne courante avec le contenu de 
-        for k in row_useful[j]: # voir eq slice 1/37
-            if (k == row_useful[j][0]): 
-                print("########## Looking at column", j)
-                print("With non nul rows:", L_indices[L_indptr[j]:L_indptr[j+1]])
-                print("Current value of column j:", tmp)
-            print("#### Looking at column", k, "to update column", j)
-            print("#### Value of column", k, L_x[L_indptr[k]:L_indptr[k+1]])
-            ## row indices higher than j in column k which is required to update column j
-            col_k_ind = L_indices[L_indptr[k]:L_indptr[k+1]]
-            ## find element corresponding to row j in column k
-            pad = np.where(L_indices[L_indptr[k]:L_indptr[k+1]] == j)[0][0]
-            print(L_indices[L_indptr[k]:L_indptr[k+1]], pad)
-
-            Ljk = L_x[L_indptr[k] + pad]
-            print("Ljk =", Ljk)
-            col_k_ind = L_indices[(L_indptr[k] + pad):L_indptr[k+1]]
-            update_idx = np.nonzero(np.isin(                                 \
-              L_indices[L_indptr[j]:L_indptr[j+1]], col_k_ind                          \
-              ))[0]
-            print("row indices that should be updated using values from columun k:", col_k_ind)
-            print("row indices updated in column j:", L_indices[L_indptr[j]:L_indptr[j+1]][update_idx])
-            ## Update only required elements
-            print(col_k_ind)
-            print("Update of column j:", L_x[(L_indptr[k] + pad):L_indptr[k+1]]) 
-            tmp[update_idx] = tmp[update_idx] - Ljk * L_x[(L_indptr[k] + pad):L_indptr[k+1]]
-            print("Current value of column j:", tmp)
-            
-            # pad = np.nonzero(                                                \
-            #   L_indices[L_indptr[k]:L_indptr[k+1]] == L_indices[L_indptr[j]])[0][0]
-            # update_idx = np.nonzero(np.in1d(                                 \
-            #   L_indices[L_indptr[j]:L_indptr[j+1]],                          \
-            #   L_indices[(L_indptr[k] + pad):L_indptr[k+1]]))[0]
-            # tmp[update_idx] = tmp[update_idx] -                              \
-            #   Ljk * L_x[(L_indptr[k] + pad):L_indptr[k + 1]]
-            
-        diag = np.sqrt(tmp[0])
-        L_x[L_indptr[j]] = diag
-        L_x[(L_indptr[j] + 1):L_indptr[j + 1]] = tmp[1:] / diag  # calcul de la j-eme col de L sauf diag.
-        print(tmp[1:].shape, L_x[(L_indptr[j] + 1):L_indptr[j + 1]].shape)
-        print("Final value of tmp:", (tmp[1:] / diag))
-        print("Final value of column j:", L_x[(L_indptr[j] + 1):L_indptr[j + 1]])
-        # Pour le cas j=0 il nous faut bien
-        # que la struct de sparsité de A de la première col soit celle de L
-
-
-        # print(L_x[(L_indptr[j]):L_indptr[j + 1]])
-        # for idx in range(L_indptr[j] + 1, L_indptr[j + 1]): # boucle sur idx-> L_indices[idx] indices des lignes non nulles de la j-eme col
-        #     descendant[L_indices[idx]].append((j, idx))
-    return L_x
-```
-
-```{python}
-L_x_recons = _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, np.copy(L_x), row_useful)
-```
-
-```{python}
-L_recons_csc = sparse.CSC((L_x_recons, L_indices, L_indptr), shape=(9,9))
-L_recons = L_recons_csc.todense()
-L_recons[:, 4]
-
-L_true = np.linalg.cholesky(A)
-L_true[:, 4]
-
-A_ = (L_recons @ L_recons.T)
-print(np.round(A_ - A, 7))
-```
+#```{python}
+#def _deep_copy_csc(A_indices, A_indptr, A_x, L_indices, L_indptr):
+#  n = len(A_indptr) - 1
+#  L_x = np.zeros(len(L_indices))
+#  
+#  for j in range(0, n):
+#    copy_idx = np.nonzero(np.isin(L_indices[L_indptr[j]:L_indptr[j + 1]],
+#                                  A_indices[A_indptr[j]:A_indptr[j+1]]))[0]
+#    L_x[L_indptr[j] + copy_idx] = A_x[A_indptr[j]:A_indptr[j+1]]
+#  return L_x
+#```
+#
+#```{python}
+#L_x = _deep_copy_csc(A_tril_indices, A_tril_indptr, A_tril_x, L_indices, L_indptr) # il faut initialiser L_x avec la bonne longeur mais aussi les valeurs de A placées au bon endroit
+## c'est le rôle de deep_copy_csc
+#print(L_x)
+#```
+#
+#```{python}
+#def _sparse_cholesky_csc_impl(L_indices, L_indptr, L_x):
+#    n = len(L_indptr) - 1
+#    descendant = [[] for j in range(0, n)]
+#    for j in range(0, n):
+#        tmp = L_x[L_indptr[j]:L_indptr[j + 1]] # j-eme colonne de L, ie il ne faut pas de valeur manquante (même structure de sparsité
+#        # dans 1ere col de L et de A (oui il suffit de voir l'algo e_tree pour j=0, on a un seul noeud dans cet e_tree)
+#
+#        for bebe in descendant[j]: # voir eq slice 1/37 remplacer par un parcourt en profondeur de parents[:j] ? Non c'est inefficace
+#            k = bebe[0] # est un indice de colonne (j precédemment dans le append)
+#            Ljk= L_x[bebe[1]] # j devient ligne
+#            pad = np.nonzero(                                                \
+#              L_indices[L_indptr[k]:L_indptr[k+1]] == L_indices[L_indptr[j]])[0][0]
+#            update_idx = np.nonzero(np.in1d(                                 \
+#              L_indices[L_indptr[j]:L_indptr[j+1]],                          \
+#              L_indices[(L_indptr[k] + pad):L_indptr[k+1]]))[0]
+#            tmp[update_idx] = tmp[update_idx] -                              \
+#              Ljk * L_x[(L_indptr[k] + pad):L_indptr[k + 1]]
+#            
+#        diag = np.sqrt(tmp[0])
+#        L_x[L_indptr[j]] = diag
+#        L_x[(L_indptr[j] + 1):L_indptr[j + 1]] = tmp[1:] / diag  # calcul de la j-eme col de L sauf diag.
+#        # Pour le cas j=0 il nous faut bien
+#        # que la struct de sparsité de A de la première col soit celle de L
+#        
+#        for idx in range(L_indptr[j] + 1, L_indptr[j + 1]): # boucle sur idx-> L_indices[idx] indices des lignes non nulles de la j-eme col
+#            descendant[L_indices[idx]].append((j, idx))
+#    return L_x
+#```
+#
+#On souhaite ne pas construire la liste descendant à chaque fois, ce qu'on veux jitter c'est cette dernière fonction: à structure donnée on veut calculer les valeurs de L. L_indices et L_indptr ne changent pas ! On va essayer de modifier l'algorithme d'élimination tree pour quelle retourne la liste des descendants.
+#
+#
+#```{python}
+#parents, col_count = etree_base(A_csc.indices, A_csc.indptr)
+#
+#print(col_count)
+#L_indices, L_indptr, row_useful = symbolic_cholesky_base(A_csc.indices, A_csc.indptr, parents, col_count)
+#
+#L_x = _deep_copy_csc(A_tril_csc.indices, A_tril_csc.indptr, A_tril_csc.data, L_indices, L_indptr) # il faut initialiser L_x avec la bonne longeur mais aussi les valeurs de A placées au bon endroit
+## c'est le rôle de deep_copy_csc
+#print(L_x)
+#```
+#
+#```{python}
+#def _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, L_x, row_useful):
+#    n = len(L_indptr) - 1
+#    # parcours sur colonnes
+#    for j in range(0, n):
+#        tmp = np.copy(L_x[L_indptr[j]:L_indptr[j + 1]]) # j-eme colonne de L, ie il ne faut pas de valeur manquante (même structure de sparsité
+#        # dans 1ere col de L et de A (oui il suffit de voir l'algo e_tree pour j=0, on a un seul noeud dans cet e_tree)
+#
+#        # MAJ de la colonne courante avec le contenu de 
+#        for k in row_useful[j]: # voir eq slice 1/37
+#            if (k == row_useful[j][0]): 
+#                print("########## Looking at column", j)
+#                print("With non nul rows:", L_indices[L_indptr[j]:L_indptr[j+1]])
+#                print("Current value of column j:", tmp)
+#            print("#### Looking at column", k, "to update column", j)
+#            print("#### Value of column", k, L_x[L_indptr[k]:L_indptr[k+1]])
+#            ## row indices higher than j in column k which is required to update column j
+#            col_k_ind = L_indices[L_indptr[k]:L_indptr[k+1]]
+#            ## find element corresponding to row j in column k
+#            pad = np.where(L_indices[L_indptr[k]:L_indptr[k+1]] == j)[0][0]
+#            print(L_indices[L_indptr[k]:L_indptr[k+1]], pad)
+#
+#            Ljk = L_x[L_indptr[k] + pad]
+#            print("Ljk =", Ljk)
+#            col_k_ind = L_indices[(L_indptr[k] + pad):L_indptr[k+1]]
+#            update_idx = np.nonzero(np.isin(                                 \
+#              L_indices[L_indptr[j]:L_indptr[j+1]], col_k_ind                          \
+#              ))[0]
+#            print("row indices that should be updated using values from columun k:", col_k_ind)
+#            print("row indices updated in column j:", L_indices[L_indptr[j]:L_indptr[j+1]][update_idx])
+#            ## Update only required elements
+#            print(col_k_ind)
+#            print("Update of column j:", L_x[(L_indptr[k] + pad):L_indptr[k+1]]) 
+#            tmp[update_idx] = tmp[update_idx] - Ljk * L_x[(L_indptr[k] + pad):L_indptr[k+1]]
+#            print("Current value of column j:", tmp)
+#            
+#            # pad = np.nonzero(                                                \
+#            #   L_indices[L_indptr[k]:L_indptr[k+1]] == L_indices[L_indptr[j]])[0][0]
+#            # update_idx = np.nonzero(np.in1d(                                 \
+#            #   L_indices[L_indptr[j]:L_indptr[j+1]],                          \
+#            #   L_indices[(L_indptr[k] + pad):L_indptr[k+1]]))[0]
+#            # tmp[update_idx] = tmp[update_idx] -                              \
+#            #   Ljk * L_x[(L_indptr[k] + pad):L_indptr[k + 1]]
+#            
+#        diag = np.sqrt(tmp[0])
+#        L_x[L_indptr[j]] = diag
+#        L_x[(L_indptr[j] + 1):L_indptr[j + 1]] = tmp[1:] / diag  # calcul de la j-eme col de L sauf diag.
+#        print(tmp[1:].shape, L_x[(L_indptr[j] + 1):L_indptr[j + 1]].shape)
+#        print("Final value of tmp:", (tmp[1:] / diag))
+#        print("Final value of column j:", L_x[(L_indptr[j] + 1):L_indptr[j + 1]])
+#        # Pour le cas j=0 il nous faut bien
+#        # que la struct de sparsité de A de la première col soit celle de L
+#
+#
+#        # print(L_x[(L_indptr[j]):L_indptr[j + 1]])
+#        # for idx in range(L_indptr[j] + 1, L_indptr[j + 1]): # boucle sur idx-> L_indices[idx] indices des lignes non nulles de la j-eme col
+#        #     descendant[L_indices[idx]].append((j, idx))
+#    return L_x
+#```
+#
+#```{python}
+#L_x_recons = _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, np.copy(L_x), row_useful)
+#```
+#
+#```{python}
+#L_recons_csc = sparse.CSC((L_x_recons, L_indices, L_indptr), shape=(9,9))
+#L_recons = L_recons_csc.todense()
+#L_recons[:, 4]
+#
+#L_true = np.linalg.cholesky(A)
+#L_true[:, 4]
+#
+#A_ = (L_recons @ L_recons.T)
+#print(np.round(A_ - A, 7))
+#```
