@@ -20,7 +20,7 @@ on:
   # Trigger the action manually from the UI
   workflow_dispatch:
   # Trigger the action when a version tag is pushed
-  push:
+  pull_request:
     paths:
       - "Dockerfile"
       - ".github/workflows/build-docker.yml"
