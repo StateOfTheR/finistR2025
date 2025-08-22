@@ -11,18 +11,25 @@ website:
       - text: "Instructions"
         href: instructions.qmd
     right:
+      - text: Développement
+        menu:
+          - text: How to build your package - Julia edition
+            href: how_to_build_your_package.qmd
+          - text: Positron
+            href: positron.qmd
       - text: Différentiation automatique
         href: autodiff.qmd
       - text: animint2
         href: animint.qmd
+      - text: HMSC
+        href: hsmc.qmd  
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
-      - href: how_to_build_your_package.qmd
-        text: How to build your package - Julia edition
 format:
   html:
     theme: flatly
     highlight: tango
+    css: styles.css
     toc: true
     
