@@ -313,7 +313,8 @@ For me, MyExtendedExtremes.jl
 - generate a basic package structure locally using `generate`
     - cd to a folder where we want the package to be created. `cd julia_package` in my case 
     - start Julia in this folder then in Julia REPL type `] generate PackageName` (in my case `] generate MyExtendedExtremes`)
-```
+
+```julia
 (@v1.11) pkg> generate MyExtendedExtremes
   Generating  project MyExtendedExtremes:
     Project.toml
@@ -321,6 +322,7 @@ For me, MyExtendedExtremes.jl
 ```
 
 `generate` has created the following files and folders :
+
 ```text
 MyExtendedExtremes/
 ├── Project.toml
@@ -329,6 +331,7 @@ MyExtendedExtremes/
 ```
 
 The Project.toml contains for now only this :
+
 ```text
 name = "MyExtendedExtremes"
 uuid = "8f8ad11f-fafd-4bca-9428-2b36ffe65f47"
@@ -341,12 +344,14 @@ version = "0.1.0"
 To develop your package, it is advisable to use
 [Revise.jl](https://timholy.github.io/Revise.jl). It may help you
 keep your Julia sessions running longer, reducing the need to restart
-when you make changes to code.  :::
+when you make changes to code. 
+:::
 
 - activate the package folder. In the same julia REPL : type `] activate Full/path/PackageName` (in my case `]activate MyExtendedExtremes`)
 
 Result in the REPL :
-```
+
+```julia
 (@v1.11) pkg> activate MyExtendedExtremes
   Activating project at `~/StateOfTheR/finistr2025/julia_package/MyExtendedExtremes`
 ```
@@ -368,7 +373,8 @@ Now, it is the time to put all this on GitHub.
 We can `exit()` julia.
 
 The tutorial says to put this in git. First, go in the folder 
-```
+
+```bash
 cd MyExtendedExtremes #I added this.
 git init     # Initialise the git repository
 git add .    # Add all files, including in subfolders
@@ -381,30 +387,31 @@ git push --set-upstream origin main # Finally upload everything back to the GitH
 ```
 
 Now, the package exists : let us start julia, then we can add it by
+
 ```julia
 using Pkg
 Pkg.add(url="git@github.com:caroline-cognot/MyExtendedExtremes.jl.git")
-
 ```
 
 Now I can import my package without the "."
 
 ```julia
 using MyExtendedExtremes 
-
 ```
 
 But there is no code inside yet. I have to add my module and make some tests.
 
 By doing this, the package is moved in the julia dev directory :
-```
+
+```julia
 (@v1.11) pkg> dev MyExtendedExtremes
 ```
+
 The package and its code is now located inside this folder. We have
 to modify this folder instead of our previous folder (the old files
 are useless).
 
-```
+```julia
 (@v1.11) pkg> dev /home/caroline/.julia/dev/MyExtendedExtremes
 ```
 
@@ -412,7 +419,7 @@ are useless).
 
 Now, I can edit my source by opening the file in VSCODE  :
 
-```
+```bash
 code /home/caroline/.julia/dev/MyExtendedExtremes/src/MyExtendedExtremes.jl
 ```
 
@@ -434,21 +441,27 @@ d = MixedUniformTail(p, Uniform(a, b), ExtendedGeneralizedPareto( TBeta(0.4), Ge
 
 ## Adding tests
 
-go in the package directory, add a test/runtests.jl file and open it in vscode
-```
+go in the package directory, add a ``test/runtests.jl`` file and open it in vscode
+
+```bash
 cd /home/caroline/.julia/dev/MyExtendedExtremes
 mkdir -p test 
 code test/runtests.jl
 ```
 
+Now, when I want to test the package, type 
 
-Now, when I want to test the package, type `] test MyExtendedExtremes `
+```julia
+] test MyExtendedExtremes
+```
 
 ## Forgot a dependency ?
 
 - go in the package folder
-```
+
+```bash
 cd /home/caroline/.julia/dev/MyExtendedExtremes
+```
 
 - start julia 
 
@@ -463,14 +476,25 @@ Pkg.activate("/home/caroline/.julia/dev/MyExtendedExtremes")
 
 ```julia
 Pkg.add("Random")
-
 ```
+
 If it still does not work : in doubt kill all terminals and restart.
 
 or do it the way the tutorial says it in when adding the Test package :
-```(@v1.x) pkg> activate [USER_HOME_FOLDER]/.julia/dev/MyAwesomePackage/test/ #(remove test/ if the package has to be added in the package and not just in the test folder)
+
+```
+(@v1.x) pkg> activate [USER_HOME_FOLDER]/.julia/dev/MyAwesomePackage/test/ #(remove test/ if the package has to be added in the package and not just in the test folder)
+```
+
+```
 add Test
+```
+
+```
 (test) pkg> activate # Without arguments, "activate" brings back to the default environment
+```
+
+```
 (@v1.x) pkg> test MyAwesomePackage  # This perform the test
 ```
 
@@ -484,7 +508,7 @@ Then it says to add badges on the readme .
 From a terminal in the right folder (`~/.julia/dev/MyExtendedExtremes`)
 I can now do
 
-̀̀``` 
+```bash
 git commit -a -m "Adding functions and testing"
 git push
 ``` 
