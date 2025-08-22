@@ -18,6 +18,8 @@ website:
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
+      - href: how_to_build_your_package.qmd
+        text: How to build your package - Julia edition
 format:
   html:
     theme: flatly
