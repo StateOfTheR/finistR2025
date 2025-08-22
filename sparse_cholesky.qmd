@@ -173,7 +173,7 @@ print("col_count =", col_count)
 
 ![On vérifie que les noeuds 1 et 2 ont pour parents le noeud 5, que 3 et 4 sont reliés à 6, etc :warning: pour coller avec la numérotation utilisée sur la figure on énumére les colonnes de 1 à 9 ici. ](images/cholesky/T.png){fig-align="center"}
 
-## Décomposition symbolique de Cholesky
+# Décomposition symbolique de Cholesky
 
 ::: callout-note
 On sait grâce à l'arbre d'élimination **combien** d'éléments non nuls il y dans `L[:,j]`. La décomposition symbolique de Cholesky permet de déterminer **quels** sont les éléments non-nuls (formellement de déterminer les indices de ligne $i$ tels que $L_{ij}$) pour construire la représentation CSC de $L$.
@@ -184,7 +184,6 @@ En parallèle de cette construction (et pour des raisons dans la section sur le 
 La procédure suivante permet de déterminer les éléments non nuls de `L[:,j]` comme suit. Pour la colonne courante $j$,
 
 -   on parcourt les **voisins directs** de $j$ dans $A$
-
 -   pour chacun de ces voisins $i$ , si c'est un descendant de $j$ dans $\mathcal{T}_A$ (c'est à dire si $i < j$), alors on rajoute tout le chemin qui relie $i$ à $j$ dans $\mathcal{T}_A$ dans le support de $L$ (à la fois en mode CSC et CSR).
 
 ```{python}
@@ -240,6 +239,11 @@ print(L_indices[0:3], row_useful[5])
 
 ![On vérifie que les éléments non-nuls de la première colonne (\`L_indices\[0:3\]\`) sont dans les lignes 1, 5 et 7 et que les éléments non nuls de la ligne 6 (\`row_useful\[5\]\`) sont dans les colonnes 3 et 4.](images/cholesky/L.png){fig-align="center"}
 
+# Calcul effectif des coefficients de $L$
+
+
+
+
 ```{python}
 def _deep_copy_csc(A_indices, A_indptr, A_x, L_indices, L_indptr):
   n = len(A_indptr) - 1
@@ -290,35 +294,6 @@ def _sparse_cholesky_csc_impl(L_indices, L_indptr, L_x):
 
 On souhaite ne pas construire la liste descendant à chaque fois, ce qu'on veux jitter c'est cette dernière fonction: à structure donnée on veut calculer les valeurs de L. L_indices et L_indptr ne changent pas ! On va essayer de modifier l'algorithme d'élimination tree pour quelle retourne la liste des descendants.
 
-```{python}
-def etree_extended(A_indices, A_indptr):
-  n = len(A_indptr) - 1
-  parent = [-1] * n
-  mark = [-1] * n
-  col_count = [1] * n
-  descendants = [[] for j in range(0, n)]
-
-  # Pour toutes les colonnes: visualiser la triangulaire supérieure !
-  for j in range(n): 
-    mark[j] = j
-    for indptr in range(A_indptr[j], A_indptr[j+1]):
-      node = A_indices[indptr]
-     
-      while node < j and mark[node] != j:
-
-        if parent[node] == -1:
-          parent[node] = j
-          descendants[j].extend([node] + descendants[node])
-        
-        mark[node] = j
-        col_count[node] += 1 # on ajoute + 1 colonne pour la ligne dont on a pris le noeud
-        node = parent[node]
-
-  descendants = [np.array(l).astype(int) for l in descendants]
-  return parent, col_count, descendants
-  
-etree_extended(A_indices, A_indptr)
-```
 
 ```{python}
 parents, col_count = etree_base(A_csc.indices, A_csc.indptr)
