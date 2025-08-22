@@ -1,0 +1,42 @@
+---
+title: "Manipulation efficace de Processus Gaussien"
+editor: visual
+---
+
+
+# Des nouvelles solutions techniques
+
+--
+
+## GPyTorch
+
+Le [site](https://gpytorch.ai/) qui explique la librairie
+- **Objectif** : modèles de processus gaussiens **scalables** et flexibles.  
+- **Points forts** :
+  - Intégration complète dans l’écosystème PyTorch (optimisation, réseaux de neurones, GPU).
+  - Méthodes d’inférence variationnelle et approximations pour grands jeux de données (SVGP, SKI, etc.).
+
+
+## GPJax
+
+Le [site](https://docs.jaxgaussianprocesses.com/)
+- **Objectif** : modèles de processus gaussiens **fonctionnels et composables**.  
+- **Points forts** :
+  - Différentiation automattrique complète grâce à JAX.
+  - Compilation XLA pour rapidité et passage à l’échelle.
+  - Support natif d’une approche probabiliste fonctionnelle.  
+
+### Exemple : Regression with derivative information
+
+Il s'agit du tutoriel disponible [ici](https://docs.gpytorch.ai/en/v1.13/examples/08_Advanced_Usage/Simple_GP_Regression_Derivative_Information_1d.html)
+
+
+
+<!-- gaussian process with non normal likelihood -->
+
+<!-- https://gpss.cc/gpss19/slides/Saul2019.pdf -->
+<!-- Laplace matching + transport optimal -->
+
+
+
+Rasmussen 2006 
