@@ -1,7 +1,19 @@
 ---
 title: "Hierarchical Modelling of Species Communities"
 subtitle: "Joint species distribution models for community ecology"
-format: html
+author:
+  - name: Baptiste Alglave
+    affiliations:
+      - name: UBS, CNRS - Lab-STICC
+  - name: Julie Aubert
+    affiliations:
+      - name: INRAE - MIA Paris-Saclay
+  - name: Jeanne Tous
+    affiliations:
+      - name: INRAE - MIA Paris-Saclay
+date: "2025-08-18"
+date-modified: today
+date-format: "DD MMMM YYYY"
 ---
 
 **HMSC (Hierarchical Modelling of Species Communities)** is a statistical model of the joint distribution of species communities. 
