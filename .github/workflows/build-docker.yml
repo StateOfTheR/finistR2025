@@ -12,7 +12,7 @@
 # Script environment variables
 env:
   DOCKER_IMAGE_NAME: finistr2025
-  DOCKER_REGISTRY: registry.hub.docker.com
+  DOCKER_REGISTRY: docker.io/mpetienne
 
 name: Build and Push Docker Image
 
