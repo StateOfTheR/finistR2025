@@ -30,6 +30,9 @@ website:
         href: sparse_cholesky.qmd
       - href: how_to_build_your_package.qmd
         text: How to build your package - Julia edition
+      - href: GNNpytgeo.qmd
+        icon: share-fill
+        text: Échantillonnage pour GNN
 format:
   html:
     theme: flatly
