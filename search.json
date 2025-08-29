@@ -147,6 +147,41 @@
     "text": "Option 2: html\n\nanimint2dir(animint(plot_both),\n            out.dir = \"myplot\", \n            open.browser = FALSE)\n\nThe plot can be viewed with index.html. If the web page is blank, configure your browser to allow execution of local JavaScript code, as explained on the FAQ."
   },
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "FinistR : bootcamp R à Roscoff",
+    "section": "",
+    "text": "L’atelier Finist’R 2025 – ou bootcamp R du groupe State Of The R se déroulera à la station biologique de Roscoff du 18 au 22 août 2025.\nStateoftheR est un réseau du département MathNum INRAE.\n\n\nIl s’agit de la neuvième édition de l’atelier Finist’R. Cet atelier réunit annuellement un groupe de chercheurs, ingénieurs, doctorants, tous utilisateurs avancés de R et développeurs de paquets pour explorer les dernières fonctionnalités du logiciel et les nouvelles pratiques de développement. A l’issue de l’atelier le collectif produit une synthèse de cette veille logiciel de manière à progresser collectivement dans l’utilisation du logiciel mais surtout dans la production d’outils statistiques à destination de la communauté.\nLe résultat de cette semaine est disponible sur cette page"
+  },
+  {
+    "objectID": "index.html#où-quand",
+    "href": "index.html#où-quand",
+    "title": "FinistR : bootcamp R à Roscoff",
+    "section": "",
+    "text": "L’atelier Finist’R 2025 – ou bootcamp R du groupe State Of The R se déroulera à la station biologique de Roscoff du 18 au 22 août 2025.\nStateoftheR est un réseau du département MathNum INRAE.\n\n\nIl s’agit de la neuvième édition de l’atelier Finist’R. Cet atelier réunit annuellement un groupe de chercheurs, ingénieurs, doctorants, tous utilisateurs avancés de R et développeurs de paquets pour explorer les dernières fonctionnalités du logiciel et les nouvelles pratiques de développement. A l’issue de l’atelier le collectif produit une synthèse de cette veille logiciel de manière à progresser collectivement dans l’utilisation du logiciel mais surtout dans la production d’outils statistiques à destination de la communauté.\nLe résultat de cette semaine est disponible sur cette page"
+  },
+  {
+    "objectID": "index.html#programme",
+    "href": "index.html#programme",
+    "title": "FinistR : bootcamp R à Roscoff",
+    "section": "Programme",
+    "text": "Programme"
+  },
+  {
+    "objectID": "index.html#participants",
+    "href": "index.html#participants",
+    "title": "FinistR : bootcamp R à Roscoff",
+    "section": "Participants",
+    "text": "Participants\nBaptiste Alglave, Julie Aubert, Pierre Barbillon, Gloria Buritica, Lucia Clarotto, Caroline Cognot, Marie-Pierre Etienne, Armand Favrot, Blanche Francheterre, Hugo Gangloff, Pascal Irz, Louis Lacoste, Arthur Leroy, Mahendra Mariadassou, Pierre Navaro, Léo Micollet, Jeanne Tous."
+  },
+  {
+    "objectID": "index.html#soutien",
+    "href": "index.html#soutien",
+    "title": "FinistR : bootcamp R à Roscoff",
+    "section": "Soutien",
+    "text": "Soutien"
+  },
+  {
     "objectID": "instructions.html",
     "href": "instructions.html",
     "title": "Instructions pour le dépot sur le site web",
@@ -354,14 +389,14 @@
     "href": "autodiff.html#comparaison-des-temps-de-calculs",
     "title": "Tutoriel de différentiation automatique",
     "section": "Comparaison des temps de calculs",
-    "text": "Comparaison des temps de calculs\nOn compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version.\n\ndim = 100\na = torch.tensor(np.arange(dim)/ (dim*10), requires_grad = True)\nb = torch.tensor(0.5, requires_grad = True)\nx = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)\n\n\nf_torch_grad_rev = torch.func.jacrev(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_rev(x, a, b)\nf_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_fwd(x, a, b)\n%timeit f_grad_rev(x, a, b)\n\n426 μs ± 1.38 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n502 μs ± 1.37 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n769 μs ± 3.21 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)"
+    "text": "Comparaison des temps de calculs\nOn compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version.\n\ndim = 100\na = torch.tensor(np.arange(dim)/ (dim*10), requires_grad = True)\nb = torch.tensor(0.5, requires_grad = True)\nx = torch.tensor( (np.arange(dim) - 37) / (dim*10), requires_grad = True)\n\n\nf_torch_grad_rev = torch.func.jacrev(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_rev(x, a, b)\nf_torch_grad_fwd = torch.func.jacfwd(func=f_torch, argnums=(0, 1, 2))\n%timeit f_torch_grad_fwd(x, a, b)\n%timeit f_grad_rev(x, a, b)\n\n427 μs ± 1.45 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n492 μs ± 774 ns per loop (mean ± std. dev. of 7 runs, 1,000 loops each)\n771 μs ± 3.15 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)"
   },
   {
     "objectID": "autodiff.html#impact-de-jit",
     "href": "autodiff.html#impact-de-jit",
     "title": "Tutoriel de différentiation automatique",
     "section": "Impact de JIT",
-    "text": "Impact de JIT\nOn essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients.\nPlus d’info sur le JIT dans pytorch sont disponibles dans cette documentation.\n\nf_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))\nf_torch_grad_fwd_jit = torch.jit.trace(f_torch_grad_fwd, (x, a, b))\n# f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))\n\n\n%timeit f_torch_grad_rev_jit(x, a, b)\n%timeit f_torch_grad_fwd_jit(x, a, b)\n# %timeit f_grad_rev_jit(x, a, b)\n\n55.9 μs ± 66.8 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)\n123 μs ± 309 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)"
+    "text": "Impact de JIT\nOn essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients.\nPlus d’info sur le JIT dans pytorch sont disponibles dans cette documentation.\n\nf_torch_grad_rev_jit = torch.jit.trace(f_torch_grad_rev, (x, a, b))\nf_torch_grad_fwd_jit = torch.jit.trace(f_torch_grad_fwd, (x, a, b))\n# f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))\n\n\n%timeit f_torch_grad_rev_jit(x, a, b)\n%timeit f_torch_grad_fwd_jit(x, a, b)\n# %timeit f_grad_rev_jit(x, a, b)\n\n56.8 μs ± 92.7 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)\n124 μs ± 188 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)"
   },
   {
     "objectID": "autodiff.html#dérivée-par-rapport-à-x",
@@ -385,38 +420,17 @@
     "text": "Conclusion"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "FinistR : bootcamp R à Roscoff",
+    "objectID": "GNNpytgeo.html",
+    "href": "GNNpytgeo.html",
+    "title": "Apprentissage de réseaux bipartites avec pytorch-geometric",
     "section": "",
-    "text": "L’atelier Finist’R 2025 – ou bootcamp R du groupe State Of The R se déroulera à la station biologique de Roscoff du 18 au 22 août 2025.\nStateoftheR est un réseau du département MathNum INRAE.\n\n\nIl s’agit de la neuvième édition de l’atelier Finist’R. Cet atelier réunit annuellement un groupe de chercheurs, ingénieurs, doctorants, tous utilisateurs avancés de R et développeurs de paquets pour explorer les dernières fonctionnalités du logiciel et les nouvelles pratiques de développement. A l’issue de l’atelier le collectif produit une synthèse de cette veille logiciel de manière à progresser collectivement dans l’utilisation du logiciel mais surtout dans la production d’outils statistiques à destination de la communauté.\nLe résultat de cette semaine est disponible sur cette page"
+    "text": "L’objectif est de proposer une représentation latente des nœuds d’un réseau bipartite (ou de plusieurs) dans un espace euclidien. Un sous-objectif peut être de prédire des dyades manquantes (non observées) que ce soient des arêtes ou des non-arêtes. Nous allons utiliser des “variational graph auto-encoder”, il est possible d’aller consulter les tutoriels correspondant sur la page de pytorch-geometrics et celui présenté lors d’un précédent atelier State of the R. Dans ce document, nous nous concentrons sur l’aspect sous-échantillonnage du réseau permettant de créer les jeux de données d’apprentissage et d’entraînement.\nL’apprentissage de la représentation latente se fait sur l’optimisation d’une perte, à savoir l’entropie croisée, de la prédiction d’arêtes et de non arêtes (1 ou 0 dans la matrice d’incidence correspondant au réseau). Cet ensemble d’arêtes et de non arêtes choisies en proportions égales s’appelle le jeu d’entraînement et est considéré connu pour effectuer les convolutions au sein des couches de GNN (graph neural network). L’évaluation de la performance se fait sur un autre sous-ensemble d’arêtes et de non arêtes, appelé le jeu de test et est inconnu lors de l’entraînement et n’est pas utilisé pour l’encodage (succession de couches de GNN projetant les nœuds dans l’espace latent). Un autre jeu de données du même type peut être créé comme jeu de validation.\nPour ce faire la fonction RandomLinkSplit(...) de pytorch-geometric permet de faire cette séparation en trois jeux de données (ensemble d’arêtes et non arêtes) d’un objet de type BipartiteData qui n’est pas une classe nativement définie dans pytorch-geometric mais c’est la recommandation trouvée en ligne pour définir ce genre de réseaux.\n\nimport numpy as np\nimport torch\nimport torch_geometric\nfrom torch import Tensor\nfrom torch_geometric.data import Data\n\nclass BipartiteData(Data):\n    def __inc__(self, key, value, *args, **kwargs):\n        if key == \"edge_index\":\n            return Tensor(\n                [[self.x_s.size(0)], [self.x_t.size(0)]]\n            )  # source and target (two classes of bipartite graph)\n        return super().__inc__(key, value, *args, **kwargs)\n\n    def is_bipartite(self):\n        return True\n\nOn définit ensuite un réseau bipartite à partir d’un réseau généré aléatoirement :\n\n# Generate a random bipartite graph\nnum_nodes = (10, 30)  # 100 nodes in each partition\nnum_edges = 50  # Total number of edges\nedge_index = generate_random_graph(num_nodes, num_edges)\n# Convert to PyTorch tensor\nedge_index = torch.tensor(edge_index, dtype=torch.long)\n# Create a BipartiteData object\nrandom_network = BipartiteData(\n    name=\"Random Graph\",\n    id_net=0,\n    x_s=torch.arange(start=0,end=num_nodes[0],dtype=torch.float).reshape(-1, 1),\n    x_t=torch.arange(start=0,end=num_nodes[1],dtype=torch.float).reshape(-1, 1),\n    edge_index=edge_index,\n    num_nodes=len(edge_index[0].unique())+len(edge_index[1].unique()),\n)\nprint(random_network)\n\nBipartiteData(edge_index=[2, 50], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=34)\n\n\noù\n\nname et id_net permettent de renseigner un nom et un identifiant au réseau (utile particulièrement si on a plusieurs réseaux),\nx_s et x_t donnent les matrices de covariables sur les nœuds en ligne et en colonne respectivement,\nedge_index contient une matrice à 2 lignes et dont le nombre de colonnes correspond au nombre d’arêtes,\nnum_nodes est le nombre de nœuds dans le réseau mais cela posera des problèmes comme nous le verrons.\n\nÀ présent, nous allons pouvoir proposer un sous-échantillonnage en jeux d’entraînement, de validation et de test.\n\nimport torch_geometric.transforms as T\n\ntransform = T.RandomLinkSplit(\n            num_test=0.2,\n            num_val=0.1,\n            split_labels=True\n        )\n        \ntrain_data, val_data, test_data = transform(random_network)        \n\noù\n\nnum_test permet de choisir la proportion de données dans le jeu de test,\nnum_val permet de choisir la proportion de données dans le jeu de validation,\nsplit_labels fixé à vrai permet de séparer en deux parties les arêtes et les non arêtes.\n\nSi on regarde ce que contiennent les objets train_data, val_data et test_data, on a :\n\nprint(train_data)\nprint(val_data)\nprint(test_data)\n\nBipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=34, pos_edge_label=[35], pos_edge_label_index=[2, 35], neg_edge_label=[35], neg_edge_label_index=[2, 35])\nBipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=34, pos_edge_label=[5], pos_edge_label_index=[2, 5], neg_edge_label=[5], neg_edge_label_index=[2, 5])\nBipartiteData(edge_index=[2, 40], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=34, pos_edge_label=[10], pos_edge_label_index=[2, 10], neg_edge_label=[10], neg_edge_label_index=[2, 10])\n\n\nChaque objet contient edge_index qui est le même entre train_data et val_data et qui contient les arêtes considérées comme connues et qui servent à faire les convolutions dans les GNN pour l’entraînement et la validation. Pour le test, on ajoute les arêtes du jeu validation au jeu d’entraînement pour faire les convolutions.\nL’attribut pos_edge_label_index donne des indices d’arêtes (sous-ensemble des arêtes existantes dans le réseau) et l’attribut neg_edge_label_index donne des indices de non arêtes.\nSi on regarde\n\nprint(test_data.pos_edge_label_index)\nprint(test_data.neg_edge_label_index)\n\ntensor([[ 1,  8,  1,  1,  3,  6,  9,  9,  6,  3],\n        [16, 26,  8, 17, 14, 29,  3, 12, 24,  3]])\ntensor([[ 2, 32, 13, 16, 18, 30,  0, 16, 10, 28],\n        [22,  7, 22, 13, 24, 16, 14, 30, 13, 22]])\n\n\non s’aperçoit d’une incohérence sur les non-arêtes car nous obtenons des indices de nœuds strictement supérieurs aux nombres de nœuds en ligne ou en colonne… Cela vient du fait qu’il fait l’échantillonnage des non-arêtes sur la conversion en matrice d’adjacence du réseau bipartite, c’est-à-dire sur une matrice de taille la somme des nombres de nœuds en ligne et en colonne ayant des blocs diagonaux vides (car il n’y a pas d’interaction au sein de chaque type de nœuds). Il faut donc utiliser “correctement” la fonction permettant d’échantillonner des non-arêtes au sein de la matrice d’incidence ce que ne fait pas la fonction RandomLinkSplit pour des graphes bipartites…\n\nfrom torch_geometric.utils import negative_sampling\nneg_edge_index = negative_sampling(\n                edge_index=train_data.edge_index,\n                num_nodes=(train_data.x_s.size(0), train_data.x_t.size(0)),\n                num_neg_samples=train_data.pos_edge_label_index.size(1),\n            )\nprint(neg_edge_index)            \n\ntensor([[ 9,  5,  0,  0,  6,  0,  0,  7,  4,  7,  2,  5,  7,  3,  2,  3,  2,  1,\n          8,  0,  4,  0,  9,  6,  4,  1,  2,  5,  5,  4,  4,  7,  7,  2,  6],\n        [28,  2, 21, 12, 27,  0, 16, 26,  7, 27, 17, 22, 19,  3,  6,  5, 12, 29,\n          7, 18, 11, 22, 18,  3, 19, 12, 25, 27, 16,  8, 29, 22, 17, 23, 15]])\n\n\nLors de l’optimisation de la perte sur le jeu d’entraînement, on utilise les mêmes arêtes que celles servant à la convolution et on ajoute des non arêtes (0 dans la matrice d’incidence) échantillonnées comme ci-dessus. Pour le calcul des métriques de validation, on fait de même avec les arêtes dans val_data et en ajoutant des non-arêtes par rapport à celles utilisées lors de la convolution grâce à la fonction negative_sampling.\nÀ la fin de l’entraînement, on teste sur le jeu de test test_data mais en utilisant les convolutions sur la réunions des arêtes contenues dans train_data et val_data. Les non arêtes du jeu de test doivent être choisies par rapport aux non arêtes du réseau complet."
   },
   {
-    "objectID": "index.html#où-quand",
-    "href": "index.html#où-quand",
-    "title": "FinistR : bootcamp R à Roscoff",
+    "objectID": "positron.html",
+    "href": "positron.html",
+    "title": "Utilisation de l’IDE positron pour R et python",
     "section": "",
-    "text": "L’atelier Finist’R 2025 – ou bootcamp R du groupe State Of The R se déroulera à la station biologique de Roscoff du 18 au 22 août 2025.\nStateoftheR est un réseau du département MathNum INRAE.\n\n\nIl s’agit de la neuvième édition de l’atelier Finist’R. Cet atelier réunit annuellement un groupe de chercheurs, ingénieurs, doctorants, tous utilisateurs avancés de R et développeurs de paquets pour explorer les dernières fonctionnalités du logiciel et les nouvelles pratiques de développement. A l’issue de l’atelier le collectif produit une synthèse de cette veille logiciel de manière à progresser collectivement dans l’utilisation du logiciel mais surtout dans la production d’outils statistiques à destination de la communauté.\nLe résultat de cette semaine est disponible sur cette page"
-  },
-  {
-    "objectID": "index.html#programme",
-    "href": "index.html#programme",
-    "title": "FinistR : bootcamp R à Roscoff",
-    "section": "Programme",
-    "text": "Programme"
-  },
-  {
-    "objectID": "index.html#participants",
-    "href": "index.html#participants",
-    "title": "FinistR : bootcamp R à Roscoff",
-    "section": "Participants",
-    "text": "Participants\nBaptiste Alglave, Julie Aubert, Pierre Barbillon, Gloria Buritica, Lucia Clarotto, Caroline Cognot, Marie-Pierre Etienne, Armand Favrot, Blanche Francheterre, Hugo Gangloff, Pascal Irz, Louis Lacoste, Arthur Leroy, Mahendra Mariadassou, Pierre Navaro, Léo Micollet, Jeanne Tous."
-  },
-  {
-    "objectID": "index.html#soutien",
-    "href": "index.html#soutien",
-    "title": "FinistR : bootcamp R à Roscoff",
-    "section": "Soutien",
-    "text": "Soutien"
+    "text": "Déjà testé lors de l’édition 2024, positron a été largement testé cette année. Cependant, il est encore en version beta. L’intérêt est d’avoir un environnement de travail similaire sous R et python avec un rendu proche de Rstudio (fenêtres éditeur, console, variables et graphiques). Il est développé à partir du logiciel VS code.\nIl est à noter que les packages la notion de projet familière en R se traduit ici par un répertoire de travail.\nAvantages :\n\nLe choix entre R et python se fait via le choix de l’interpréteur avec gestion des environnements disponibles pour python (pouvant ếtre créés par venv, conda ou uv).\nLe code python peut s’exécuter pas à pas.\nIl est également possible d’ouvrir des notebooks jupyter.\n\nInconvénients :\n\nLe choix d’un environnement sous R est moins clair.\nLe debuggage sous R n’est pas effectif."
   }
 ]
