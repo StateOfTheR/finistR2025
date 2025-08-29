@@ -76,7 +76,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-b8ded578f01cf45f867b749dfb801973.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-a1f88f28ec1f3e74216516ad3a05ba84.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -301,7 +301,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Modifié</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">22 août 2025</p>
+      <p class="date-modified">29 août 2025</p>
     </div>
   </div>
     
@@ -358,23 +358,23 @@ f: (x, a, b) \in \mathbb{R}^p \times \mathbb{R}^p \times \mathbb{R} \mapsto \tan
 <h1>Exemple en Torch [MM, LC]</h1>
 <section id="en-utilisant-les-primitives-de-torch" class="level2">
 <h2 class="anchored" data-anchor-id="en-utilisant-les-primitives-de-torch">En utilisant les primitives de torch</h2>
-<div id="270833f9" class="cell" data-execution_count="1">
+<div id="e9e396d5" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>On definit notre fonction <span class="math inline">\(f\)</span> en torch.</p>
-<div id="ea1ab570" class="cell" data-execution_count="2">
+<div id="f69d35cc" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_torch(x, a, b):</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.tanh(torch.dot(x, a) <span class="op">+</span> b)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>On définit des valeurs pour lesquelles on sait calculer facilement le gradient.</p>
-<div id="9780aa34" class="cell" data-execution_count="3">
+<div id="4b2bd220" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.tensor([<span class="fl">2.</span>, <span class="fl">3.</span>], requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> torch.ones(<span class="dv">2</span>, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> torch.tensor(<span class="op">-</span><span class="fl">2.</span>, requires_grad <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Et on calcule les dérivées partielles (avec la convention <span class="math inline">\(\partial f / \partial x =\)</span> <code>x.grad</code>).</p>
-<div id="8b9fcb69" class="cell" data-execution_count="4">
+<div id="fd047a87" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Définit y par rapport à x</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> f_torch(x, a, b)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>y</span>
@@ -400,11 +400,11 @@ Note
 <p>Le paramètre <code>argnums=0</code> précise qu’on calcule la dérivée par rapport au premier argument de <span class="math inline">\(f\)</span>, en l’occurence <span class="math inline">\(x\)</span>.</p>
 </div>
 </div>
-<div id="886f05f4" class="cell" data-execution_count="5">
+<div id="9c692f4e" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df_torch_dx <span class="op">=</span> torch.func.grad(f_torch, argnums<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>On vérifie que les deux façons de faire donnent le même résultat.</p>
-<div id="bc909409" class="cell" data-execution_count="6">
+<div id="73ac9733" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> torch.allclose(df_torch_dx(x, a, b), x.grad)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
@@ -414,7 +414,7 @@ Note
 <p>On doit définir 4 méthodes: - <code>forward</code> qui reçoit les entrées et calcule la sortie - <code>setup_context</code> qui stocke dans un objet <code>ctx</code> des tenseurs qui peuvent être réutilisés au moment du calcul de la dérivée (dans notre exemple, on a juste besoin de <span class="math inline">\(x\)</span>, <span class="math inline">\(a\)</span> et <span class="math inline">\(1 - \tanh^2(a^\top x + b)\)</span>. - <code>backward</code> (ou <code>vjp</code>) qui reçoit le gradient calculé en aval et renvoie le gradient, pour faire de la différentiation automatique en mode reverse. - <code>jvp</code> qui reçoit une différentielle calculée en amont et la multiplie en amont avant de la renvoyer, pour faire de la différentiation automatique en mode forward.</p>
 <section id="définition-de-la-fonction" class="level3">
 <h3 class="anchored" data-anchor-id="définition-de-la-fonction">Définition de la fonction</h3>
-<div id="d82fc50c" class="cell" data-execution_count="7">
+<div id="fec2ec9e" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> f_torch_manual(torch.autograd.Function):</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">    We can implement our own custom autograd Functions by subclassing</span></span>
@@ -482,7 +482,7 @@ Note
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">En mode reverse</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">En mode forward</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div id="da704010" class="cell" data-execution_count="8">
+<div id="40f4a3c3" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Définit f</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> f_torch_manual.<span class="bu">apply</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> f(x, a, b)</span>
@@ -498,17 +498,17 @@ Note
 </div>
 <p>On vérifie qu’on obtient bien le même résultat qu’en laissant <code>torch</code> faire le calcul :party:.</p>
 <p>On aurait aussi pu utiliser les opérateurs <em>fonctionnels</em> pour calculer la fonction dérivée (en utilisant le mode reverse)</p>
-<div id="d95e17a2" class="cell" data-execution_count="9">
+<div id="f42b3965" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>f_grad_rev <span class="op">=</span> torch.func.jacrev(func<span class="op">=</span>f, argnums<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>et vérifier que le résultat coincide avec le calcul fait à la main.</p>
-<div id="5eca5520" class="cell" data-execution_count="10">
+<div id="9527a8b0" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(torch.allclose(f_grad_rev(x, a, b)[i], (x.grad, a.grad, b.grad)[i]) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2</span>))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <p>On calcule la dérivée par rapport à la première coordonnée de <span class="math inline">\(x\)</span></p>
-<div id="01d8985a" class="cell" data-execution_count="11">
+<div id="32a51513" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tangents <span class="op">=</span> (torch.tensor([<span class="fl">1.</span>, <span class="fl">0.</span>]), torch.tensor([<span class="fl">0.</span>, <span class="fl">0.</span>]), torch.tensor(<span class="fl">0.</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>f_torch_manual.jvp(x <span class="op">=</span> x, a <span class="op">=</span> a, b <span class="op">=</span> b, tangents <span class="op">=</span> tangents)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
@@ -516,7 +516,7 @@ Note
 </div>
 </div>
 <p>puis par rapport à la deuxième coordonnée de <span class="math inline">\(a\)</span></p>
-<div id="60f79e87" class="cell" data-execution_count="12">
+<div id="8f14e815" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tangents <span class="op">=</span> (torch.tensor([<span class="fl">0.</span>, <span class="fl">0.</span>]), torch.tensor([<span class="fl">0.</span>, <span class="fl">1.</span>]), torch.tensor(<span class="fl">0.</span>))</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>f_torch_manual.jvp(x <span class="op">=</span> x, a <span class="op">=</span> a, b <span class="op">=</span> b, tangents <span class="op">=</span> tangents)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
@@ -537,7 +537,7 @@ Avertissement
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>En théorie, on pourrait utiliser les opérateurs <em>fonctionnels</em> pour calculer la fonction dérivée (en utilisant le mode forward)</p>
-<div id="357fd981" class="cell" data-execution_count="13">
+<div id="b7433dab" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>f_grad_fwd <span class="op">=</span> torch.func.jacfwd(func<span class="op">=</span>f, argnums<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>mais il faut définir une méthode statique <code>vmap</code> et je n’ai pas compris comment faire <span class="emoji" data-emoji="cry">😢</span></p>
@@ -552,22 +552,22 @@ Avertissement
 <section id="comparaison-des-temps-de-calculs" class="level2">
 <h2 class="anchored" data-anchor-id="comparaison-des-temps-de-calculs">Comparaison des temps de calculs</h2>
 <p>On compare ici les temps de calculs du calcul du gradient en mode forward, reverse pour la version qui utilise les primitives de torch et en mode reverse pour notre version.</p>
-<div id="e5a7cadb" class="cell" data-execution_count="14">
+<div id="a9574234" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dim <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> torch.tensor(np.arange(dim)<span class="op">/</span> (dim<span class="op">*</span><span class="dv">10</span>), requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> torch.tensor(<span class="fl">0.5</span>, requires_grad <span class="op">=</span> <span class="va">True</span>)</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.tensor( (np.arange(dim) <span class="op">-</span> <span class="dv">37</span>) <span class="op">/</span> (dim<span class="op">*</span><span class="dv">10</span>), requires_grad <span class="op">=</span> <span class="va">True</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="6a9fe897" class="cell" data-execution_count="15">
+<div id="3b41460a" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>f_torch_grad_rev <span class="op">=</span> torch.func.jacrev(func<span class="op">=</span>f_torch, argnums<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit f_torch_grad_rev(x, a, b)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>f_torch_grad_fwd <span class="op">=</span> torch.func.jacfwd(func<span class="op">=</span>f_torch, argnums<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>))</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit f_torch_grad_fwd(x, a, b)</span>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit f_grad_rev(x, a, b)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>448 μs ± 3.35 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-522 μs ± 1.8 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-797 μs ± 6.81 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)</code></pre>
+<pre><code>426 μs ± 1.38 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+502 μs ± 1.37 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+769 μs ± 3.21 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)</code></pre>
 </div>
 </div>
 </section>
@@ -575,18 +575,18 @@ Avertissement
 <h2 class="anchored" data-anchor-id="impact-de-jit">Impact de JIT</h2>
 <p>On essaie de jitter nos fonctions pour vérifier si cela accélère le calcul des gradients.</p>
 <p>Plus d’info sur le JIT dans <code>pytorch</code> sont disponibles dans <a href="https://docs.pytorch.org/docs/stable/jit.html">cette documentation</a>.</p>
-<div id="4b7e0ead" class="cell" data-execution_count="16">
+<div id="76c3a947" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>f_torch_grad_rev_jit <span class="op">=</span> torch.jit.trace(f_torch_grad_rev, (x, a, b))</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>f_torch_grad_fwd_jit <span class="op">=</span> torch.jit.trace(f_torch_grad_fwd, (x, a, b))</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># f_grad_rev_jit = torch.jit.trace(f_grad_rev, (x, a, b))</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="13dc098a" class="cell" data-execution_count="17">
+<div id="ae19c24e" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit f_torch_grad_rev_jit(x, a, b)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit f_torch_grad_fwd_jit(x, a, b)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># %timeit f_grad_rev_jit(x, a, b)</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>59.5 μs ± 161 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-128 μs ± 316 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)</code></pre>
+<pre><code>55.9 μs ± 66.8 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+123 μs ± 309 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)</code></pre>
 </div>
 </div>
 </section>
@@ -596,7 +596,7 @@ Avertissement
 <p>Pour illustrer la différentiation automatique, nous allons utiliser JAX, sur une function simple dont nous connaissons les gradients analytiques.</p>
 <section id="dérivée-par-rapport-à-x" class="level2">
 <h2 class="anchored" data-anchor-id="dérivée-par-rapport-à-x">Dérivée par rapport à <span class="math inline">\(x\)</span></h2>
-<div id="ead8b0b3" class="cell" data-execution_count="18">
+<div id="a4a44a97" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax <span class="im">import</span> grad, jit</span>
@@ -625,12 +625,12 @@ Avertissement
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <p>Dans un premier temps, on peut définir les gradients exacts de cette fonction à partir d’une formule analytique.</p>
-<div id="12bcc39b" class="cell" data-execution_count="19">
+<div id="cafa24a2" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> df_dx(x, a, b):</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> a <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> jnp.tanh(jnp.dot(a, x) <span class="op">+</span> b) <span class="op">**</span><span class="dv">2</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Puis on définit les gradients via autograd et on vérifie que les résultats sont identiques.</p>
-<div id="2874a31c" class="cell" data-execution_count="20">
+<div id="fd196f74" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">## jax.grad calcule la formule backward par défaut</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>grad_df_dx <span class="op">=</span> jax.grad(<span class="kw">lambda</span> x: f(x, a, b), argnums<span class="op">=</span><span class="dv">0</span>) </span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co">## On peut aussi calculer la formule forward via jax.jacfwd</span></span>
@@ -649,12 +649,12 @@ Avertissement
 </div>
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <p>On définit également les gradients exacts par rapport aux paramètres <span class="math inline">\(a\)</span> et <span class="math inline">\(b\)</span> pour vérifier que l’on pourrait les optimiser dans un algorithme d’apprentissage.</p>
-<div id="0d15ad35" class="cell" data-execution_count="21">
+<div id="07177858" class="cell" data-execution_count="21">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> df_dab(x, a, b):</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> jnp.tanh(jnp.dot(a, x) <span class="op">+</span> b) <span class="op">**</span><span class="dv">2</span>), <span class="dv">1</span> <span class="op">-</span> jnp.tanh(jnp.dot(a, x) <span class="op">+</span> b) <span class="op">**</span><span class="dv">2</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Puis on définit ces gradients via autograd et on vérifie que les résultats sont identiques.</p>
-<div id="8cb2b41c" class="cell" data-execution_count="22">
+<div id="a9229247" class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">## jax.grad calcule la formule backward par défaut</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>grad_df_dab <span class="op">=</span> jax.grad(<span class="kw">lambda</span> a_b: f(x, <span class="op">*</span>a_b), argnums<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">## On peut aussi calculer la formule forward via jax.jacfwd</span></span>
@@ -684,21 +684,21 @@ Avertissement
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <p>Comparaison des temps de calcul :</p>
-<div id="31b63009" class="cell" data-execution_count="23">
+<div id="0b48deb5" class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">## On lance une quantification du temps de calcul pour les trois méthodes (la commande .block_until_ready() est spécifique à JAX pour forcer l'évaluation des opérations asynchrones)</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit df_dx(x, a, b).block_until_ready()</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit grad_df_dx(x).block_until_ready()</span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit fwdgrad_df_dx(x).block_until_ready()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>98.7 μs ± 574 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-1.45 ms ± 10 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-1.85 ms ± 11.7 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)</code></pre>
+<pre><code>92.8 μs ± 147 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+1.37 ms ± 3.96 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+1.75 ms ± 7.1 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)</code></pre>
 </div>
 </div>
 </div>
 <div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <p>On définit une nouvelle fonction <span class="math inline">\(g\)</span> qui retourne un vecteur de dimension <span class="math inline">\(d\)</span>:</p>
-<div id="077d117d" class="cell" data-execution_count="24">
+<div id="e6f8c27b" class="cell" data-execution_count="24">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">## On définit la dimension du vecteur de sortie</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>dim_g <span class="op">=</span> <span class="dv">100</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">## On initialise un point d'évaluation pour la fonction $g$</span></span>
@@ -718,14 +718,14 @@ Avertissement
 <span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>fwdgrad_dg_dx <span class="op">=</span> jax.jacfwd(<span class="kw">lambda</span> x: g(x), argnums<span class="op">=</span><span class="dv">0</span>)    </span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Comparaison des temps de calcul :</p>
-<div id="14cdfd73" class="cell" data-execution_count="25">
+<div id="75f47824" class="cell" data-execution_count="25">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit dg_dx(x_g).block_until_ready()</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit grad_dg_dx(x_g).block_until_ready()</span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit fwdgrad_dg_dx(x_g).block_until_ready()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>14.4 ms ± 65.2 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-260 ms ± 1.57 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-110 ms ± 988 μs per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
+<pre><code>13.6 ms ± 35.1 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+244 ms ± 912 μs per loop (mean ± std. dev. of 7 runs, 1 loop each)
+102 ms ± 722 μs per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
 </div>
 </div>
 </div>
@@ -740,7 +740,7 @@ Avertissement
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Gradients jittés pour la fonction <span class="math inline">\(f\)</span></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Gradients jittés pour la fonction <span class="math inline">\(g\)</span></a></li></ul>
 <div class="tab-content">
 <div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
-<div id="cf970903" class="cell" data-execution_count="26">
+<div id="3ed4699c" class="cell" data-execution_count="26">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co">## On redéfinit la fonction $f$ et ses gradients avec JIT</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="at">@jit</span></span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_jit(x, a, b):</span>
@@ -759,14 +759,14 @@ Avertissement
 <span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit grad_f_jit(x).block_until_ready()</span>
 <span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit fwdgrad_f_jit(x).block_until_ready()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>9.04 μs ± 26.7 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
-6.05 μs ± 18.1 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
-9.39 μs ± 122 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)</code></pre>
+<pre><code>8.12 μs ± 57.8 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+5.63 μs ± 12.5 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+9.3 μs ± 157 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)</code></pre>
 </div>
 </div>
 </div>
 <div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
-<div id="91b38ee8" class="cell" data-execution_count="27">
+<div id="9a3d5071" class="cell" data-execution_count="27">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co">## On redéfinit la dimension du vecteur de sortie pour la fonction $g$ (les gradients sont sensibles à la dimension du vecteur de sortie, même avec JIT, notamment lorsque l'on compare l'autograd backward et forward)</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>dim_g <span class="op">=</span> <span class="dv">10</span></span>
 <span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -788,9 +788,9 @@ Avertissement
 <span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit grad_g_jit(x).block_until_ready()</span>
 <span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit fwdgrad_g_jit(x).block_until_ready()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>19.2 μs ± 2.12 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-29.2 μs ± 1.01 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-25.4 μs ± 2.42 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)</code></pre>
+<pre><code>17.8 μs ± 648 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+25.6 μs ± 1.46 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+22.7 μs ± 2.06 μs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)</code></pre>
 </div>
 </div>
 </div>
@@ -809,7 +809,7 @@ Avertissement
 <p>Un JVP est capable de dévoiler une colonne de la jacobienne à la fois. Ce n’est pas adapté pour cette fonction dont la jacobienne est large. Une passe JVP ne peut dévoiler qu’une seule dérivée partielle : si l’on veut la dérivée par rapport à chaque dimension de <span class="math inline">\(x\)</span>, chaque dimension de <span class="math inline">\(a\)</span> et <span class="math inline">\(b\)</span>, il nous faut faire <span class="math inline">\(dim + dim + 1\)</span> fois des JVPs ce qui n’est pas du tout efficace. Nous l’avons vu dans la section précédente où en fait, <code>jax.jacfwd</code> doit en fait appeler tous ces JVPs (ce qui est fait de manière cachée à l’utilisateur).</p>
 <p>Pour définir un <code>custom_jvp</code> en JAX, il faut attacher à <code>f</code>, une fonction <code>f_jvp</code>, qui prend deux entrées <code>primals</code> le point où l’on calcule le gradient et <code>tangents</code> le vecteur tangent (à voir aussi comme les gradients en amont du graphe que l’on parcourt en descendant). <code>f_jvp</code> retourne un tuple de deux vecteurs, <code>f(primals)</code> et le JVP <code>df_dx @ tangents</code>, où, bien sûr, <code>df_dx</code> contient l’expression analytique de la dérivée (c’est une matrice jacobienne mais elle n’est jamais stockée en mémoire car tout de suite <em>réduite</em> par le produit matriciel).</p>
 <p>Nous avons vu que si <code>tangents</code> est un vecteur <em>one-hot encoded</em> nous dévoilons <strong>une colonne</strong> de la matrice jacobienne (celle où se situe le <span class="math inline">\(1\)</span>). Dans l’exemple ci-dessous nous calculons de manière <em>forward</em> <span class="math inline">\(\frac{\partial f}{\partial x_0}\)</span>.</p>
-<div id="9534a858" class="cell" data-execution_count="28">
+<div id="bc5d2a85" class="cell" data-execution_count="28">
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="at">@jax.custom_jvp</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x, a, b):</span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.tanh(jnp.dot(a, x) <span class="op">+</span> b)</span>
@@ -840,7 +840,7 @@ Avertissement
 <p>Si nous souhaitons explicitement définir le VJP, nous devons d’abord écrire une fonction qui décrit la passe forward. C’est ici <code>f_fwd</code> qui retourne <code>f(primal)</code> et des valeurs stockées pour le moment de la passe backward (à la manière de <code>save_for_backward</code> vu dans la section <code>pytorch</code> !). Il faut ici bien réfléchir à ce qui est nécessaire de stocker et ce qui est superflu, afin d’optimiser au mieux le code. Ici nous stockons <code>f(x,a,b)</code>, <code>x</code> et <code>a</code> car ces valeurs sont réutilisées dans la passe backward où nous calculons <span class="math inline">\(g. \frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial x}\)</span>, <span class="math inline">\(g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial a}\)</span> et <span class="math inline">\(g.\frac{\partial \mathrm{tanh}(f(x,a,b))}{\partial b}\)</span>. Avec <span class="math inline">\(g\)</span> le gradient provenant de l’aval du graphe pour calculer les VJPs (rappelons que nous les calculons de manière backward en remontant le graphe).</p>
 <p>Nous comprenons à nouveau que si <code>g</code> est un vecteur <em>one-hot encoded</em> nous dévoilons <strong>une ligne</strong> de la matrice jacobienne (celle où se situe le <span class="math inline">\(1\)</span>).</p>
 <p>Nous devons également écrire une fonction <code>f_bwd</code> qui prend en argument les valeurs stockées dans la passe forward ainsi que <code>g</code> défini dans le paragraphe précédent. Ici <code>g</code> est scalaire <code>f</code> a valeurs dans <span class="math inline">\(\mathbb{R}\)</span>. <code>f_bwd</code> retourne autant de sorties que <code>f</code> compte d’entrées.</p>
-<div id="2acf466c" class="cell" data-execution_count="29">
+<div id="f5a0fce1" class="cell" data-execution_count="29">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="at">@jax.custom_vjp</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x, a, b):</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.tanh(jnp.dot(a, x) <span class="op">+</span> b)</span>
@@ -864,7 +864,7 @@ Avertissement
 </div>
 </div>
 <p>Notons que la définition d’un <code>custom_vjp</code> redéfinit la fonction <code>grad</code> qui utilise donc aussi <code>f_fwd</code>. Ainsi, nous avons l’équivalence :</p>
-<div id="d50c100e" class="cell" data-execution_count="30">
+<div id="6e1343c7" class="cell" data-execution_count="30">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(f_vjp(<span class="fl">1.</span>)[<span class="dv">0</span>], jax.grad(f)(x, a, b))</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All right!"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
