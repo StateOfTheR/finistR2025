@@ -152,8 +152,15 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#cas-pratique" id="toc-cas-pratique" class="nav-link active" data-scroll-target="#cas-pratique">Cas pratique</a></li>
+  <li><a href="#quelques-références-utiles" id="toc-quelques-références-utiles" class="nav-link" data-scroll-target="#quelques-références-utiles">Quelques références utiles</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -177,7 +184,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Date de publication</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Last Updated on septembre, 2025</p>
+      <p class="date">Last Updated on octobre, 2025</p>
     </div>
   </div>
   
@@ -202,8 +209,27 @@ ul.task-list li input[type="checkbox"] {
 <li>Le choix d’un environnement sous R est moins clair.</li>
 <li>Le debuggage sous R n’est pas effectif.</li>
 </ul>
+<section id="cas-pratique" class="level2">
+<h2 class="anchored" data-anchor-id="cas-pratique">Cas pratique</h2>
+<p>Un collègue dispose d’un dépôt git contenant son code Python et incluant un fichier <code>requirements.txt</code> listant les bibliothèques Python nécessaires pour faire tourner son code. Voici en quelques étapes comment créer l’environnement Python correspondant.</p>
+<ol type="1">
+<li><p>Cloner le projet soit en ligne de commande, soit en utilisant le menu <code>File&gt;NewFolder from Git</code> en choissant le répertoire dans lequel cloner le projet et en donnant l’url du dépôt à cloner. Cette deuxième solution permet d’être directement dans le bon répertoire, sinon ouvrir le répertoire avec <code>Open Folder</code>.</p></li>
+<li><p>Créer l’environnement Python</p></li>
+</ol>
+<ul>
+<li>Ouvrir la palette de commandes avec <code>Ctrl/Cmd + Shift + P</code></li>
+<li>Choisir <code>Python::Create Environment()</code></li>
+<li>Choisir par exemple Venv puis cocher utiliser le fichier <code>requirements.txt</code></li>
+</ul>
+</section>
+<section id="quelques-références-utiles" class="level2">
+<h2 class="anchored" data-anchor-id="quelques-références-utiles">Quelques références utiles</h2>
+<ul>
+<li>Matériel issu d’un workshop pour les utilisateurs de RStudio : <a href="https://posit-dev.github.io/positron-workshop/">https://posit-dev.github.io/positron-workshop/</a></li>
+</ul>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
