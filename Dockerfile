@@ -16,5 +16,6 @@ RUN pip3 install --break-system-packages jax==0.7.0
 RUN pip3 install --break-system-packages torch_geometric nbclient nbformat numpy
 RUN R -e "install.packages('reticulate')"
 RUN R -e "install.packages('purrr')" # map function
+RUN R -e "install.packages(c('ape', 'corrplot', 'Hmsc', 'MASS'))" 
 
 
