@@ -2,9 +2,12 @@
 title: "Hierarchical Modelling of Species Communities"
 subtitle: "Joint species distribution models for community ecology"
 format: html
+toc: true
+date: last-modified
+date-format: "[Last Updated on] MMMM, YYYY"
 ---
 
-```{r,echo=F,include=F}
+```{r,message = FALSE, include=F}
 
 library(ape)
 library(corrplot)
@@ -479,3 +482,5 @@ Some other more computationally approximation approach based on Laplace or varia
 : R packages, adapted from [Nordhausen et Taskinen, 2024](https://wires.onlinelibrary.wiley.com/doi/10.1002/wics.70005), LA : Laplace Approx., VA: Variational Approx. {.striped .hover}
 
 See the article to have a complete overview.
+
+
