@@ -13,6 +13,7 @@ website:
 format:
   html:
     theme: flatly
+    css: styles.css
     highlight: tango
     toc: true
     
