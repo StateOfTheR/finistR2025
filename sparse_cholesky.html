@@ -364,7 +364,7 @@ Note
 <p><img src="images/cholesky/G_A.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
 </figure>
 </div>
-<div id="927191fc" class="cell" data-execution_count="1">
+<div id="ff134879" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> jax.experimental <span class="im">import</span> sparse</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
@@ -438,7 +438,7 @@ Note
 </div>
 </div>
 <p>En pratique, on ne se contente pas de construire l’arbre, on en profite pour calculer à la volée le nombre d’éléments non-nuls dans la colonne <code>L[:,j]</code> en utilisant un parcours en profondeur de l’arbre raciné en <code>j</code>. La procédure suivante (tirée de post2) renvoie l’arbre (<code>parent</code>) et le nombre d’éléments non nuls de <code>L[:,j]</code> (<code>col_count</code>).</p>
-<div id="a20176ac" class="cell" data-execution_count="2">
+<div id="c7411884" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> etree_base(A_indices, A_indptr):</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  n <span class="op">=</span> <span class="bu">len</span>(A_indptr) <span class="op">-</span> <span class="dv">1</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  parent <span class="op">=</span> [<span class="op">-</span><span class="dv">1</span>] <span class="op">*</span> n</span>
@@ -495,7 +495,7 @@ Note
 <span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># print(parent, col_count, mark)</span></span>
 <span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (parent, col_count)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="0ab4d7d2" class="cell" data-execution_count="3">
+<div id="ba12e8d8" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>parent, col_count <span class="op">=</span> etree_base(A_csc.indices, A_csc.indptr)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"parent ="</span>, <span class="bu">list</span>(<span class="dv">1</span><span class="op">+</span>p <span class="cf">for</span> p <span class="kw">in</span> parent))</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"col_count ="</span>, col_count)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -532,7 +532,7 @@ Note
 <li>on parcourt les <strong>voisins directs</strong> de <span class="math inline">\(j\)</span> dans <span class="math inline">\(A\)</span></li>
 <li>pour chacun de ces voisins <span class="math inline">\(i\)</span> , si c’est un descendant de <span class="math inline">\(j\)</span> dans <span class="math inline">\(\mathcal{T}_A\)</span> (c’est à dire si <span class="math inline">\(i &lt; j\)</span>), alors on rajoute tout le chemin qui relie <span class="math inline">\(i\)</span> à <span class="math inline">\(j\)</span> dans <span class="math inline">\(\mathcal{T}_A\)</span> dans le support de <span class="math inline">\(L\)</span> (à la fois en mode CSC et CSR).</li>
 </ul>
-<div id="9d237e41" class="cell" data-execution_count="4">
+<div id="02ecd9b0" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> symbolic_cholesky_base(A_indices, A_indptr, parent, col_count):</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  n <span class="op">=</span> <span class="bu">len</span>(A_indptr) <span class="op">-</span> <span class="dv">1</span> <span class="co"># matrix size</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  row_useful <span class="op">=</span> [[] <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(n)] </span>
@@ -577,7 +577,7 @@ Note
 <span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>        node <span class="op">=</span> parent[node]</span>
 <span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (L_indices, L_indptr, row_useful)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="d8abb94d" class="cell" data-execution_count="5">
+<div id="09b3fcce" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>L_indices, L_indptr, row_useful <span class="op">=</span> symbolic_cholesky_base(A_csc.indices, A_csc.indptr, parent, col_count)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(L_indices[<span class="dv">0</span>:<span class="dv">3</span>], row_useful[<span class="dv">5</span>])</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -672,7 +672,7 @@ Avertissement
 </div>
 </div>
 <p>Comme <span class="math inline">\(L\)</span> et <span class="math inline">\(A\)</span> n’ont pas le même support (<code>L_x</code> est plus long que <code>A_x</code>), il faut attention au moment d’initialiser <span class="math inline">\(L\)</span> à partir de <span class="math inline">\(A\)</span> <code>_deep_copy_csc</code> permet d’initialiser <code>L_x</code> avec la bonne longeur et les valeurs de <code>A_x</code> placées au bon endroit.</p>
-<div id="8f6bc46d" class="cell" data-execution_count="6">
+<div id="15b60f6b" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _deep_copy_csc(A_indices, A_indptr, A_x, L_indices, L_indptr):</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  n <span class="op">=</span> <span class="bu">len</span>(A_indptr) <span class="op">-</span> <span class="dv">1</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  L_x <span class="op">=</span> np.zeros(<span class="bu">len</span>(L_indices))</span>
@@ -683,7 +683,7 @@ Avertissement
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    L_x[L_indptr[j] <span class="op">+</span> copy_idx] <span class="op">=</span> A_x[A_indptr[j]:A_indptr[j<span class="op">+</span><span class="dv">1</span>]]</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> L_x</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="a31ace3a" class="cell" data-execution_count="7">
+<div id="e72cc9ee" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>A_tril <span class="op">=</span> np.tril(A)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>A_tril_csc <span class="op">=</span> sparse.CSC.fromdense(A_tril)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>L_x <span class="op">=</span> _deep_copy_csc(A_tril_csc.indices, A_tril_csc.indptr, A_tril_csc.data, L_indices, L_indptr) <span class="co"># il faut initialiser L_x avec la bonne longeur mais aussi les valeurs de A placées au bon endroit</span></span>
@@ -740,7 +740,7 @@ Important
 </ul>
 </div>
 </div>
-<div id="f2c201d2" class="cell" data-execution_count="8">
+<div id="533c3021" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, L_x, row_useful):</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(L_indptr) <span class="op">-</span> <span class="dv">1</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># parcours sur colonnes</span></span>
@@ -794,10 +794,10 @@ Important
 <span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>        <span class="co"># que la struct de sparsité de A de la première col soit celle de L</span></span>
 <span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> L_x</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="3b96169d" class="cell" data-execution_count="9">
+<div id="bc1a4838" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>L_x_recons <span class="op">=</span> _sparse_cholesky_csc_impl_modif(L_indices, L_indptr, np.copy(L_x), row_useful)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="82bc8423" class="cell" data-execution_count="10">
+<div id="0e29bbbc" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>L_recons_csc <span class="op">=</span> sparse.CSC((L_x_recons, L_indices, L_indptr), shape<span class="op">=</span>(<span class="dv">9</span>,<span class="dv">9</span>))</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>L_recons <span class="op">=</span> L_recons_csc.todense()</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>L_recons[:, <span class="dv">4</span>]</span>
