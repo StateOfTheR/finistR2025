@@ -1,0 +1,53 @@
+---
+title: "Utilisation de l'IDE positron pour R et python"
+lang: fr
+author: 
+  - collectif positron
+format: html
+toc: true
+date: last-modified
+date-format: "[Last Updated on] MMMM, YYYY"
+---
+
+
+Déjà testé lors de l'édition 2024, [positron](https://positron.posit.co/start.html) a été largement testé cette année. Cependant, il est encore en version beta.
+L'intérêt est d'avoir un environnement de travail similaire sous R et python avec un rendu proche de Rstudio (fenêtres éditeur, console, variables et graphiques). Il est développé à partir du logiciel VS code.
+
+Il est à noter que les packages la notion de projet familière en R se traduit ici par un répertoire de travail.
+
+
+**Avantages :**
+
+  - Le choix entre R et python se fait via le choix de l'interpréteur avec gestion des environnements disponibles pour python (pouvant ếtre créés par venv, conda ou uv).
+  - Le code python peut s'exécuter pas à pas.
+  - Il est également possible d'ouvrir des notebooks jupyter.
+
+**Inconvénients :**
+
+  - Le choix d'un environnement sous R est moins clair.
+  - Le debuggage sous R n'est pas effectif.
+
+  
+  
+## Cas pratique
+
+Un collègue dispose d'un dépôt git contenant son code Python et incluant un fichier `requirements.txt` listant les 
+bibliothèques Python nécessaires pour faire tourner son code. Voici en quelques étapes comment créer l'environnement
+Python correspondant.
+
+1. Cloner le projet soit en ligne de commande, soit en utilisant le menu `File>NewFolder from Git` en choissant le répertoire dans lequel cloner le projet et en donnant l'url du dépôt à cloner. Cette deuxième solution permet d'être directement dans le bon répertoire, sinon ouvrir le répertoire avec `Open Folder`.
+
+2. Créer l'environnement Python
+  - Ouvrir la palette de commandes avec `Ctrl/Cmd + Shift + P`
+  - Choisir `Python::Create Environment()`
+  - Choisir par exemple Venv puis cocher utiliser le fichier `requirements.txt`
+  
+
+## Quelques références utiles
+
+- Matériel issu d'un workshop pour les utilisateurs de RStudio : [https://posit-dev.github.io/positron-workshop/](https://posit-dev.github.io/positron-workshop/)
+
+  
+  
+
+
