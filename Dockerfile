@@ -19,3 +19,4 @@ RUN R -e "install.packages('purrr')" # map function
 RUN R -e "install.packages(c('ape', 'corrplot', 'Hmsc', 'MASS'))" 
 
 
+
