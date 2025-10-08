@@ -1,0 +1,496 @@
+---
+title: "Hierarchical Modelling of Species Communities"
+subtitle: "Joint species distribution models for community ecology"
+author:
+  - name: Baptiste Alglave
+    affiliations:
+      - name: UBS, CNRS - Lab-STICC
+  - name: Julie Aubert
+    affiliations:
+      - name: INRAE - MIA Paris-Saclay
+  - name: Jeanne Tous
+    affiliations:
+      - name: INRAE - MIA Paris-Saclay
+date: "2025-08-18"
+date-modified: today
+date-format: "DD MMMM YYYY"
+toc: true
+---
+
+```{r,message = FALSE, include=F}
+
+library(ape)
+library(corrplot)
+library(fields)
+library(Hmsc)
+library(MASS)
+set.seed(1)
+
+```
+
+**HMSC (Hierarchical Modelling of Species Communities)** is a statistical model of the joint distribution of species communities. 
+It aims to understand the assemblage of potentially interacting species at a given time and location.
+HMSC lays over the **Assembly Rule**. In the Assembly Rule framework, ecological processes (*e.g.* competitive processes) can favour or disfavour the occurrence of species and lead to well-defined species combinations. Following the **Theory of Ecological Communities** [(Vollend, 2010)](https://www.jstor.org/stable/j.ctt1kt82jg), these processes can be categorized into four fundamental processes:
+
+- selection : deterministic ﬁtness differences between individuals of different species (biotic and environmental ﬁlters fall in this category)
+
+- ecological drift : random component that drives community dynamics when demographic events occur randomly with respect to species’ identities
+
+- dispersal : movement of species
+
+- speciation : variation in community composition at larger scales by the emergence of new species
+
+HMSC implements these ideas within a Multivariate Hierarchical Generalised Linear Mixed Model ﬁtted through Bayesian inference. It is not a mechanistic model (which explicitly model the mechanisms of the assembly processes), but a correlative model.
+
+# Overall structure of HMSC
+
+Below is the Direct Acyclic Graph (DAG) of HMSC taken from [(Ovaskainen and Abrego, 2020)](https://www.cambridge.org/core/books/joint-species-distribution-modelling/0D9FA93EA1DD408332A17266449668B3). The boxes refer to the data matrices, the ellipses refer to the parameters. The continuous arrows correspond to statistical relationships that involve a random component. The dashed arrows correspond to deterministic relationships. Each term of the model is related to a corresponding fundamental process defined by the Theory of Ecological Communities.
+
+![](images/hmsc_figure.png){fig-align="center"}
+
+We summarise the main equations of the model below based on the paper of [Ovaskainen et al. (2017)](https://onlinelibrary.wiley.com/doi/full/10.1111/ele.12757). Observations are denoted $y_{ij}$ with the sampled points $i \in \{1,\cdots,n\}$ and the species $j \in \{1,\cdots,p\}$. 
+
+$$y_{i j} \sim D\left(L_{i j}, \sigma_j^2\right)$$
+
+$D$ is a statistical distribution suited for the data of interest, $L_{ij}$ is the linear predictor, $\sigma^2$ is the residual variance term.
+
+$L_{i j}$ is a combination of a fixed term $L_{i j}^F$ (reflecting the influence of environmental covariates on observations) and of a random term $L_{i j}^R$. $x_{i k}$ is the $k^{th}$ covariate at the $i^{th}$ location and $\beta_{j k}$ is the effect of the $k^{th}$ covariate related for the $j^{th}$ species. This term describes the **environmental niche** of the species.
+
+$$L_{i j}=L_{i j}^F+L_{i j}^R$$
+
+### Fixed term $\boldsymbol L^F$
+
+$$L_{i j}^F=\sum_k x_{i k} \beta_{j k}$$
+
+The species-specific niche (caracterized by the parameters $\boldsymbol \beta_{j .}$) are supposed to arise from a global niche shared by all the species. Accordingly, for all species $j$, $\boldsymbol \beta_{j .}$ follow a multivariate normal distribution:
+
+$$\boldsymbol{\beta}_{j \cdot} \sim N\left(\boldsymbol{\mu}_{j \cdot}, \mathbf{V}\right)$$
+
+$\boldsymbol{\mu}_{j \cdot}$ is the the expected environmental niche of species $j$.
+
+The expected niche $\boldsymbol{\mu}_{j \cdot}$ (1) can either be assumed to be the same for all species, or (2) can model the **influence of species-specific traits on species' niche** so that:
+
+$$\mu_{j k}=\sum_\ell t_{j \ell} \gamma_{\ell k}$$
+
+$t_{j \ell}$ is the value of trait $\ell$ for species $j$ and $\gamma_{\ell k}$ the effect of trait $\ell$ on response to covariate $k$.
+
+Phylogenetic relationship information is contained in the matrix $\mathbf{C}$ and parameter $\rho$.
+
+$$\boldsymbol{\beta}_{..} \sim N(\boldsymbol{\mu}_{..}, \mathbf{V} \otimes[\rho \mathbf{C}+(\mathbf{1}-\rho) \mathbf{I}])$$
+
+when $\rho=0$ the residual variance is independent among the species. When $\rho=1$, species environmental niches are fully structured by their phylogeny.
+
+
+### The residual term $\boldsymbol L^R$
+
+#### None-spatial formulation
+
+Now moving to the random term, if the study design consists of sampling units without any spatial structure then:
+
+$$L_{i j}^R=\varepsilon_{i j}^S$$
+
+$$\varepsilon_i^S . \sim N(0, \boldsymbol \Omega)$$
+
+$\boldsymbol \Omega$ is a residual species-to-species variance-covariance matrix. Such matrix can be represented as a reduced rank matrix with a small amount of latent factors and loadings denoted $p_c$ where $p_c << p$ so that:
+
+$$\varepsilon_{i j}^S=\sum_m^{p_c} \eta_{i m}^R \lambda_{m j}^R,$$
+
+where $m$ runs over the latent factor. $\eta_{im}$ are gathered in the matrix denoted $\boldsymbol H$ and $\lambda_{m j}$ in the matrix denoted $\boldsymbol \Lambda$..
+
+$\eta_{i m}$ are the latent factors. They are parameterized as: 
+
+$$\eta_{i m}^R \sim \mathcal{N}(0,1)$$
+
+$\lambda_{m j}^R$ are the loadings. They are gathered in the matrix $\boldsymbol \Lambda$. They are parameterized so that:
+
+$$
+\begin{aligned}
+& \lambda_{\mathrm{mj}} \sim N\left(0, \phi_{\mathrm{mj}}^{-1} \tau_{m}^{-1}\right) \\
+& \tau_{\mathrm{m}}=\prod_{\ell=1}^m \delta_{\mathrm{\ell}}
+\end{aligned}
+$$
+
+Such parameterization is described in [Ovaskainen et al. (2015)](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12501).
+
+The $\phi_{\mathrm{mj}}$ terms control the local shrinkage of species loadings (specific to a dimension $m$) and the $\delta_\ell$ control the global shrinkage of species loadings (concerns all the loadings of a species). This formulation allows for uncertainty in the number of factors and sparsity structure. The amount of shrinkage increases rapidly with factor index $m$, and thus, the model assigns non-negligible factor loadings only for those factors that are strongly supported by the data. 
+
+Note that the species associations could be made covariate-dependent, but this is not described in the tutorial.
+
+#### Including the sampling design
+
+Now including the sampling design in the framework implies to add the matrix $\boldsymbol \Pi$ to the random term $\boldsymbol L^R$ so that:
+
+$$\boldsymbol L^R = \boldsymbol{\Pi H \Lambda}$$
+
+where $\boldsymbol L^R$ is a $n \times n_p$ matrix ($n_p$ being the number of plots over the spatial domain), with elements $\pi_{ip} = 1$ if sampling unit $i$ belongs to the plot $p$, and $\pi_{ip} = 0$ if this is not the case. This matrix is needed to copy the plot-level random effects to the sampling units that belong to each focal plot.
+
+*N.b.* A plot is the higher-level unit of sampling (e.g., transect, or experimental plot), while the sampling unit might be a replicate within that plot.
+
+#### Including spatial correlation
+
+Now moving to a framework where spatial correlation is accounted for, latent factors among sites can be considered to have a spatial structure so that : 
+
+$$\boldsymbol \eta_{.m}^R \sim \mathcal{N}(0,\boldsymbol R_{m})$$
+
+so that $\boldsymbol R_{m}$ is a spatial correlation matrix parameterized as an exponential correlation function so that $R_{m, i_1 i_2}=\exp \left(-d_{i_1 i_2} / \alpha_{m}\right)$. $d_{i_1 i_2}$ is the distance between locations $(i_1,i_2)$ and $\alpha_{m}$ is a parameter scale specific to dimension $m$.
+
+# Tutorial
+
+### Low-dimensional case
+
+*N.b.* The codes come from the tutorial of [Tikhonov et al. (2022)](https://cran.r-project.org/web/packages/Hmsc/vignettes/vignette_2_multivariate_low.pdf). More detailed explanations are given in this tutorial.
+
+#### Case without species association
+
+Let's generate data. We have 100 observations, 2 covariates, and 5 species. Observations are Gaussian.
+
+```{r}
+
+n = 100
+x1 = rnorm(n)
+x2 = rnorm(n)
+XData = data.frame(x1=x1,x2=x2)
+alpha = c(0,0,0,0,0)
+beta1 = c(1,1,-1,-1,0)
+beta2 = c(1,-1,1,-1,0)
+sigma = c(1,1,1,1,1)
+L = matrix(NA,nrow=n,ncol=5)
+Y = matrix(NA,nrow=n,ncol=5)
+for (j in 1:5){
+    L[,j] = alpha[j] + beta1[j]*x1 + beta2[j]*x2
+    Y[,j] = L[,j] + rnorm(n, sd = sigma[j])
+}
+
+```
+
+We then build an HMSC model, where we consider that the two species abundance depends on the two covariates.
+
+```{r}
+
+m = Hmsc(Y = Y, XData = XData, XFormula = ~x1+x2)
+
+```
+
+Then we configure the MCMC sampler and run the sampler with the function `sampleMCMC`.
+
+```{r}
+
+nChains = 3
+thin = 10
+samples = 1000
+transient = 500*thin
+verbose = 0
+m = sampleMcmc(m, thin = thin, samples = samples, transient = transient,
+               nChains = nChains, nParallel = nChains, verbose = verbose)
+
+```
+
+
+Then, we check the model convergence. The coda package gives the effecive size for each parameter, goodness of fit metrics and the predictive performance through K-fold cross validation. For K-fold cross validation, the $R^2$ and the RMSE are those related to each species.
+
+```{r,eval=F,echo=T}
+
+mpost = convertToCodaObject(m)
+effectiveSize(mpost$Beta) # Effective sample size
+
+## Goodness of fit
+preds = computePredictedValues(m)
+evaluateModelFit(hM = m, predY = preds)
+
+## Predictive performance
+partition = createPartition(m, nfolds = 2)
+preds = computePredictedValues(m, partition = partition, nParallel = nChains)
+evaluateModelFit(hM = m, predY = preds)
+
+```
+
+Once the model checked, the estimated values can be visualized. We find back the simulated values.
+
+```{r}
+
+postBeta = getPostEstimate(m, parName = "Beta")
+plotBeta(m, post = postBeta, param = "Support", supportLevel = 0.95)
+
+```
+
+#### Case with species association
+
+In this case, we estimate the $\boldsymbol \Omega$ species association matrix. We have to define the study design matrix $\boldsymbol H$ and then define the covariance structure for species-to-species interaction with the function `HmscRandomLevel`. We can rerun such model with the `sampleMCMC` function.
+
+```{r}
+
+studyDesign = data.frame(sample = as.factor(1:n))
+rL = HmscRandomLevel(units = studyDesign$sample)
+m = Hmsc(Y = Y, XData = XData, XFormula = ~x1+x2,
+        studyDesign = studyDesign, ranLevels = list(sample = rL))
+m = sampleMcmc(m, thin = thin, samples = samples, transient = transient,
+            nChains = nChains, nParallel = nChains, verbose = verbose)
+
+```
+
+To extract the species-to-species association matrix, we use the function `computeAssociations`. The matrix is close to a diagonal matrix (*i.e.* no associations between species) which corresponds to the simulation where no association is simulated.
+
+```{r}
+
+OmegaCor = computeAssociations(m)
+toPlot = OmegaCor[[1]]$mean
+corrplot(toPlot, method = "color",
+        col = colorRampPalette(c("blue","white","red"))(200),
+        title = paste("random effect level:", m$rLNames[1]), mar=c(0,0,1,0))
+
+```
+
+Let's assume we do not include in the estimation model the second covariate, but still estimate species-to-species association and plot the species-to-species association matrix. In this case, the covariate effect is captured by the species-to-species association. This illustrates that such matrix should be interpreted with care when intending to analyse such matrix in term of species interaction.
+
+```{r}
+
+m = Hmsc(Y=Y, XData=XData, XFormula=~x1,
+        studyDesign=studyDesign, ranLevels=list(sample=rL))
+m = sampleMcmc(m, thin = thin, samples = samples, transient = transient,
+            nChains = nChains, nParallel = nChains, verbose = verbose)
+OmegaCor = computeAssociations(m)
+toPlot = OmegaCor[[1]]$mean
+corrplot(toPlot, method = "color",
+        col=colorRampPalette(c("blue","white","red"))(200),
+        title=paste("random effect level:", m$rLNames[1]), mar=c(0,0,1,0))
+
+```
+
+One can also model species interaction through a low-rank model (factor model). In this case, we fix the number of factors to be sampled (minimum and maximum). We then visualize the latent factors and the loadings through a biplot, as commonly done in ordination analyses. Here, we set the number of latent factors to 2.
+
+```{r}
+
+rL$nfMin=2 # minimum numbers of latent factors to be sampled
+rL$nfMax=2 # maximum numbers of latent factors to be sampled
+
+m = Hmsc(Y=Y, XData=XData, XFormula=~1,
+        studyDesign=studyDesign, ranLevels=list(sample=rL))
+m = sampleMcmc(m, thin = thin, samples = samples, transient = transient,
+            nChains = nChains, nParallel = nChains, verbose = verbose)
+
+etaPost=getPostEstimate(m, "Eta")
+lambdaPost=getPostEstimate(m, "Lambda")
+biPlot(m, etaPost = etaPost, lambdaPost = lambdaPost, factors = c(1,2), "x2")
+
+```
+
+### High-dimensional case
+
+*N.b.* The codes come from the tutorial of [Tikhonov et al. (2022)](https://cran.r-project.org/web/packages/Hmsc/vignettes/vignette_3_multivariate_high.pdf). More detailed explanations are given in this tutorial.
+
+Let's now consider a larger set of species (50) with phylogeny and traits data.
+
+#### Simulation
+
+We first simulate a phylogenic tree describing how the species have evolved from their common ancestor.
+
+```{r}
+
+ns = 50
+phy = rcoal(n=ns, tip.label = sprintf('species_%.3d',1:ns), br = "coalescent")
+plot(phy, show.tip.label = FALSE, no.margin = TRUE)
+
+```
+
+We then simulate trait values considering two traits for each of the 50 species. For the sake of illustration
+we call these traits ‘habitat preference for forest’ (trait 1, abbreviated as H) and ‘thermal optimum’
+(trait 2, abbreviated as T).
+
+We assume that the traits are phylogenetically constrained so that they have evolved according to the diffusion model of trait evolution. These assumptions can be implemented by randomizing the traits from a multivariate normal distribution where the variance-covariance matrix is the phylogenetic correlation matrix $C$. The function `vcv` from the `ape` package allows to compute a variance covariance matrix from the phylogenetic data.
+
+```{r}
+
+C = vcv(phy, model = "Brownian", corr = TRUE)
+spnames = colnames(C)
+traits = matrix(NA,ncol =2,nrow = ns)
+for (i in 1:2){
+traits[,i] = matrix(mvrnorm(n = 1, mu = rep(0,ns), Sigma=C))
+}
+rownames(traits) = spnames
+colnames(traits) = c("habitat.use","thermal.optimum")
+traits = as.data.frame(traits)
+
+```
+
+One can now visualize the traits values.
+
+```{r}
+
+par(fig = c(0,0.6,0,0.8), mar=c(6,0,2,0))
+plot(phy, show.tip.label = FALSE)
+par(fig = c(0.6,0.9,0.025,0.775), mar=c(6,0,2,0), new=T)
+plot.new()
+image.plot(t(traits),axes=FALSE,legend.width = 3,legend.shrink=1,
+col = colorRampPalette(c("blue","white","red"))(200))
+text(x=1.1, y=0.72, srt = 90, "H", cex=0.9, pos = 4)
+text(x=1.4, y=0.72, srt = 90, "T", cex=0.9, pos = 4)
+
+```
+
+Once done, we can simulate environmental and species data which requires to define species niche.
+
+```{r}
+
+n = 200
+
+## Simulate covariates
+habitat = factor(sample(x = c("forest","open"), size = n, replace=TRUE))
+climate = rnorm(n)
+
+## Parameterize species niche
+nc = 4
+mu = matrix(0,nrow=nc,ncol=ns)
+#expected niche of each species related to the "covariate" intercept
+mu[1, ] = -traits$thermal.optimum^2/4-traits$habitat.use
+#expected niche of each species related to the covariate forest
+#(open area as reference level, so included in intercept)
+mu[2, ] = 2*traits$habitat.use
+#expected niche of each species related to the covariate climate
+mu[3, ] = traits$thermal.optimum/2
+#expected niche of each species related to the covariate climate*climate
+mu[4, ] = -1/4
+
+## Put all the species niche parameters in beta
+beta = mu + 0.25*matrix(rnorm(n = ns*nc), ncol=ns)
+
+## Gather covariates in the X matrix
+X = cbind(rep(1,ns), as.numeric(habitat=="forest"), climate, climate*climate)
+
+## Compute linear predictor
+L = X%*%beta
+
+## Simulate observations
+Y = L + mvrnorm(n=n, mu=rep(0,ns), Sigma=diag(ns))
+colnames(Y) = spnames
+
+```
+
+#### Run HMSC model
+
+We then configure the corresponding HSMC model.
+
+```{r}
+
+XData = data.frame(climate = climate, habitat = habitat)
+XFormula = ~habitat + poly(climate,degree = 2,raw = TRUE) # formula for the covariate effect
+TrFormula = ~habitat.use + thermal.optimum # formula for the traits
+studyDesign = data.frame(sample = sprintf('sample_%.3d',1:n), stringsAsFactors=TRUE)
+rL = HmscRandomLevel(units = studyDesign$sample)
+rL$nfMax = 15 # specify the maximum number of dimensions for the latent factors
+m = Hmsc(Y = Y, XData = XData, XFormula = XFormula,
+        TrData = traits, TrFormula = TrFormula,
+        phyloTree = phy,
+        studyDesign = studyDesign, ranLevels = list(sample = rL))
+
+```
+
+We run the corresponding MCMC model.
+
+```{r}
+
+thin = 10
+samples = 1000
+transient = 500
+verbose = 0
+m = sampleMcmc(m, thin = thin, samples = samples, transient = transient,
+            nChains = nChains, nParallel = nChains, verbose = verbose)
+
+```
+
+We let the convergence checks appart at this step.
+
+HMSC allows to compute the percentage of variance captured by each covariate through the function `computeVariancePartitioning`.
+
+```{r}
+
+VP = computeVariancePartitioning(m, group = c(1,1,2,2), groupnames = c("habitat","climate"))
+plotVariancePartitioning(m, VP = VP)
+
+```
+
+The variance among species explained by traits in their responses to environmental covariates is given by `VP$R2T$Beta`. Here traits explain a strong part of environmental covariates.
+
+```{r}
+
+VP$R2T$Beta
+
+```
+
+Similarly as for the low-dimensional case, one can visualize the parameters estimates (Matrix $\boldsymbol B$) and add the phylogenetic tree to visualize whether there is an effect of phylogeny on parameters estimates.
+
+```{r}
+
+postBeta = getPostEstimate(m, parName = "Beta")
+plotBeta(m, post = postBeta, param = "Support",
+        plotTree = TRUE, supportLevel = 0.95, split=.4, spNamesNumbers = c(F,F))
+
+```
+
+Similarly, one can visualize the link between traits and niches by plotting the $\boldsymbol \Gamma$ matrix.
+
+```{r}
+
+postGamma = getPostEstimate(m, parName = "Gamma")
+plotGamma(m, post=postGamma, param="Support", supportLevel = 0.95)
+
+```
+
+The species-to-species associations is given as before. No strong associations between species can be evidenced consistently with simulations.
+
+```{r}
+
+OmegaCor = computeAssociations(m)
+supportLevel = 0.95
+toPlot = OmegaCor[[1]]$mean
+corrplot(toPlot, method = "color",
+col=colorRampPalette(c("blue","white","red"))(200),
+tl.cex=.6, tl.col="black",
+title=paste("random effect level:", m$rLNames[1]), mar=c(0,0,1,0))
+
+```
+
+The strength of the phylogenetic signal is given by the parameter $\rho$.
+
+```{r}
+
+mpost = convertToCodaObject(m)
+summary(mpost$Rho)
+
+```
+
+Finally, with the function `constructGradient` it is possible to plot the environmental gradients (species' abundance response to covariate) either versus the summed species (`S`), one species (`Y`) and the traites (`T`).
+
+```{r}
+
+Gradient = constructGradient(m,focalVariable = "climate",
+non.focalVariables = list("habitat"=list(3,"open")))
+predY = predict(m, XData=Gradient$XDataNew, studyDesign=Gradient$studyDesignNew,
+            ranLevels=Gradient$rLNew, expected=TRUE)
+plotGradient(m, Gradient, pred=predY, measure="S", showData = TRUE,ylabel = "Summed response")
+plotGradient(m, Gradient, pred=predY, measure="Y", index = 1, showData = TRUE,ylabel = "species_031")
+plotGradient(m, Gradient, pred=predY, measure="T", index = 3, showData = TRUE,ylabel = "thermal.optimum")
+
+```
+
+# Some alternatives to HSMC
+
+Nordhausen and Taskinen proposed a review of Generalized Linear Latent Variable Models and Related Computational Approaches in [Nordhausen et Taskinen, 2024](https://wires.onlinelibrary.wiley.com/doi/10.1002/wics.70005). 
+
+[`{boral}`](https://cran.r-project.org/package=boral) [Hui 2016](https://doi.org/10.1111/2041-210X.12514) is another MCMC-based R package for analyzing multivariate ecological data, with numerous response distributions (such as (Zero-­truncated) Poisson and
+negative binomial, binomial, normal, Tweedie; beta, ordinal and more) but less flexible for complicated hierarchical structure or use of phylogenetic information. 
+
+It is also possible to create your own programms using Stan, Jags, TMB or other general modeling software, and their potential R interface.
+
+Some other more computationally approximation approach based on Laplace or variational of the marginal log-likelihood where the latent variables have been integrated out :
+
+
+| Package | Ref. | Method | Comments |
+|------|------|------|------|
+| glmmTMB    | Brooks et al. 2017    | LA | focus on mixed models, option to specify a reduced-­rank covariance structure|
+| gllvm    | Niku et al. 2023    | LA, VA    | Implements several schemes for model-­based ordination |
+
+: R packages, adapted from [Nordhausen et Taskinen, 2024](https://wires.onlinelibrary.wiley.com/doi/10.1002/wics.70005), LA : Laplace Approx., VA: Variational Approx. {.striped .hover}
+
+See the article to have a complete overview.
+
+
