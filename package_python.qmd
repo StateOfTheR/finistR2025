@@ -609,10 +609,10 @@ Uploading ammonia_predict_3-0.1.0.tar.gz
 100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB • 00:00 • 10.0 MB/s
 
 View at:
-https://test.pypi.org/project/ammonia-predict-3/0.1.0/
+https://test.pypi.org/project/ammonia-predict-3/
 ```
 
-The package is now available here: [https://test.pypi.org/project/ammonia-predict-3/0.1.0/](https://test.pypi.org/project/ammonia-predict-3/0.1.0/)
+The package is now available here: [https://test.pypi.org/project/ammonia-predict-3/](https://test.pypi.org/project/ammonia-predict-3/)
 
 We can verify that it installs correctly from TestPyPI. Create a new folder and a new environment, install the package, and run the examples.
 
@@ -630,7 +630,7 @@ package_test: source venv/bin/activate
 Then install the package from TestPyPI:
 
 ```bash
-(venv) package_test: pip install -i https://test.pypi.org/simple/ ammonia-predict-3==0.1.0
+(venv) package_test: pip install -i https://test.pypi.org/simple/ ammonia-predict-3
 ```
 
 Then run the example from the `README.md` file:
