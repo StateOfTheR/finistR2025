@@ -19,6 +19,8 @@ website:
             href: positron.qmd
       - text: Différentiation automatique
         href: autodiff.qmd
+      - text: Python packaging
+        href: package_python.qmd  
       - text: animint2
         href: animint.qmd
       - text: HMSC
@@ -38,3 +40,5 @@ format:
     css: styles.css
     toc: true
     
+ressources:
+  - package_python_tuto_annexe.qmd 

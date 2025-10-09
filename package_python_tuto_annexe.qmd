@@ -1,0 +1,415 @@
+---
+title: "Python packaging basics"
+from: markdown+emoji
+lang: fr
+format: html
+execute:
+    cache: true
+toc: true
+author:
+  - name: Léo Micollet 
+  - name: Arthur Leroy
+  - name: Armand Favrot
+    affiliations:
+      - name: INRAE - MIA Paris Saclay
+date: "2025-08-22"
+date-modified: today
+date-format: "DD MMMM YYYY"
+---
+
+Tutorial on package structure, imports, the `__init__.py` file, and data usage. 
+
+## References 
+
+- [https://realpython.com/python-modules-packages/](https://realpython.com/python-modules-packages/)
+- [https://importlib-resources.readthedocs.io/en/latest/using.html](https://importlib-resources.readthedocs.io/en/latest/using.html) and [https://stackoverflow.com/questions/779495/access-data-in-package-subdirectory](https://stackoverflow.com/questions/779495/access-data-in-package-subdirectory)
+- [https://realpython.com/python-init-py/](https://realpython.com/python-init-py/)
+
+## Package structure
+
+We consider the following architecture:
+
+```bash
+test: tree pkg
+pkg
+├── mod1.py
+├── mod2.py
+└── sub_pkg
+    └── sub_option.py
+```
+
+with 
+
+```{python}
+#| eval: false
+# mod1.py
+from pkg.mod2 import add_plus_two
+
+def predict (x):
+    return (add_plus_two (x) + 3)
+```
+
+
+```{python filename="mod2.py"}
+#| eval: false
+# mod2.py
+def add_plus_two (x):
+    return (x + 2)
+```
+
+```{python filename="sub_option.py"}
+#| eval: false
+# sub_option.py
+def soption (x):
+    return (x * 2)
+```
+
+::: {.callout-note}
+When we want a function in one module to use a function from another module (for example, here the function `predict` from module 1 that uses the function `add_plus_two` from module 2) we need to import this function with `from`: `from path import function`. For `path`, we have two options: absolute imports and relative imports. For absolute imports, the starting point is the folder where the package is located (here `pkg/`). Relative imports are discussed further below.
+:::
+
+From there, we can start Python from the `test` folder and run: 
+
+```bash
+test: python3
+
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+
+>>> from pkg.mod1 import predict
+>>> predict (4)
+9
+```
+
+But we cannot run: 
+
+```bash
+test: python3
+
+>>> from pkg import predict
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ImportError: cannot import name 'predict' from 'pkg' (/home/mmip/test/pkg/__init__.py)
+```
+
+If we want to be able to do that, we can use a file named `__init__.py`, which, among other things, allows us to expose functions.  
+
+The `__init__.py` files present in the structure of a package are executed when the package or one of its modules is imported. More information on this file [here](https://realpython.com/python-init-py/).
+
+We add an `__init__.py` file placed in `pkg/`:
+
+```bash
+test: tree pkg
+pkg
+├── __init__.py
+├── mod1.py
+├── mod2.py
+└── sub_pkg
+    └── sub_option.py
+```
+
+Here’s its content:
+
+```bash
+# __init__.py
+from .mod1 import predict
+```
+
+
+This file is executed when we "invoke" `pkg`, and therefore it makes the `predict` function available at the level of the folder where `__init__.py` is located—here `pkg`. It is as if the function were directly located in `pkg/`.
+
+In Python, we can now do: 
+
+```bash
+test: python3
+
+>>> import pkg
+>>> pkg.predict(4)
+9
+```
+
+or 
+
+```bash
+test: python3
+
+>>> from pkg import predict
+>>> predict (5)
+10
+```
+
+We can also place an `__init__.py` file in the `sub_pkg` folder to make the `soption` function available "directly in this folder".
+
+```bash
+test: tree pkg
+pkg
+├── __init__.py
+├── mod1.py
+├── mod2.py
+└── sub_pkg
+    ├── __init__.py
+    └── sub_option.py
+```
+
+with:
+
+```{python filename="__init__.py"}
+#| eval: false
+from pkg.sub_pkg.sub_option import soption
+```
+
+We can now run:
+
+```bash
+test: python3
+
+>>> from pkg.sub_pkg import soption
+>>> soption (4)
+4
+```
+
+The `dir()` function, when used without arguments, shows what is in the "current local symbol table" (check [here](https://realpython.com/python-modules-packages/#the-dir-function) for more details).  
+
+```bash
+test: python3
+
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__']
+
+>>> import pkg
+
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'pkg']
+
+>>> pkg.predict(2)
+7
+
+>>> from pkg import *
+
+>>> dir()
+['__annotations__', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'mod1', 'mod2', 'pkg', 'predict', 'soption', 'sub_pkg']
+
+>>> predict (3)
+8
+
+>>> soption (2)
+2
+```
+
+For example, the code above shows that after doing `from pkg import *`, we can directly use `predict` or `soption` in Python.  
+
+::: {.callout-note}
+Instead of `from pkg.mod2 import add_plus_two` in `mod1.py`, we could have written `from .mod2 import add_plus_two`. The first way is an absolute import, the second is a relative import. The `.` in a relative import refers to the current folder. Using `..` refers to the parent folder.  
+
+Absolute imports are more explicit.
+:::
+
+To illustrate this, let’s create a new file `zoption.py` that contains a function `one_more` in the `sub_pkg` folder, and modify the function `soption` in the `sub_option.py` file so that it uses both the `one_more` function and the `add_plus_two` function, using relative imports.  
+
+```bash
+test: tree pkg 
+pkg
+├── __init__.py
+├── mod1.py
+├── mod2.py
+└── sub_pkg
+    ├── __init__.py
+    ├── sub_option.py
+    └── zoption.py
+```
+
+with: 
+
+```{python filename="zoption.py"}
+#| eval: false
+# zoption.py
+def one_more (x):
+    return (x + 1)
+```
+
+and the modified `sub_option.py` file:  
+
+```{python filename="sub_option.py"}
+#| eval: false
+# sub_option.py
+from .zoption import one_more
+from ..mod2 import add_plus_two # équivalent : from pkg.mod2 import add_plus_two
+
+def soption (x):
+    return (one_more (x) * 2 - add_plus_two (x))
+```
+
+And let’s add one line in the `./pkg/__init__.py` file so that the `soption` function can be imported directly from `pkg`:  
+
+```{python filename="./pkg/__init__.py"}
+#| eval: false
+# ./pkg/__init__.py
+from .mod1 import predict
+from pkg.sub_pkg.sub_option import soption
+```
+
+We can now run:
+
+```bash
+test: python3
+
+>>> from pkg import soption
+>>> soption (4)
+4
+```
+
+## Adding data 
+
+Suppose now that the `predict` function in `mod1.py` requires data, for example a DataFrame. We will therefore add a `data` folder to store this DataFrame.  
+
+```bash 
+test: tree 
+pkg
+├── data
+│   └── df.csv
+├── __init__.py
+├── mod1.py
+├── mod2.py
+└── sub_pkg
+    ├── __init__.py
+    ├── sub_option.py
+    └── zoption.py
+```
+
+To use this DataFrame, we cannot simply do:  
+
+```{python filename="mod1.py"}
+#| eval: false
+# mod1.py
+from pkg.mod2 import add_plus_two
+
+import pandas as pd
+
+y = pd.read_csv ("pkg/data/df.csv")
+
+def predict (x):
+    return (add_plus_two (x) + 3 + y['x'][0])
+```
+
+This will work as long as we import `pkg` from the `test` folder, but once the package is installed, it will not work if we try to use the package from another folder.  Suppose we installed the package in an environment called `testpkg` and we try to use it from my home directory:  
+
+```bash
+(testpkg) mmip: python3
+
+>>> from pkg import predict
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/mmip/test/pkg/__init__.py", line 2, in <module>
+    from .mod1 import predict
+  File "/home/mmip/test/pkg/mod1.py", line 6, in <module>
+    y = pd.read_csv ("pkg/data/df.csv")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmip/.pyenv/versions/testpkg/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmip/.pyenv/versions/testpkg/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmip/.pyenv/versions/testpkg/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mmip/.pyenv/versions/testpkg/lib/python3.12/site-packages/pandas/io/parsers/readers.py", line 1880, in _make_engine
+    self.handles = get_handle(
+                   ^^^^^^^^^^^
+  File "/home/mmip/.pyenv/versions/testpkg/lib/python3.12/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+             ^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'pkg/data/df.csv'
+```
+
+To use data inside a package, we must use `importlib.resources`:  
+
+```{python filename="mod1.py"}
+#| eval: false
+# mod1.py
+from pkg.mod2 import add_plus_two
+
+import pandas as pd
+
+from importlib.resources import files, as_file
+
+resource = files ("pkg").joinpath("data").joinpath("df.csv")
+with as_file (resource) as path:
+    y = pd.read_csv (path)
+
+def predict (x):
+    return (add_plus_two (x) + 3 + int(y['x'][0]))
+```
+
+```bash
+(testpkg) mmip: python3
+
+>>> from pkg import predict
+>>> predict (4)
+11
+```
+
+
+## Minimal installation of the package
+
+To be able to install the package locally, it is enough to add an empty `pyproject.toml` file next to the `pkg` folder, here in the `test` folder:  
+
+```bash
+test: tree 
+.
+├── pkg
+│   ├── data
+│   │   └── df.csv
+│   ├── __init__.py
+│   ├── mod1.py
+│   ├── mod2.py
+│   └── sub_pkg
+│       ├── __init__.py
+│       ├── sub_option.py
+│       └── zoption.py
+└── pyproject.toml
+```
+
+Before installing, we create a virtual environment:  
+
+```bash
+test: pyenv virtualenv 3.12.3 testpkg
+test: pyenv activate testpkg
+(testpkg) test: 
+```
+
+Installation in development mode (so that modifications are taken into account immediately) with:  
+
+```bash
+(testpkg) test: pip install -e .
+
+Obtaining file:///home/mmip/test
+  Installing build dependencies ... done
+  Checking if build backend supports build_editable ... done
+  Getting requirements to build editable ... done
+  Preparing editable metadata (pyproject.toml) ... done
+Building wheels for collected packages: pkg
+  Building editable for pkg (pyproject.toml) ... done
+  Created wheel for pkg: filename=pkg-0.1.0-0.editable-py3-none-any.whl size=1086 sha256=609fc84698d539b5585e9367508534d56cb7130364621a44b0976aa9dea60d6a
+  Stored in directory: /tmp/pip-ephem-wheel-cache-p3s6hc5v/wheels/41/19/39/c8798bf013ec2255417f36ea21404d09ad946ffc60673d12db
+Successfully built pkg
+Installing collected packages: pkg
+Successfully installed pkg-0.1.0
+
+[notice] A new release of pip is available: 24.0 -> 25.2
+[notice] To update, run: python -m pip install --upgrade pip
+```
+
+Usage from another folder:
+
+```bash
+(testpkg) test: cd
+
+(testpkg) mmip: python3
+
+>>> from pkg import predict
+>>> predict (10)
+17
+```
+
+
