@@ -151,15 +151,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="./positron.html">
  <span class="dropdown-text">Positron</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./package_python.html">
+ <span class="dropdown-text">Python packaging</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="./autodiff.html"> 
 <span class="menu-text">Différentiation automatique</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./package_python.html"> 
-<span class="menu-text">Python packaging</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./animint.html"> 
@@ -236,7 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>L’objectif est de proposer une représentation latente des nœuds d’un réseau bipartite (ou de plusieurs) dans un espace euclidien. Un sous-objectif peut être de prédire des dyades manquantes (non observées) que ce soient des arêtes ou des non-arêtes. Nous allons utiliser des “variational graph auto-encoder”, il est possible d’aller consulter les tutoriels correspondant sur la page de <a href="https://pytorch-geometric.readthedocs.io/en/latest/advanced/batching.html#bipartite-graphs">pytorch-geometrics</a> et celui présenté lors d’un précédent atelier <em>State of the R</em>. Dans ce document, nous nous concentrons sur l’aspect sous-échantillonnage du réseau permettant de créer les jeux de données d’apprentissage et d’entraînement.</p>
 <p>L’apprentissage de la représentation latente se fait sur l’optimisation d’une perte, à savoir l’entropie croisée, de la prédiction d’arêtes et de non arêtes (1 ou 0 dans la matrice d’incidence correspondant au réseau). Cet ensemble d’arêtes et de non arêtes choisies en proportions égales s’appelle le jeu d’entraînement et est considéré connu pour effectuer les convolutions au sein des couches de GNN (graph neural network). L’évaluation de la performance se fait sur un autre sous-ensemble d’arêtes et de non arêtes, appelé le jeu de test et est inconnu lors de l’entraînement et n’est pas utilisé pour l’encodage (succession de couches de GNN projetant les nœuds dans l’espace latent). Un autre jeu de données du même type peut être créé comme jeu de validation.</p>
 <p>Pour ce faire la fonction <code>RandomLinkSplit(...)</code> de <code>pytorch-geometric</code> permet de faire cette séparation en trois jeux de données (ensemble d’arêtes et non arêtes) d’un objet de type <code>BipartiteData</code> qui n’est pas une classe nativement définie dans <code>pytorch-geometric</code> mais c’est la recommandation trouvée en ligne pour définir ce genre de réseaux.</p>
-<div id="84020526" class="cell" data-execution_count="1">
+<div id="32af736f" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch_geometric</span>
@@ -255,7 +255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">True</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>On définit ensuite un réseau bipartite à partir d’un réseau généré aléatoirement :</p>
-<div id="6b24d961" class="cell" data-execution_count="3">
+<div id="3bbdd116" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a random bipartite graph</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>num_nodes <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">30</span>)  <span class="co"># 100 nodes in each partition</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>num_edges <span class="op">=</span> <span class="dv">50</span>  <span class="co"># Total number of edges</span></span>
@@ -273,7 +273,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(random_network)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>BipartiteData(edge_index=[2, 50], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=35)</code></pre>
+<pre><code>BipartiteData(edge_index=[2, 50], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=33)</code></pre>
 </div>
 </div>
 <p>où</p>
@@ -284,7 +284,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>num_nodes</code> est le nombre de nœuds dans le réseau mais cela posera des problèmes comme nous le verrons.</li>
 </ul>
 <p>À présent, nous allons pouvoir proposer un sous-échantillonnage en jeux d’entraînement, de validation et de test.</p>
-<div id="939004e7" class="cell" data-execution_count="4">
+<div id="2b6acd59" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch_geometric.transforms <span class="im">as</span> T</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>transform <span class="op">=</span> T.RandomLinkSplit(</span>
@@ -302,31 +302,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>split_labels</code> fixé à vrai permet de séparer en deux parties les arêtes et les non arêtes.</li>
 </ul>
 <p>Si on regarde ce que contiennent les objets train_data, val_data et test_data, on a :</p>
-<div id="46e8c178" class="cell" data-execution_count="5">
+<div id="ee21d055" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(train_data)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(val_data)</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>BipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=35, pos_edge_label=[35], pos_edge_label_index=[2, 35], neg_edge_label=[35], neg_edge_label_index=[2, 35])
-BipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=35, pos_edge_label=[5], pos_edge_label_index=[2, 5], neg_edge_label=[5], neg_edge_label_index=[2, 5])
-BipartiteData(edge_index=[2, 40], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=35, pos_edge_label=[10], pos_edge_label_index=[2, 10], neg_edge_label=[10], neg_edge_label_index=[2, 10])</code></pre>
+<pre><code>BipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=33, pos_edge_label=[35], pos_edge_label_index=[2, 35], neg_edge_label=[35], neg_edge_label_index=[2, 35])
+BipartiteData(edge_index=[2, 35], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=33, pos_edge_label=[5], pos_edge_label_index=[2, 5], neg_edge_label=[5], neg_edge_label_index=[2, 5])
+BipartiteData(edge_index=[2, 40], name='Random Graph', id_net=0, x_s=[10, 1], x_t=[30, 1], num_nodes=33, pos_edge_label=[10], pos_edge_label_index=[2, 10], neg_edge_label=[10], neg_edge_label_index=[2, 10])</code></pre>
 </div>
 </div>
 <p>Chaque objet contient <code>edge_index</code> qui est le même entre <code>train_data</code> et <code>val_data</code> et qui contient les arêtes considérées comme connues et qui servent à faire les convolutions dans les GNN pour l’entraînement et la validation. Pour le test, on ajoute les arêtes du jeu validation au jeu d’entraînement pour faire les convolutions.</p>
 <p>L’attribut pos_edge_label_index donne des indices d’arêtes (sous-ensemble des arêtes existantes dans le réseau) et l’attribut neg_edge_label_index donne des indices de non arêtes.</p>
 <p>Si on regarde</p>
-<div id="a0e4582a" class="cell" data-execution_count="6">
+<div id="e10d7f18" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.pos_edge_label_index)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.neg_edge_label_index)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>tensor([[ 2,  0,  5,  5,  2,  9,  3,  6,  0,  0],
-        [ 9, 17, 19,  9, 12,  4, 27,  2, 16,  4]])
-tensor([[14, 17,  3, 12, 31, 32, 26,  4,  5, 27],
-        [ 1, 34,  6,  6, 17, 21, 13, 26, 17,  3]])</code></pre>
+<pre><code>tensor([[ 3,  3,  4,  0,  6,  9,  8,  0,  9,  9],
+        [ 2,  2, 23, 24, 26, 21, 17,  3, 15,  9]])
+tensor([[15,  9, 13,  5, 24, 23,  9, 23, 27, 11],
+        [13, 25, 23, 23,  8, 24, 13, 25,  0, 26]])</code></pre>
 </div>
 </div>
 <p>on s’aperçoit d’une incohérence sur les non-arêtes car nous obtenons des indices de nœuds strictement supérieurs aux nombres de nœuds en ligne ou en colonne… Cela vient du fait qu’il fait l’échantillonnage des non-arêtes sur la conversion en matrice d’adjacence du réseau bipartite, c’est-à-dire sur une matrice de taille la somme des nombres de nœuds en ligne et en colonne ayant des blocs diagonaux vides (car il n’y a pas d’interaction au sein de chaque type de nœuds). Il faut donc utiliser “correctement” la fonction permettant d’échantillonner des non-arêtes au sein de la matrice d’incidence ce que ne fait pas la fonction <code>RandomLinkSplit</code> pour des graphes bipartites…</p>
-<div id="f047883e" class="cell" data-execution_count="7">
+<div id="9c787a71" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch_geometric.utils <span class="im">import</span> negative_sampling</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>neg_edge_index <span class="op">=</span> negative_sampling(</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                edge_index<span class="op">=</span>train_data.edge_index,</span>
@@ -335,10 +335,10 @@ tensor([[14, 17,  3, 12, 31, 32, 26,  4,  5, 27],
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            )</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(neg_edge_index)            </span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>tensor([[ 0,  8,  2,  2,  8,  9,  4,  9,  8,  8,  2,  1,  9,  8,  9,  3,  4,  3,
-          0,  7,  1,  6,  3,  6,  5,  7,  1,  4,  1,  3,  9,  0,  3,  0,  2],
-        [ 3, 10, 11, 19, 25, 18, 24,  7,  2, 13, 27, 17, 17,  3, 15, 28,  9,  7,
-         12,  0, 13, 23, 12, 21,  1,  1, 20,  7, 26, 14, 26,  0, 25,  4, 18]])</code></pre>
+<pre><code>tensor([[ 1,  6,  7,  1,  8,  4,  7,  0,  1,  1,  0,  5,  4,  4,  5,  8,  9,  7,
+          7,  8,  9,  2,  9,  5,  5,  8,  5,  3,  6,  3,  9,  9,  5,  1,  7],
+        [ 5, 26, 13,  0, 21, 19, 21, 20, 19, 24, 16, 19, 15, 27,  5, 28, 11,  8,
+          0, 16,  6, 12,  0, 20,  4, 23,  2, 21,  4, 15,  7,  3,  1,  9, 20]])</code></pre>
 </div>
 </div>
 <p>Lors de l’optimisation de la perte sur le jeu d’entraînement, on utilise les mêmes arêtes que celles servant à la convolution et on ajoute des non arêtes (0 dans la matrice d’incidence) échantillonnées comme ci-dessus. Pour le calcul des métriques de validation, on fait de même avec les arêtes dans <code>val_data</code> et en ajoutant des non-arêtes par rapport à celles utilisées lors de la convolution grâce à la fonction <code>negative_sampling</code>.</p>

@@ -181,15 +181,15 @@ window.Quarto = {
     <a class="dropdown-item" href="./positron.html">
  <span class="dropdown-text">Positron</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./package_python.html">
+ <span class="dropdown-text">Python packaging</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="./autodiff.html"> 
 <span class="menu-text">Différentiation automatique</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./package_python.html"> 
-<span class="menu-text">Python packaging</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="./animint.html"> 
@@ -271,7 +271,7 @@ window.Quarto = {
 
 
 <p>Ceci est une version reprise de ce <a href="https://docs.gpytorch.ai/en/stable/examples/01_Exact_GPs/Simple_GP_Regression.html">tutoriel</a> pour faire une régression par processus gaussien avec GPyTorch.</p>
-<div id="8f7f2d1b" class="cell" data-execution_count="1">
+<div id="7979825d" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gpytorch</span>
@@ -282,14 +282,14 @@ window.Quarto = {
 y &amp;= \sin(2\pi x) + \epsilon \\
   \epsilon &amp;\sim \mathcal{N}(0, 0.04)
 \end{align}\end{split}\]</span></p>
-<div id="f19c2cd5" class="cell" data-execution_count="2">
+<div id="1e21b4f3" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># training data is 50 points uniformly sampled in [0,1]</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>train_x <span class="op">=</span> torch.rand(<span class="dv">10</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># True function is sin(2*pi*x) with Gaussian noise</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>train_y <span class="op">=</span> torch.sin(train_x <span class="op">*</span> (<span class="dv">2</span> <span class="op">*</span> math.pi)) <span class="op">+</span> torch.randn(train_x.size()) <span class="op">*</span> math.sqrt(<span class="fl">0.04</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Ensuite, nous définissons un peu comme un réseau de neurones la classe permettant d’avoir un processus gaussien et nous initialisons. Les choix faits ici sont de prendre une espérance constante (<code>gpytorch.means.ConstantMean()</code>) et un noyau de covariance gaussien <code>gpytorch.kernels.RBFKernel()</code>, la fonction <code>gpytorch.kernels.ScaleKernel()</code> sert à déclarer qu’il y a un paramètre de variance devant le noyau.</p>
-<div id="50e2d976" class="cell" data-execution_count="3">
+<div id="4c27c325" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># We will use the simplest form of GP model, exact inference</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExactGPModel(gpytorch.models.ExactGP):</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, train_x, train_y, likelihood):</span>
@@ -310,7 +310,7 @@ y &amp;= \sin(2\pi x) + \epsilon \\
 <pre><code>- l'espérance constante du processus,
 - la variance du noyau ,
 - le paramètre de portée du noyau.</code></pre>
-<div id="7aae1752" class="cell" data-execution_count="4">
+<div id="356c2e34" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find optimal model hyperparameters</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>model.train()</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>likelihood.train()</span>
@@ -341,15 +341,15 @@ y &amp;= \sin(2\pi x) + \epsilon \\
 <span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>      ))</span>
 <span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    optimizer.step()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Iter 1/50 - Loss: 1.072   lengthscale: 0.693   noise: 0.693
-Iter 11/50 - Loss: 0.817   lengthscale: 0.312   noise: 0.314
-Iter 21/50 - Loss: 0.666   lengthscale: 0.136   noise: 0.134
-Iter 31/50 - Loss: 0.596   lengthscale: 0.198   noise: 0.067
-Iter 41/50 - Loss: 0.597   lengthscale: 0.206   noise: 0.048</code></pre>
+<pre><code>Iter 1/50 - Loss: 1.129   lengthscale: 0.693   noise: 0.693
+Iter 11/50 - Loss: 0.843   lengthscale: 0.318   noise: 0.312
+Iter 21/50 - Loss: 0.638   lengthscale: 0.212   noise: 0.127
+Iter 31/50 - Loss: 0.544   lengthscale: 0.245   noise: 0.056
+Iter 41/50 - Loss: 0.554   lengthscale: 0.241   noise: 0.039</code></pre>
 </div>
 </div>
 <p>Les estimations sont accessibles ainsi (il est à noter que dans le modèle de vraisemblance proposé un bruit d’observation est inclus comme un bruit blanc gaussien homoscédastique) :</p>
-<div id="49bc6ad6" class="cell" data-execution_count="5">
+<div id="06242dab" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.likelihood.noise.item()) <span class="co"># paramètre de variance du bruit d'observation (ajouté par défaut)</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.covar_module.base_kernel.lengthscale) <span class="co"># paramètre de portée</span></span>
@@ -370,15 +370,15 @@ Iter 41/50 - Loss: 0.597   lengthscale: 0.206   noise: 0.048</code></pre>
     (raw_outputscale_constraint): Positive()
   )
 )
-0.05167459696531296
-tensor([[0.1979]], grad_fn=&lt;SoftplusBackward0&gt;)
-tensor(0.5579, grad_fn=&lt;SoftplusBackward0&gt;)
+0.04572603479027748
+tensor([[0.2337]], grad_fn=&lt;SoftplusBackward0&gt;)
+tensor(0.4921, grad_fn=&lt;SoftplusBackward0&gt;)
 Parameter containing:
-tensor(-0.1032, requires_grad=True)</code></pre>
+tensor(-0.0853, requires_grad=True)</code></pre>
 </div>
 </div>
 <p>Nous allons à présent présenter des prédictions et des simulations conditionnelles :</p>
-<div id="b38e670e" class="cell" data-execution_count="6">
+<div id="784c712e" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get into evaluation (predictive posterior) mode</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">eval</span>()</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>likelihood.<span class="bu">eval</span>()</span>
