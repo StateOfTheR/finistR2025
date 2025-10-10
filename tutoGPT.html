@@ -6,9 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Julie Aubert">
-<meta name="author" content="Julien Chiquet">
+<meta name="author" content="Pierre Barbillon">
+<meta name="author" content="Lucia Clarotto">
 <meta name="author" content="Marie-Pierre Etienne">
+<meta name="author" content="Arthur Leroy">
 
 <title>Instructions pour le dépot sur le site web – Finist’R 2025</title>
 <style>
@@ -106,6 +107,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -133,7 +163,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./instructions.html" aria-current="page"> 
+    <a class="nav-link" href="./instructions.html"> 
 <span class="menu-text">Instructions</span></a>
   </li>  
 </ul>
@@ -199,16 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Sur cette page</h2>
    
   <ul>
-  <li><a href="#cloner-le-dépôt-git-du-bootcamp" id="toc-cloner-le-dépôt-git-du-bootcamp" class="nav-link active" data-scroll-target="#cloner-le-dépôt-git-du-bootcamp">Cloner le dépôt git du bootcamp</a>
-  <ul class="collapse">
-  <li><a href="#pour-plus-dinfos-sur-linitialisation-de-git-la-gestion-des-dépôts-distants" id="toc-pour-plus-dinfos-sur-linitialisation-de-git-la-gestion-des-dépôts-distants" class="nav-link" data-scroll-target="#pour-plus-dinfos-sur-linitialisation-de-git-la-gestion-des-dépôts-distants">Pour plus d’infos sur l’initialisation de git, la gestion des dépôts distants …</a></li>
-  </ul></li>
-  <li><a href="#processus-de-mise-en-commun-des-ateliers" id="toc-processus-de-mise-en-commun-des-ateliers" class="nav-link" data-scroll-target="#processus-de-mise-en-commun-des-ateliers">Processus de mise en commun des ateliers</a></li>
-  <li><a href="#détails-du-fonctionnement" id="toc-détails-du-fonctionnement" class="nav-link" data-scroll-target="#détails-du-fonctionnement">Détails du fonctionnement</a>
-  <ul class="collapse">
-  <li><a href="#le-docker" id="toc-le-docker" class="nav-link" data-scroll-target="#le-docker">Le docker</a></li>
-  <li><a href="#les-actions" id="toc-les-actions" class="nav-link" data-scroll-target="#les-actions">Les actions</a></li>
-  </ul></li>
+  <li><a href="#à-faire" id="toc-à-faire" class="nav-link active" data-scroll-target="#à-faire">À faire</a></li>
   </ul>
 </nav>
     </div>
@@ -227,9 +248,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Auteur·rice·s</div>
     <div class="quarto-title-meta-contents">
-             <p>Julie Aubert </p>
-             <p>Julien Chiquet </p>
+             <p>Pierre Barbillon </p>
+             <p>Lucia Clarotto </p>
              <p>Marie-Pierre Etienne </p>
+             <p>Arthur Leroy </p>
           </div>
   </div>
     
@@ -248,65 +270,169 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="cloner-le-dépôt-git-du-bootcamp" class="level2">
-<h2 class="anchored" data-anchor-id="cloner-le-dépôt-git-du-bootcamp">Cloner le dépôt git du bootcamp</h2>
-<p>Protocole https :</p>
-<p><code>git clone https://github.com/StateOfTheR/finistR2025.git</code></p>
-<p>Avec clés SSH : <code>git clone git@github.com:git@github.com:StateOfTheR/finistR2025.git</code></p>
-<section id="pour-plus-dinfos-sur-linitialisation-de-git-la-gestion-des-dépôts-distants" class="level3">
-<h3 class="anchored" data-anchor-id="pour-plus-dinfos-sur-linitialisation-de-git-la-gestion-des-dépôts-distants">Pour plus d’infos sur l’initialisation de git, la gestion des dépôts distants …</h3>
-<p><a href="https://docs.github.com/fr/get-started/getting-started-with-git/managing-remote-repositories">Lien vers une doc complète</a>.</p>
-</section>
-</section>
-<section id="processus-de-mise-en-commun-des-ateliers" class="level2">
-<h2 class="anchored" data-anchor-id="processus-de-mise-en-commun-des-ateliers">Processus de mise en commun des ateliers</h2>
-<ul>
-<li>Créer une branche propre à l’atelier nommée explicitement <code>mon_nom_parlant</code> et basculer dessus</li>
-</ul>
-<p><code>git checkout -b mon_nom_parlant</code></p>
-<ul>
-<li>Créer un fichier Rmarkdown de restitution de votre atelier <code>fichier.Rmd</code> dans votre branche</li>
-</ul>
-<p><code>git add fichier.Rmd</code></p>
-<p><code>git commit -m "restitution atelier"</code></p>
-<ul>
-<li>Pousser vos modifications sur le serveur distant</li>
-</ul>
-<p><code>git  push --set-upstream origin mon_nom_parlant</code> ou</p>
-<p><code>git  push</code></p>
-<ul>
-<li><p>Faire une pull request (PR) sur github</p></li>
-<li><p>indiquer dans le message de la PR la liste des packages ou autres besoins</p></li>
-<li><p>Quand la PR passe les tests, demander le merge.</p></li>
-<li><p>corriger les erreurs éventuelles dans la compilation du Rmarkdown</p></li>
-<li><p>les admins peuvent avoir à mettre à jour l’image docker</p></li>
-</ul>
-</section>
-<section id="détails-du-fonctionnement" class="level2">
-<h2 class="anchored" data-anchor-id="détails-du-fonctionnement">Détails du fonctionnement</h2>
-<section id="le-docker" class="level3">
-<h3 class="anchored" data-anchor-id="le-docker">Le docker</h3>
-<p><a href="https://docs.docker.com/get-started/docker_cheatsheet.pdf">Lien vers la fiche pense-bête</a></p>
-<p><a href="https://dockerlabs.collabnix.com/docker/cheatsheet/">Vers d’autres ressources utiles</a></p>
-<p>Pour créer des images Docker en local sur sa machine, voici une liste de commandes utiles</p>
-<ul>
-<li>Pour construire une image docker, il faut créer un fichier Dockerfile qui contient la recette du Docker. Pour ce site le ficher Dockerfile a la forme suivante</li>
-</ul>
-<p>puis demander la construction de l’image à l’aide de la commande</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a> docker build <span class="sc">-</span>t nom_depot_dockerhub<span class="sc">/</span>nom_du_repo<span class="sc">:</span>version  . <span class="do">## avec un nom</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Ceci est une version reprise de ce <a href="https://docs.gpytorch.ai/en/stable/examples/01_Exact_GPs/Simple_GP_Regression.html">tutoriel</a> pour faire une régression par processus gaussien avec GPyTorch.</p>
+<div id="8f7f2d1b" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gpytorch</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plt</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>et enfin pousser sur Dockerhub</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a> docker push nom_depot_dockerhub<span class="sc">/</span>nom_du_repo<span class="sc">:</span>version</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Nous commençons par créer des données simulées sur lesquelles on va apprendre la fonction de regression :</p>
+<p><span class="math display">\[\begin{split}\begin{align}
+y &amp;= \sin(2\pi x) + \epsilon \\
+  \epsilon &amp;\sim \mathcal{N}(0, 0.04)
+\end{align}\end{split}\]</span></p>
+<div id="f19c2cd5" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># training data is 50 points uniformly sampled in [0,1]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>train_x <span class="op">=</span> torch.rand(<span class="dv">10</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># True function is sin(2*pi*x) with Gaussian noise</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>train_y <span class="op">=</span> torch.sin(train_x <span class="op">*</span> (<span class="dv">2</span> <span class="op">*</span> math.pi)) <span class="op">+</span> torch.randn(train_x.size()) <span class="op">*</span> math.sqrt(<span class="fl">0.04</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="les-actions" class="level3">
-<h3 class="anchored" data-anchor-id="les-actions">Les actions</h3>
-<p>Dans les action de Github, on peut spécifier un container docker à utiliser, c’est ce que fait la ligne container du fichier d’action suivant, utiliser pour créer ce site web</p>
+<p>Ensuite, nous définissons un peu comme un réseau de neurones la classe permettant d’avoir un processus gaussien et nous initialisons. Les choix faits ici sont de prendre une espérance constante (<code>gpytorch.means.ConstantMean()</code>) et un noyau de covariance gaussien <code>gpytorch.kernels.RBFKernel()</code>, la fonction <code>gpytorch.kernels.ScaleKernel()</code> sert à déclarer qu’il y a un paramètre de variance devant le noyau.</p>
+<div id="50e2d976" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># We will use the simplest form of GP model, exact inference</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExactGPModel(gpytorch.models.ExactGP):</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, train_x, train_y, likelihood):</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(ExactGPModel, <span class="va">self</span>).<span class="fu">__init__</span>(train_x, train_y, likelihood)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.mean_module <span class="op">=</span> gpytorch.means.ConstantMean()</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.covar_module <span class="op">=</span> gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        mean_x <span class="op">=</span> <span class="va">self</span>.mean_module(x)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        covar_x <span class="op">=</span> <span class="va">self</span>.covar_module(x)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> gpytorch.distributions.MultivariateNormal(mean_x, covar_x)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># initialize likelihood and model</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>likelihood <span class="op">=</span> gpytorch.likelihoods.GaussianLikelihood()</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> ExactGPModel(train_x, train_y, likelihood)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Les paramètres du modèle de processus gaussien sont inférés en cherchant à optimiser numériquement la vraisemblance. Ces paramètres estimés dans ce modèle sont :</p>
+<pre><code>- l'espérance constante du processus,
+- la variance du noyau ,
+- le paramètre de portée du noyau.</code></pre>
+<div id="7aae1752" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find optimal model hyperparameters</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>model.train()</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>likelihood.train()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Use the adam optimizer</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(model.parameters(), lr<span class="op">=</span><span class="fl">0.1</span>)  <span class="co"># Includes GaussianLikelihood parameters</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># "Loss" for GPs - the marginal log likelihood</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>mll <span class="op">=</span> gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>training_iter <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(training_iter):</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Zero gradients from previous iteration</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    optimizer.zero_grad()</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Output from model</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> model(train_x)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calc loss and backprop gradients</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> <span class="op">-</span>mll(output, train_y)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    loss.backward()</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">%</span> <span class="dv">10</span> <span class="op">==</span><span class="dv">0</span>:</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="st">'Iter </span><span class="sc">%d</span><span class="st">/</span><span class="sc">%d</span><span class="st"> - Loss: </span><span class="sc">%.3f</span><span class="st">   lengthscale: </span><span class="sc">%.3f</span><span class="st">   noise: </span><span class="sc">%.3f</span><span class="st">'</span> <span class="op">%</span> (</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        i <span class="op">+</span> <span class="dv">1</span>, training_iter, loss.item(),</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>        model.covar_module.base_kernel.lengthscale.item(),</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        model.likelihood.noise.item()</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>      ))</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    optimizer.step()</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Iter 1/50 - Loss: 1.072   lengthscale: 0.693   noise: 0.693
+Iter 11/50 - Loss: 0.817   lengthscale: 0.312   noise: 0.314
+Iter 21/50 - Loss: 0.666   lengthscale: 0.136   noise: 0.134
+Iter 31/50 - Loss: 0.596   lengthscale: 0.198   noise: 0.067
+Iter 41/50 - Loss: 0.597   lengthscale: 0.206   noise: 0.048</code></pre>
+</div>
+</div>
+<p>Les estimations sont accessibles ainsi (il est à noter que dans le modèle de vraisemblance proposé un bruit d’observation est inclus comme un bruit blanc gaussien homoscédastique) :</p>
+<div id="49bc6ad6" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.likelihood.noise.item()) <span class="co"># paramètre de variance du bruit d'observation (ajouté par défaut)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.covar_module.base_kernel.lengthscale) <span class="co"># paramètre de portée</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.covar_module.outputscale) <span class="co"># paramètre de variance du GP</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model.mean_module.constant) <span class="co"># paramètre d'espérance inféré</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ExactGPModel(
+  (likelihood): GaussianLikelihood(
+    (noise_covar): HomoskedasticNoise(
+      (raw_noise_constraint): GreaterThan(1.000E-04)
+    )
+  )
+  (mean_module): ConstantMean()
+  (covar_module): ScaleKernel(
+    (base_kernel): RBFKernel(
+      (raw_lengthscale_constraint): Positive()
+    )
+    (raw_outputscale_constraint): Positive()
+  )
+)
+0.05167459696531296
+tensor([[0.1979]], grad_fn=&lt;SoftplusBackward0&gt;)
+tensor(0.5579, grad_fn=&lt;SoftplusBackward0&gt;)
+Parameter containing:
+tensor(-0.1032, requires_grad=True)</code></pre>
+</div>
+</div>
+<p>Nous allons à présent présenter des prédictions et des simulations conditionnelles :</p>
+<div id="b38e670e" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get into evaluation (predictive posterior) mode</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">eval</span>()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>likelihood.<span class="bu">eval</span>()</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Test points are regularly spaced along [0,1]</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Make predictions by feeding model through likelihood</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.no_grad(), gpytorch.settings.fast_pred_var():</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    test_x <span class="op">=</span> torch.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">51</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    observed_pred <span class="op">=</span> likelihood(model(test_x))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>f_preds <span class="op">=</span> model(test_x)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>y_preds <span class="op">=</span> likelihood(model(test_x))</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>f_mean <span class="op">=</span> f_preds.mean</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>f_var <span class="op">=</span> f_preds.variance</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>f_covar <span class="op">=</span> f_preds.covariance_matrix</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co"># do 10 conditional simulations</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>f_samples <span class="op">=</span> f_preds.sample(sample_shape<span class="op">=</span>torch.Size([<span class="dv">10</span>,]))</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.no_grad():</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Initialize plot</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    f, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">3</span>))</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get upper and lower confidence bounds</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    lower, upper <span class="op">=</span> observed_pred.confidence_region()</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot training data as black stars</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    ax.plot(train_x.numpy(), train_y.numpy(), <span class="st">'k*'</span>)</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot predictive means as blue line</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    ax.plot(test_x.numpy(), observed_pred.mean.numpy(), <span class="st">'b'</span>)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot two conditional simulations in red</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    ax.plot(test_x.numpy(), f_samples[<span class="dv">0</span>,:].numpy(), <span class="st">'r'</span>)</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    ax.plot(test_x.numpy(), f_samples[<span class="dv">5</span>,:].numpy(), <span class="st">'r'</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Shade between the lower and upper confidence bounds</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    ax.fill_between(test_x.numpy(), lower.numpy(), upper.numpy(), alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim([<span class="op">-</span><span class="dv">3</span>, <span class="dv">3</span>])</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>    ax.legend([<span class="st">'Observed Data'</span>, <span class="st">'Mean'</span>,<span class="st">'simu1'</span>,<span class="st">'simu2'</span>, <span class="st">'Confidence'</span>])</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/usr/local/lib/python3.12/dist-packages/linear_operator/utils/cholesky.py:40: NumericalWarning: A not p.d., added jitter of 1.0e-06 to the diagonal
+  warnings.warn(</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="tutoGPT_files/figure-html/cell-7-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="à-faire" class="level2">
+<h2 class="anchored" data-anchor-id="à-faire">À faire</h2>
+<p>Il serait intéressant de tester les performances de ce module pour faire la prédiction dans le cas où il y a un grand nombre de points d’apprentissage et en grande dimension.</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Léo Micollet">
+<meta name="author" content="Arthur Leroy">
+<meta name="author" content="Armand Favrot">
+
+<title>Python packaging – Finist’R 2025</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-60b0263506cd53edaa55cb35cc4fcac5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Finist’R 2025</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/StateOfTheR/finistR2025"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./instructions.html"> 
+<span class="menu-text">Instructions</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-développement" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Développement</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-développement">    
+        <li>
+    <a class="dropdown-item" href="./how_to_build_your_package.html">
+ <span class="dropdown-text">How to build your package - Julia edition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./positron.html">
+ <span class="dropdown-text">Positron</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./autodiff.html"> 
+<span class="menu-text">Différentiation automatique</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./package_python.html" aria-current="page"> 
+<span class="menu-text">Python packaging</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./animint.html"> 
+<span class="menu-text">animint2</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./hsmc.qmd"> 
+<span class="menu-text">HMSC</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./traccar.html"> <i class="bi bi-Bicycle" role="img">
+</i> 
+<span class="menu-text">GPS – traccar</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./sparse_cholesky.html"> 
+<span class="menu-text">Sparse Cholesky</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./GNNpytgeo.html"> <i class="bi bi-share-fill" role="img">
+</i> 
+<span class="menu-text">Échantillonnage pour GNN</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#creating-a-toy-package" id="toc-creating-a-toy-package" class="nav-link active" data-scroll-target="#creating-a-toy-package">Creating a toy package</a>
+  <ul class="collapse">
+  <li><a href="#creating-a-virtual-environment" id="toc-creating-a-virtual-environment" class="nav-link" data-scroll-target="#creating-a-virtual-environment">Creating a virtual environment</a></li>
+  <li><a href="#package-creation" id="toc-package-creation" class="nav-link" data-scroll-target="#package-creation">Package creation</a></li>
+  <li><a href="#local-installation-of-the-package" id="toc-local-installation-of-the-package" class="nav-link" data-scroll-target="#local-installation-of-the-package">Local installation of the package</a></li>
+  <li><a href="#tests-with-pytest" id="toc-tests-with-pytest" class="nav-link" data-scroll-target="#tests-with-pytest">Tests with pytest</a></li>
+  </ul></li>
+  <li><a href="#deployment-on-testpypi" id="toc-deployment-on-testpypi" class="nav-link" data-scroll-target="#deployment-on-testpypi">Deployment on TestPyPI</a></li>
+  <li><a href="#adding-cicd" id="toc-adding-cicd" class="nav-link" data-scroll-target="#adding-cicd">Adding CI/CD</a>
+  <ul class="collapse">
+  <li><a href="#first-workflow-linting" id="toc-first-workflow-linting" class="nav-link" data-scroll-target="#first-workflow-linting">First workflow: linting</a></li>
+  <li><a href="#second-workflow-testing" id="toc-second-workflow-testing" class="nav-link" data-scroll-target="#second-workflow-testing">Second workflow: testing</a></li>
+  <li><a href="#third-workflow-deployment" id="toc-third-workflow-deployment" class="nav-link" data-scroll-target="#third-workflow-deployment">Third workflow: deployment</a></li>
+  </ul></li>
+  <li><a href="#going-further" id="toc-going-further" class="nav-link" data-scroll-target="#going-further">Going Further</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Python packaging</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Auteur·rice·s</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Léo Micollet </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Arthur Leroy </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Armand Favrot </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            INRAE - MIA Paris Saclay
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">22 août 2025</p>
+    </div>
+  </div>
+  
+    <div>
+    <div class="quarto-title-meta-heading">Modifié</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">10 octobre 2025</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The goal of this workshop is to learn how to build a Python package. It is divided into three parts. In the first part, we create a toy package and install it locally. In the second part, we publish this package on <a href="https://test.pypi.org/">TestPyPI</a> (which allows us to verify that the package is correct before publishing it on <a href="https://pypi.org/">PyPI</a>, Python’s equivalent of CRAN for R). In the third part, we integrate CI/CD (continuous integration / continuous deployment) via GitHub to ensure package maintenance and automatic deployment to PyPI when releasing a new version. The associated code is available here: <a href="https://github.com/armandfavrot/ammonia_predict_3">https://github.com/armandfavrot/ammonia_predict_3</a>.</p>
+<p>The resources we used come mainly from <a href="https://realpython.com/">Real Python</a> (very pedagogical):</p>
+<ul>
+<li><a href="https://realpython.com/pypi-publish-python-package/">How to Publish an Open-Source Python Package to PyPI - Real Python</a></li>
+<li><a href="https://realpython.com/github-actions-python/">Continuous Integration and Deployment for Python With Github Actions - Real Python</a></li>
+<li><a href="https://realpython.com/python-modules-packages/">Python Modules and Packages - An Introduction - Real Python</a></li>
+</ul>
+<p>To a lesser extent, we also used the tutorials <a href="https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide">Python packaging - Jean-Benoist Leger</a> (CI/CD with GitLab) and <a href="https://gouarin.github.io/python-packaging-2023/">Distribuer son application Python - Loïc Gouarin</a>.</p>
+<p>A short note from RealPython about the Python packaging ecosystem, often criticized by R coders who are too proud of their CRAN:</p>
+<p><em>“Over the last decade, many initiatives have improved the packaging landscape, bringing it from the Wild West and into a fairly modern and capable system. This is mainly done through Python Enhancement Proposals (<strong>PEPs</strong>) that are reviewed and implemented by the Python Packaging Authority (<strong>PyPA</strong>) working group.”</em></p>
+<p>This highlights the fact that there are rules. For example, <a href="https://peps.python.org/pep-0508/">PEP 508</a> describes how dependencies should be specified.</p>
+<section id="creating-a-toy-package" class="level1">
+<h1>Creating a toy package</h1>
+<p>We start by creating a virtual environment in which the package will be developed. Next, we create the package itself, including the source code and the standard supporting files. Then we install it locally, and finally we run the tests.</p>
+<section id="creating-a-virtual-environment" class="level2">
+<h2 class="anchored" data-anchor-id="creating-a-virtual-environment">Creating a virtual environment</h2>
+<p>The first step is to create a virtual environment where the package will be developed. We used <code>pyenv virtualenv</code> to create the environment. Unlike <code>venv</code>, which only manages package versions, <code>pyenv virtualenv</code> also allows you to manage the Python version. For more information on environments, see this tutorial: <a href="https://realpython.com/python-virtual-environments-a-primer/">Python Virtual Environments: A Primer</a>.</p>
+<p>The package was developed with <code>python 3.12.3</code>, <code>torch 2.5.0</code>, and <code>pandas 2.2.3</code>.</p>
+<p>Install Python 3.12.3 with:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pyenv</span> install 3.12.3</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Create a virtual environment with:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pyenv</span> virtualenv 3.12.3 ammonia_predict_3</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Where ‘ammonia_predict_3’ is the name of the environment.</p>
+<p>Create a directory where the package will be developed, move inside it, and activate the environment.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mmip:</span> mkdir ammonia_predict_3</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mmip:</span> cd ammonia_predict_3/</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">ammonia_predict_3:</span> pyenv local ammonia_predict_3</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Install the packages:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install torch==2.5.0</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install pandas==2.2.3</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Check the versions:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> python <span class="at">--version</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Python</span> 3.12.3</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> pip list <span class="kw">|</span> <span class="fu">egrep</span> <span class="st">'torch|pandas'</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">pandas</span>                   2.2.3</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="ex">torch</span>                    2.5.0</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="package-creation" class="level2">
+<h2 class="anchored" data-anchor-id="package-creation">Package creation</h2>
+<p>The second step is to create the package. But first, what is a package in Python? Since we couldn’t find an official definition, we propose to see a package as a collection of modules, each of which is a file containing function definitions, classes, variables, and executable statements. Modules allow for modular programming, which “refers to the process of breaking a large, unwieldy programming task into separate, smaller, more manageable subtasks or modules” (Real Python). In other words, a package is essentially a collection of code divided into multiple files through a well-organized directory structure, which makes its use and maintenance easier.</p>
+<p>The toy package we created predicts the dynamics of ammonia emissions under environmental conditions using a recurrent neural network.</p>
+<p>Our package consists of the following files:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> tree</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> pyproject.toml</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> README.md</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> src</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span> └── ammonia_predict_3</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── __init__.py</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── api.py</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── model_def.py</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── utils.py</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     └── data</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     &nbsp;&nbsp; └── final_model.pth</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> tests</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">└──</span> test_predict.py</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Let’s go through these files:</p>
+<ul>
+<li><code>pyproject.toml</code>: a configuration file that tells Python tools how to build, install, and manage your package. This file typically contains three sections: [build-system], [project], and [tool].
+<ul>
+<li>[build-system] tells Python which tool should be used to build the package (e.g., setuptools, poetry, …).<br>
+</li>
+<li>[project] is used to specify the project’s basic metadata, such as dependencies, author information, etc.<br>
+</li>
+<li>[tool] is used to configure the tools used in the project, such as setuptools, pytest, ruff, and so on.</li>
+</ul>
+For more information on how to write this file, check the <a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/">documentation</a>. Configuration of the setuptools tool is explained <a href="https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html">here</a>.</li>
+</ul>
+<div id="9671a222" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>pyproject.toml</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>[build<span class="op">-</span>system]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>requires <span class="op">=</span> [<span class="st">"setuptools&gt;=61"</span>]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>build<span class="op">-</span>backend <span class="op">=</span> <span class="st">"setuptools.build_meta"</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>[project]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>name <span class="op">=</span> <span class="st">"ammonia-predict-3"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>version <span class="op">=</span> <span class="st">"0.1.0"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>description <span class="op">=</span> <span class="st">"Predict ammonia emissions with a simple RNN model"</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>readme <span class="op">=</span> <span class="st">"README.md"</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>requires<span class="op">-</span>python <span class="op">=</span> <span class="st">"&gt;=3.12.3"</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>authors <span class="op">=</span> [</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  { name <span class="op">=</span> <span class="st">"Armand Favrot"</span>, email <span class="op">=</span> <span class="st">"armand.favrot@inrae.fr"</span> }</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>classifiers <span class="op">=</span> [</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"License :: OSI Approved :: MIT License"</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Development Status :: 3 - Alpha"</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Programming Language :: Python"</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>dependencies <span class="op">=</span> [</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"pandas&gt;=2.2.3"</span>,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"torch&gt;=2.5.0"</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>[tool.setuptools]</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>package<span class="op">-</span><span class="bu">dir</span> <span class="op">=</span> { <span class="st">""</span> <span class="op">=</span> <span class="st">"src"</span> }</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>include<span class="op">-</span>package<span class="op">-</span>data <span class="op">=</span> true</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>[tool.setuptools.packages.find]</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>where <span class="op">=</span> [<span class="st">"src"</span>]</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>[tool.setuptools.package<span class="op">-</span>data]</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>ammonia_predict_3 <span class="op">=</span> [<span class="st">"data/*.pth"</span>]</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>[project.optional<span class="op">-</span>dependencies]</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>build <span class="op">=</span> [<span class="st">"build"</span>, <span class="st">"twine"</span>]</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>dev <span class="op">=</span> [<span class="st">"pytest"</span>]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li><code>README.md</code>: documentation for the package.</li>
+</ul>
+<div id="5fbe1f2c" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>README.md</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ammonia-predict</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>Predict ammonia emissions <span class="cf">with</span> a simple RNN model.</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">## Install (dev)</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>pip install <span class="op">-</span>e .</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">## Usage</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>You can use the package <span class="kw">in</span> Python <span class="im">as</span> follows:</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ammonia_predict_3 <span class="im">import</span> predict</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pmid"</span>: [<span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ct"</span>: [<span class="dv">2</span>, <span class="dv">4</span>],</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dt"</span>: [<span class="dv">2</span>, <span class="dv">2</span>],</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"air_temp"</span>: [<span class="dv">12</span>, <span class="dv">15</span>],</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"wind_2m"</span>: [<span class="dv">3</span>, <span class="dv">3</span>],</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rain_rate"</span>: [<span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"tan_app"</span>: [<span class="fl">36.7</span>, <span class="fl">36.7</span>],</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">"app_rate"</span>: [<span class="dv">10</span>, <span class="dv">10</span>],</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"man_dm"</span>: [<span class="fl">0.1</span>, <span class="fl">0.1</span>],</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"man_ph"</span>: [<span class="dv">7</span>, <span class="dv">7</span>],</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"t_incorp"</span>: [<span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"app_mthd"</span>: [<span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"incorp"</span>: [<span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"man_source"</span>: [<span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>pred <span class="op">=</span> predict(df)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pred[[<span class="st">"prediction_delta_ecum"</span>, <span class="st">"prediction_ecum"</span>]])</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="co">## Notes</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> The trained weights are included <span class="kw">in</span> the package under `ammonia_predict<span class="op">/</span>data<span class="op">/</span>final_model.pth`.</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="op">-</span> The package requires <span class="op">**</span>Python ≥<span class="fl">3.9</span><span class="op">**</span>, <span class="op">**</span>PyTorch<span class="op">**</span>, <span class="kw">and</span> <span class="op">**</span>pandas<span class="op">**</span>.</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li><code>__init__.py</code>: a script that is executed when the package or one of its modules is imported. It is used, among other things, to control what the package exposes (for example, whether specific functions can be imported directly). More information on this file can be found <a href="https://realpython.com/python-init-py/">here</a>.</li>
+</ul>
+<div id="169d0bea" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>init.py</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .api <span class="im">import</span> predict</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="va">__all__</span> <span class="op">=</span> [<span class="st">"predict"</span>]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> importlib.metadata <span class="im">import</span> version</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>__version__ <span class="op">=</span> version(<span class="st">"ammonia-predict-3"</span>)  </span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li>The other files are the package’s source code. <code>api.py</code> contains the function available to the package user, <code>model_def.py</code> defines the model class, and <code>utils.py</code> contains helper functions. <code>final_model.pth</code> is a data file that stores the model parameters.</li>
+</ul>
+<div id="cf59ca70" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>api.py</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> importlib.resources <span class="im">import</span> files, as_file</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .model_def <span class="im">import</span> AmmoniaRNN</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> .utils <span class="im">import</span> generate_tensors_predictors</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>DEVICE <span class="op">=</span> <span class="st">"cpu"</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>num_layers <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>nonlinearity <span class="op">=</span> <span class="st">"relu"</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>bidirectional <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>hidden_size <span class="op">=</span> <span class="dv">512</span> </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>cat_dims <span class="op">=</span> [<span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">2</span>]  </span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>embedding_dims <span class="op">=</span> [<span class="dv">10</span>, <span class="dv">9</span>, <span class="dv">8</span>]  </span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>input_size <span class="op">=</span> <span class="dv">13</span>   </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>output_size <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AmmoniaRNN(input_size <span class="op">=</span> input_size, </span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>                   output_size <span class="op">=</span> output_size, </span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>                   hidden_size <span class="op">=</span> hidden_size, </span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>                   nonlinearity <span class="op">=</span> nonlinearity,</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>                   num_layers <span class="op">=</span> num_layers,</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>                   bidirectional <span class="op">=</span> bidirectional,</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>                   cat_dims <span class="op">=</span> cat_dims, </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>                   embedding_dims <span class="op">=</span> embedding_dims).to(DEVICE)</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>resource <span class="op">=</span> files(__package__) <span class="op">/</span> <span class="st">"data"</span> <span class="op">/</span> <span class="st">"final_model.pth"</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> as_file(resource) <span class="im">as</span> path:</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>    model.load_state_dict(torch.load(<span class="bu">str</span>(path), weights_only <span class="op">=</span> <span class="va">True</span>, map_location<span class="op">=</span>torch.device(<span class="st">'cpu'</span>)))</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict (df):</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    data_predictions <span class="op">=</span> df.copy()</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>    pmids <span class="op">=</span> data_predictions[<span class="st">'pmid'</span>].unique()</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>    data_predictions[<span class="st">'prediction_ecum'</span>] <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>    data_predictions[<span class="st">'prediction_delta_ecum'</span>] <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>        all_predictions <span class="op">=</span> torch.empty(<span class="dv">0</span>).to(DEVICE)</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> pmids:</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>            x <span class="op">=</span> generate_tensors_predictors (data_predictions, i, device <span class="op">=</span> DEVICE)</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>            y <span class="op">=</span> model(x)</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>            all_predictions <span class="op">=</span> torch.cat ((all_predictions, y.squeeze()), <span class="dv">0</span>)</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>        data_predictions[<span class="st">'prediction_delta_ecum'</span>] <span class="op">=</span> all_predictions.to(<span class="st">"cpu"</span>).detach()</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>    data_predictions[<span class="st">'prediction_ecum'</span>] <span class="op">=</span> data_predictions.groupby(<span class="st">'pmid'</span>)[<span class="st">'prediction_delta_ecum'</span>].cumsum()</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data_predictions</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="2d4c546a" class="cell" data-execution_count="5">
+<details class="code-fold">
+<summary>model_def.py</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> AmmoniaRNN(nn.Module):</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                 input_size, </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                 output_size, </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                 hidden_size, </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                 num_layers,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>                 nonlinearity, </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>                 bidirectional,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>                 cat_dims <span class="op">=</span> <span class="va">None</span>, embedding_dims <span class="op">=</span> <span class="va">None</span>):</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(AmmoniaRNN, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        D <span class="op">=</span> <span class="dv">1</span> <span class="op">+</span> <span class="dv">1</span> <span class="op">*</span> bidirectional</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>               </span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.embeddings <span class="op">=</span> nn.ModuleList([</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>            nn.Embedding(num_embeddings <span class="op">=</span> cat_dim, embedding_dim <span class="op">=</span> embed_dim)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> cat_dim, embed_dim <span class="kw">in</span> <span class="bu">zip</span>(cat_dims, embedding_dims)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        input_size <span class="op">=</span> input_size <span class="op">-</span> <span class="bu">len</span>(cat_dims) <span class="op">+</span> <span class="bu">sum</span>(embedding_dims)           </span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rnn <span class="op">=</span> nn.RNN(input_size, </span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>                          hidden_size, </span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>                          num_layers <span class="op">=</span> num_layers,</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>                          nonlinearity <span class="op">=</span> nonlinearity, </span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>                          bidirectional <span class="op">=</span> bidirectional)    </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fc1 <span class="op">=</span> nn.Linear(hidden_size <span class="op">*</span> D, <span class="dv">6</span>)</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.relu <span class="op">=</span> nn.ReLU()</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fc2 <span class="op">=</span> nn.Linear(<span class="dv">6</span>, output_size)</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        x_continuous <span class="op">=</span> x[<span class="dv">0</span>]</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>        x_categoricals <span class="op">=</span> x[<span class="dv">1</span>]</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>        x_embeds <span class="op">=</span> [embed(x_cat) <span class="cf">for</span> embed, x_cat <span class="kw">in</span> <span class="bu">zip</span>(<span class="va">self</span>.embeddings, x_categoricals)]</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> torch.cat([x_continuous] <span class="op">+</span> x_embeds, dim <span class="op">=</span> <span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>        h, _ <span class="op">=</span> <span class="va">self</span>.rnn(x)</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>        out <span class="op">=</span> <span class="va">self</span>.fc1(h)</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>        out <span class="op">=</span> <span class="va">self</span>.relu(out)</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>        out <span class="op">=</span> <span class="va">self</span>.fc2(out)</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>       </span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> out</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="002dc9a5" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>utils.py</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_tensors_predictors(df, pmid, device):</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    data_filtered <span class="op">=</span> df[df[<span class="st">'pmid'</span>] <span class="op">==</span> pmid]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    x_cont <span class="op">=</span> data_filtered[[<span class="st">'ct'</span>, <span class="st">'dt'</span>, <span class="st">'air_temp'</span>, <span class="st">'wind_2m'</span>, <span class="st">'rain_rate'</span>, <span class="st">'tan_app'</span>, <span class="st">'app_rate'</span>, <span class="st">'man_dm'</span>, <span class="st">'man_ph'</span>, <span class="st">'t_incorp'</span>]]</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    x_cont_tensor <span class="op">=</span> torch.tensor(x_cont.values, dtype<span class="op">=</span>torch.float32).view(<span class="bu">len</span>(x_cont), <span class="bu">len</span>(x_cont.columns))</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    x_cont_tensor <span class="op">=</span> x_cont_tensor.to(device)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    x_cat <span class="op">=</span> data_filtered[[<span class="st">'app_mthd'</span>, <span class="st">'incorp'</span>, <span class="st">'man_source'</span>]]</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    x_cat_tensor <span class="op">=</span> torch.tensor(x_cat.values, dtype<span class="op">=</span>torch.<span class="bu">long</span>).view(<span class="bu">len</span>(x_cat), <span class="bu">len</span>(x_cat.columns))</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    x_cat_tensor <span class="op">=</span> x_cat_tensor.to(device)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    x_cat_tensor <span class="op">=</span> torch.unbind (x_cat_tensor, dim <span class="op">=</span> <span class="dv">1</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> [x_cont_tensor, x_cat_tensor]</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<ul>
+<li><code>test_predict.py</code> contains the tests to be run, which can be executed directly with the <code>pytest</code> tool.</li>
+</ul>
+<div id="786dc21f" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>test_predict.py</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ammonia_predict_3 <span class="im">import</span> predict</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_predict_columns():</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"pmid"</span>: [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>],</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"ct"</span>: [<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">4</span>],</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"dt"</span>: [<span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>],</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"air_temp"</span>: [<span class="dv">12</span>, <span class="dv">15</span>, <span class="dv">11</span>, <span class="dv">10</span>],</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"wind_2m"</span>: [<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>],</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"rain_rate"</span>: [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>],</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tan_app"</span>: [<span class="fl">36.7</span>, <span class="fl">36.7</span>, <span class="fl">36.7</span>, <span class="fl">36.7</span>],</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">"app_rate"</span>: [<span class="dv">10</span>, <span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">12</span>],</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">"man_dm"</span>: [<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>],</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">"man_ph"</span>: [<span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">7</span>, <span class="dv">7</span>],</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">"t_incorp"</span>: [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"app_mthd"</span>: [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">"incorp"</span>: [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"man_source"</span>: [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> predict(df)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">"prediction_delta_ecum"</span> <span class="kw">in</span> out.columns</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">"prediction_ecum"</span> <span class="kw">in</span> out.columns</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">len</span>(out) <span class="op">==</span> <span class="bu">len</span>(df)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>For more details on package structuring, how imports work, and the role of <code>__init__.py</code>, we have prepared an additional tutorial available <a href="./package_python_tuto_annexe.html">here</a>.</p>
+</section>
+<section id="local-installation-of-the-package" class="level2">
+<h2 class="anchored" data-anchor-id="local-installation-of-the-package">Local installation of the package</h2>
+<p>At this point, we can now install the package:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> pip install .</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>To check the installation, go into another directory, activate the environment where the package was installed, start Python, import the package, and run the example provided in the <code>README.md</code> file.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> cd</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mmip:</span> pyenv activate ammonia_predict_3</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">mmip:</span> python</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Python</span> 3.12.3 <span class="er">(</span><span class="ex">main,</span> Sep  1 2025, 16:05:27<span class="kw">)</span> <span class="ex">[GCC</span> 13.3.0] on linux</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Type</span> <span class="st">"help"</span>, <span class="st">"copyright"</span>, <span class="st">"credits"</span> or <span class="st">"license"</span> for more information.</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> from <span class="ex">ammonia_predict_3</span> import predict</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> import <span class="ex">pandas</span> as pd</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df <span class="ex">=</span> pd.DataFrame<span class="er">(</span><span class="kw">{</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"pmid"</span>: [1, 1],</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"ct"</span>: [2, 4],</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"dt"</span>: [2, 2],</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"air_temp"</span>: [12, 15],</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"wind_2m"</span>: [3, 3],</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"rain_rate"</span>: [0, 0],</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"tan_app"</span>: [36.7, 36.7],</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"app_rate"</span>: [10, 10],</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_dm"</span>: [0.1, 0.1],</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_ph"</span>: [7, 7],</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"t_incorp"</span>: [0, 0],</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"app_mthd"</span>: [1, 1],</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"incorp"</span>: [0, 0],</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_source"</span>: [1, 1],</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span> }<span class="er">)</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pred <span class="ex">=</span> predict<span class="er">(</span><span class="fu">df</span><span class="kw">)</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> print<span class="kw">(</span><span class="va">pred</span><span class="op">[</span>[<span class="st">"prediction_delta_ecum"</span>, <span class="st">"prediction_ecum"</span><span class="op">]</span><span class="ex">]</span><span class="kw">)</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>   <span class="ex">prediction_delta_ecum</span>  prediction_ecum</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a><span class="ex">0</span>               7.981954         7.981954</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a><span class="ex">1</span>               4.829587        12.811542</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Development mode installation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Installing in development mode means that modifications to the source code are taken into account immediately, without needing to reinstall the package each time you make changes. It can be done with:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>See <a href="https://realpython.com/pypi-publish-python-package/#install-your-package-locally">Install Your Package Locally - Real Python</a> for more details.</p>
+</div>
+</div>
+</section>
+<section id="tests-with-pytest" class="level2">
+<h2 class="anchored" data-anchor-id="tests-with-pytest">Tests with pytest</h2>
+<p>To run the test that have been placed in ./tests/, we just need to run <code>pytest</code> in the terminal:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> pytest</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="ex">==================================================================</span> test session starts ==================================================================</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="ex">platform</span> linux <span class="at">--</span> Python 3.12.3, pytest-7.4.4, pluggy-1.4.0</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="ex">rootdir:</span> /home/mmip/FinistR/ammonia_predict_3</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="ex">configfile:</span> pytest.ini</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="ex">testpaths:</span> tests</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="ex">plugins:</span> anyio-4.6.2.post1</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="ex">collected</span> 1 item</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="ex">tests/test_predict.py</span> .                                                                                                                           <span class="pp">[</span><span class="ss">100%</span><span class="pp">]</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="ex">===================================================================</span> warnings summary ====================================================================</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="ex">../../.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:60</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="ex">/home/mmip/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:60:</span> UserWarning: Pandas requires version <span class="st">'1.3.6'</span> or newer of <span class="st">'bottleneck'</span> <span class="er">(</span><span class="ex">version</span> <span class="st">'1.3.5'</span> currently installed<span class="kw">)</span><span class="bu">.</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">from</span> pandas.core import <span class="er">(</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span> Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a><span class="ex">=============================================================</span> 1 passed, 1 warning in 1.76s ==============================================================</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>More details here: <a href="https://realpython.com/pytest-python-testing/">Effective Python Testing With pytest - Real Python</a>.</p>
+</section>
+</section>
+<section id="deployment-on-testpypi" class="level1">
+<h1>Deployment on TestPyPI</h1>
+<p>But first, what is <a href="https://pypi.org/">PyPI</a>?</p>
+<p>PyPI (The Python Package Index) is a repository of software for the Python programming language — the equivalent of CRAN for R.</p>
+<p><a href="https://test.pypi.org/">TestPyPI</a> is a separate instance of the Python Package Index that allows you to try out distribution tools and processes without affecting the real index.</p>
+<p>To deploy to TestPyPI, you first need to create an account.</p>
+<p>Next, you’ll need two packages: <strong>Build</strong> and <strong>Twine</strong>. Build is used to create an archive of the package, and Twine is used to upload the archives to TestPyPI.</p>
+<p>Install both tools:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">pip</span> install build twine</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Build the archives:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">python</span> <span class="at">-m</span> build</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The archives created by Build are placed in a folder called <code>dist</code>:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> tree dist</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="ex">dist</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> ammonia_predict_3-0.1.0-py3-none-any.whl</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> ammonia_predict_3-0.1.0.tar.gz</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Here’s what they contain:</p>
+<div id="22969a29" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>ammonia_predict_3-0.1.0-py3-none-any.whl</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>(ammonia_predict_3) ammonia_predict_3: unzip dist<span class="op">/</span>ammonia_predict_3<span class="op">-</span><span class="fl">0.1.0</span><span class="op">-</span>py3<span class="op">-</span>none<span class="op">-</span><span class="bu">any</span>.whl <span class="op">-</span>d whl_archive_check</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>(ammonia_predict_3) ammonia_predict_3: tree whl_archive_check<span class="op">/</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>whl_archive_check<span class="op">/</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>├── ammonia_predict_3</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; ├── api.py</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; ├── data</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; └── final_model.pth</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; ├── <span class="fu">__init__</span>.py</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; ├── model_def.py</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; └── utils.py</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>└── ammonia_predict_3<span class="op">-</span><span class="fl">0.1.0</span>.dist<span class="op">-</span>info</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    ├── METADATA</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    ├── RECORD</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    ├── top_level.txt</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    └── WHEEL</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="62d30530" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>ammonia_predict_3-0.1.0.tar.gz</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>(ammonia_predict_3) ammonia_predict_3: tar <span class="op">-</span>xf dist<span class="op">/</span>ammonia_predict_3<span class="op">-</span><span class="fl">0.1.0</span>.tar.gz</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>(ammonia_predict_3) ammonia_predict_3: tree ammonia_predict_3<span class="op">-</span><span class="fl">0.1.0</span><span class="op">/</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>ammonia_predict_3<span class="op">-</span><span class="fl">0.1.0</span><span class="op">/</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>├── PKG<span class="op">-</span>INFO</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>├── pyproject.toml</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>├── README.md</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>├── setup.cfg</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>├── src</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; ├── ammonia_predict_3</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── api.py</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── data</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; │&nbsp;&nbsp; └── final_model.pth</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── <span class="fu">__init__</span>.py</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; ├── model_def.py</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; │&nbsp;&nbsp; └── utils.py</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp; └── ammonia_predict_3.egg<span class="op">-</span>info</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp;     ├── dependency_links.txt</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp;     ├── PKG<span class="op">-</span>INFO</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp;     ├── requires.txt</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp;     ├── SOURCES.txt</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>│&nbsp;&nbsp;     └── top_level.txt</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>└── tests</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    └── test_predict.py</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Check that everything is ready for upload to TestPyPI:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> twine check dist/<span class="pp">*</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Checking</span> dist/ammonia_predict_3-0.1.0-py3-none-any.whl: PASSED</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Checking</span> dist/ammonia_predict_3-0.1.0.tar.gz: PASSED</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Upload to TestPyPI:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> twine upload <span class="at">-r</span> testpypi dist/<span class="pp">*</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Uploading</span> distributions to https://test.pypi.org/legacy/</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="ex">WARNING</span>  This environment is not supported for trusted publishing</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="ex">Enter</span> your API token:</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Uploading</span> ammonia_predict_3-0.1.0-py3-none-any.whl</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="ex">100%</span> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB • 00:00 • 13.3 MB/s</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Uploading</span> ammonia_predict_3-0.1.0.tar.gz</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="ex">100%</span> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB • 00:00 • 10.0 MB/s</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="ex">View</span> at:</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="ex">https://test.pypi.org/project/ammonia-predict-3/</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The package is now available here: <a href="https://test.pypi.org/project/ammonia-predict-3/">https://test.pypi.org/project/ammonia-predict-3/</a></p>
+<p>We can verify that it installs correctly from TestPyPI. Create a new folder and a new environment, install the package, and run the examples.</p>
+<p>First, create a new folder with the appropriate environment:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mmip:</span> mkdir package_test</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mmip:</span> cd package_test/</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="ex">package_test:</span> python3 <span class="at">-m</span> venv venv</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="ex">package_test:</span> source venv/bin/activate</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">package_test:</span> pip install pandas</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">package_test:</span> pip install torch</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Then install the package from TestPyPI:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">package_test:</span> pip install <span class="at">-i</span> https://test.pypi.org/simple/ ammonia-predict-3</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Then run the example from the <code>README.md</code> file:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">package_test:</span> python</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Python</span> 3.12.3 <span class="er">(</span><span class="ex">main,</span> Feb  4 2025, 14:48:35<span class="kw">)</span> <span class="ex">[GCC</span> 13.3.0] on linux</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Type</span> <span class="st">"help"</span>, <span class="st">"copyright"</span>, <span class="st">"credits"</span> or <span class="st">"license"</span> for more information.</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> import <span class="ex">pandas</span> as pd</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> from <span class="ex">ammonia_predict_3</span> import predict</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> df <span class="ex">=</span> pd.DataFrame<span class="er">(</span><span class="kw">{</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"pmid"</span>: [1, 1],</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"ct"</span>: [2, 4],</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"dt"</span>: [2, 2],</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"air_temp"</span>: [12, 15],</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"wind_2m"</span>: [3, 3],</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"rain_rate"</span>: [0, 0],</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"tan_app"</span>: [36.7, 36.7],</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"app_rate"</span>: [10, 10],</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_dm"</span>: [0.1, 0.1],</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_ph"</span>: [7, 7],</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"t_incorp"</span>: [0, 0],</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"app_mthd"</span>: [1, 1],</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"incorp"</span>: [0, 0],</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span>     <span class="st">"man_source"</span>: [1, 1],</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span> }<span class="er">)</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> pred <span class="ex">=</span> predict<span class="er">(</span><span class="fu">df</span><span class="kw">)</span></span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> print<span class="kw">(</span><span class="va">pred</span><span class="op">[</span>[<span class="st">"prediction_delta_ecum"</span>, <span class="st">"prediction_ecum"</span><span class="op">]</span><span class="ex">]</span><span class="kw">)</span></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>   <span class="ex">prediction_delta_ecum</span>  prediction_ecum</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a><span class="ex">0</span>               7.981954         7.981954</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a><span class="ex">1</span>               4.829587        12.811542</span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>At this stage, everything looks good — we have a package on TestPyPI.<br>
+But what about <strong>maintenance</strong>?</p>
+<p>Do we really think the package will still work in 6 months?</p>
+<p>That’s where <strong>CI/CD</strong> comes in.</p>
+</section>
+<section id="adding-cicd" class="level1">
+<h1>Adding CI/CD</h1>
+<p>This section is based on the tutorial <a href="https://realpython.com/github-actions-python/">Continuous Integration and Deployment for Python With GitHub Actions - Real Python</a>.</p>
+<p>CI/CD stands for <strong>Continuous Integration / Continuous Deployment</strong>. Continuous integration helps keep software functional in an ever-changing environment, while continuous deployment ensures it is automatically made available on platforms such as PyPI or CRAN whenever a new version is released. The key idea is: <strong>automation of tests</strong>.</p>
+<p>In this section, we will use <strong>GitHub workflows</strong>, a tool that automates actions when working with GitHub. We will use GitHub workflows to automate linting (code formatting), testing, and deployment of a Python project. Workflows are defined in YAML files stored in the <code>.github/workflows/</code> folder at the root of the project.</p>
+<p>To do this, we first need to initialize git in our project, create a new repository on GitHub, and connect it to the local project.</p>
+<p>With git, we only want to track the source code, so we create a <code>.gitignore</code> file that excludes the <code>build/</code>, <code>dist/</code>, <code>__pycache__</code>, and <code>*.egg-info</code> folders.</p>
+<div id="6bfb45e9" class="cell" data-execution_count="10">
+<details class="code-fold">
+<summary>.gitignore</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>build<span class="op">/</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>dist<span class="op">/</span> </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="op">*</span>.egg<span class="op">-</span>info<span class="op">/</span> </span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>__pycache__<span class="op">/</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>what we track with git:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> tree <span class="at">-I</span> <span class="st">'build|dist|__pycache__|*.egg-info'</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">.</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> pyproject.toml</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> README.md</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> src</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span> └── ammonia_predict_3</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── __init__.py</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── api.py</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── model_def.py</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── utils.py</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     └── data</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     &nbsp;&nbsp; └── final_model.pth</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> tests</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">└──</span> test_predict.py</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="first-workflow-linting" class="level2">
+<h2 class="anchored" data-anchor-id="first-workflow-linting">First workflow: linting</h2>
+<p>We add the following file in <code>.github/workflows</code>:</p>
+<div id="307708d0" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>name: Lint Python Code</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>on:</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  pull_request:</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    branches:</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> main</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  push:</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    branches:</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> main</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>  workflow_dispatch:</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>jobs:</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  lint:</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    runs<span class="op">-</span>on: ubuntu<span class="op">-</span>latest</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>    steps:</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> uses: actions<span class="op">/</span>checkout<span class="op">@</span>v4</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> uses: actions<span class="op">/</span>setup<span class="op">-</span>python<span class="op">@</span>v5</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span>:</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>          python<span class="op">-</span>version: <span class="st">"3.13"</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>          cache: <span class="st">"pip"</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> name: Install dependencies</span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>        run: <span class="op">|</span></span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>          python <span class="op">-</span>m pip install <span class="op">--</span>upgrade pip</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>          python <span class="op">-</span>m pip install ruff</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> name: Run Ruff</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>        run: ruff check <span class="op">--</span>output<span class="op">-</span><span class="bu">format</span><span class="op">=</span>github</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This action will be triggered on GitHub when pushing, making a pull request, or manually using a button in github (<code>workflow_dispatch</code>).</p>
+<p>Actions are visible in the <strong>Actions</strong> tab of the GitHub repository:</p>
+<p><img src="images/package_python/github_actions.png" class="img-fluid"></p>
+<p>At this stage, excluding the “parasitic” files and folders created during local installation and usage of the package (such as <code>__pycache__</code>, <code>*.egg-info</code>, …), the project tree looks like this:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> tree <span class="at">-a</span> <span class="at">-I</span> <span class="st">'.git|build|dist|__pycache__|*.egg-info|.pytest_cache|.python-version'</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="bu">.</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .gitignore</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> .github</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span> └── .workflows</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     └── lint.yml</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span> </span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> pyproject.toml</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> README.md</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="ex">├──</span> src</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span> └── ammonia_predict_3</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── __init__.py</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── api.py</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── model_def.py</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     ├── utils.py</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     └── data</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="ex">│&nbsp;&nbsp;</span>     &nbsp;&nbsp; └── final_model.pth</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="ex">└──</span> tests</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a>    <span class="ex">└──</span> test_predict.py</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="second-workflow-testing" class="level2">
+<h2 class="anchored" data-anchor-id="second-workflow-testing">Second workflow: testing</h2>
+<p>We specified in the <code>.toml</code> file that the package works with <code>python&gt;=3.12</code>, <code>pandas&gt;=2.2.3</code>, and <code>torch&gt;=2.5.0</code>.</p>
+<p>However, we had not actually verified that it truly works.</p>
+<p>Testing all possible combinations would be too costly.</p>
+<p>Instead, we adopt a <strong>min-max strategy</strong>: for each Python version, we run pytest with (i) the minimal versions of pandas and torch, and (ii) the latest available versions. [Refs?]</p>
+<p>We add the following file in <code>.github/workflows</code>:</p>
+<div id="7c2a0d47" class="cell" data-execution_count="12">
+<details class="code-fold">
+<summary>test.yml</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>name: Run Tests</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>on:</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  push:</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    branches:</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> main</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>  pull_request:</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    branches:</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> main</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  workflow_call:</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  workflow_dispatch:</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>jobs:</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  testing:</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>    runs<span class="op">-</span>on: ubuntu<span class="op">-</span>latest</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>    strategy:</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>      matrix:</span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>        include:</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>          <span class="op">-</span> python<span class="op">-</span>version: <span class="st">"3.12"</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>            pandas<span class="op">-</span>version: <span class="st">"2.2.3"</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>            torch<span class="op">-</span>version: <span class="st">"2.5.0"</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>          <span class="op">-</span> python<span class="op">-</span>version: <span class="st">"3.13"</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>            pandas<span class="op">-</span>version: <span class="st">"2.2.3"</span></span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>            torch<span class="op">-</span>version: <span class="st">"2.5.0"</span></span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>          <span class="op">-</span> python<span class="op">-</span>version: <span class="st">"3.12"</span></span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>            pandas<span class="op">-</span>version: <span class="st">"latest"</span></span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>            torch<span class="op">-</span>version: <span class="st">"latest"</span></span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>          <span class="op">-</span> python<span class="op">-</span>version: <span class="st">"3.13"</span></span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>            pandas<span class="op">-</span>version: <span class="st">"latest"</span></span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>            torch<span class="op">-</span>version: <span class="st">"latest"</span></span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>    steps:</span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> uses: actions<span class="op">/</span>checkout<span class="op">@</span>v4</span>
+<span id="cb33-34"><a href="#cb33-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-35"><a href="#cb33-35" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> name: Set up Python ${{ matrix.python<span class="op">-</span>version }}</span>
+<span id="cb33-36"><a href="#cb33-36" aria-hidden="true" tabindex="-1"></a>        uses: actions<span class="op">/</span>setup<span class="op">-</span>python<span class="op">@</span>v5</span>
+<span id="cb33-37"><a href="#cb33-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span>:</span>
+<span id="cb33-38"><a href="#cb33-38" aria-hidden="true" tabindex="-1"></a>          python<span class="op">-</span>version: ${{ matrix.python<span class="op">-</span>version }}</span>
+<span id="cb33-39"><a href="#cb33-39" aria-hidden="true" tabindex="-1"></a>          cache: <span class="st">"pip"</span></span>
+<span id="cb33-40"><a href="#cb33-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-41"><a href="#cb33-41" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> name: Install dependencies</span>
+<span id="cb33-42"><a href="#cb33-42" aria-hidden="true" tabindex="-1"></a>        run: <span class="op">|</span></span>
+<span id="cb33-43"><a href="#cb33-43" aria-hidden="true" tabindex="-1"></a>          python <span class="op">-</span>m pip install <span class="op">--</span>upgrade pip</span>
+<span id="cb33-44"><a href="#cb33-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-45"><a href="#cb33-45" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> [ <span class="st">"$</span><span class="sc">{{</span><span class="st"> matrix.pandas-version </span><span class="sc">}}</span><span class="st">"</span> <span class="op">=</span> <span class="st">"latest"</span> ]<span class="op">;</span> then</span>
+<span id="cb33-46"><a href="#cb33-46" aria-hidden="true" tabindex="-1"></a>            python <span class="op">-</span>m pip install <span class="st">"pandas&gt;=2.2.3"</span></span>
+<span id="cb33-47"><a href="#cb33-47" aria-hidden="true" tabindex="-1"></a>          <span class="cf">else</span></span>
+<span id="cb33-48"><a href="#cb33-48" aria-hidden="true" tabindex="-1"></a>            python <span class="op">-</span>m pip install pandas<span class="op">==</span>${{ matrix.pandas<span class="op">-</span>version }}</span>
+<span id="cb33-49"><a href="#cb33-49" aria-hidden="true" tabindex="-1"></a>          fi</span>
+<span id="cb33-50"><a href="#cb33-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-51"><a href="#cb33-51" aria-hidden="true" tabindex="-1"></a>          <span class="cf">if</span> [ <span class="st">"$</span><span class="sc">{{</span><span class="st"> matrix.torch-version </span><span class="sc">}}</span><span class="st">"</span> <span class="op">=</span> <span class="st">"latest"</span> ]<span class="op">;</span> then</span>
+<span id="cb33-52"><a href="#cb33-52" aria-hidden="true" tabindex="-1"></a>            python <span class="op">-</span>m pip install <span class="st">"torch&gt;=2.5.0"</span></span>
+<span id="cb33-53"><a href="#cb33-53" aria-hidden="true" tabindex="-1"></a>          <span class="cf">else</span></span>
+<span id="cb33-54"><a href="#cb33-54" aria-hidden="true" tabindex="-1"></a>            python <span class="op">-</span>m pip install torch<span class="op">==</span>${{ matrix.torch<span class="op">-</span>version }}</span>
+<span id="cb33-55"><a href="#cb33-55" aria-hidden="true" tabindex="-1"></a>          fi</span>
+<span id="cb33-56"><a href="#cb33-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-57"><a href="#cb33-57" aria-hidden="true" tabindex="-1"></a>          python <span class="op">-</span>m pip install .[dev]</span>
+<span id="cb33-58"><a href="#cb33-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-59"><a href="#cb33-59" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> name: Run Pytest</span>
+<span id="cb33-60"><a href="#cb33-60" aria-hidden="true" tabindex="-1"></a>        run: pytest</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="third-workflow-deployment" class="level2">
+<h2 class="anchored" data-anchor-id="third-workflow-deployment">Third workflow: deployment</h2>
+<p>In order to automate deployment to PyPI when we change our package version, we need to add our token as a <em>secret</em> in the GitHub repository. To do that, follow these instructions: <a href="https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository">Using secrets in GitHub Actions</a></p>
+<p><strong>Note:</strong> the secret is the token itself, which starts with <code>pypi-</code> (e.g., <code>pypi-AgENdG...</code>).</p>
+<p>We then add the following file in <code>.github/workflows</code>:</p>
+<div id="bd6d60c9" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>name: Publish to PyPI</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>on:</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  push:</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    tags:</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>      <span class="op">-</span> <span class="st">"*.*.*"</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>jobs:</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  publish:</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    runs<span class="op">-</span>on: ubuntu<span class="op">-</span>latest</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    steps:</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span> uses: actions<span class="op">/</span>checkout<span class="op">@</span>v4</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span> name: Set up Python</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>      uses: actions<span class="op">/</span>setup<span class="op">-</span>python<span class="op">@</span>v5</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>      <span class="cf">with</span>:</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>        python<span class="op">-</span>version: <span class="st">"3.13"</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span> name: Install dependencies</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>      run: <span class="op">|</span></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>        python <span class="op">-</span>m pip install <span class="op">--</span>upgrade pip</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>        python <span class="op">-</span>m pip install .[build]</span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span> name: Build package</span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>      run: python <span class="op">-</span>m build</span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span> name: Test publish package</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>      uses: pypa<span class="op">/</span>gh<span class="op">-</span>action<span class="op">-</span>pypi<span class="op">-</span>publish<span class="op">@</span>release<span class="op">/</span>v1</span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>      <span class="cf">with</span>:</span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>        user: __token__</span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a>        password: ${{ secrets.PYPI_API_TOKEN }}</span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a>        repository<span class="op">-</span>url: https:<span class="op">//</span>test.pypi.org<span class="op">/</span>legacy<span class="op">/</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><em>Remark:</em> <code>PYPI_API_TOKEN</code> is the name we gave to the token secret in GitHub.</p>
+<p>A useful tool for handling versioning is <strong>bumpver</strong>. It automates updating versions in all files where the version appears, and we will use it to automatically commit and tag new versions.</p>
+<p>We install and initialize bumpver:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> pip install bumpver</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> bumpver init</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>After initialization, we need to ensure that the end of the <code>pyproject.toml</code> file looks like this:</p>
+<div id="2a9ebd21" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>...</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>[tool.bumpver]</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>current_version <span class="op">=</span> <span class="st">"0.1.0"</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>version_pattern <span class="op">=</span> <span class="st">"MAJOR.MINOR.PACH"</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>commit_message <span class="op">=</span> <span class="st">"bump version </span><span class="sc">{old_version}</span><span class="st"> -&gt; </span><span class="sc">{new_version}</span><span class="st">"</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>tag_message <span class="op">=</span> <span class="st">"</span><span class="sc">{new_version}</span><span class="st">"</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>commit <span class="op">=</span> true</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>tag <span class="op">=</span> true</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>push <span class="op">=</span> true</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>[tool.bumpver.file_patterns]</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a><span class="co">"pyproject.toml"</span> <span class="op">=</span> [</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">'current_version = "</span><span class="sc">{version}</span><span class="st">"'</span>,</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'version = "</span><span class="sc">{version}</span><span class="st">"'</span>,</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>]</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now let’s update our package to a new version:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">ammonia_predict_3</span><span class="kw">)</span> <span class="ex">ammonia_predict_3:</span> bumpver update <span class="at">--minor</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> fetching tags from remote <span class="er">(</span><span class="ex">to</span> turn off use: <span class="at">-n</span> / <span class="at">--no-fetch</span><span class="kw">)</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> Old Version: 0.1.0</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> New Version: 0.2.0</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> git commit <span class="at">--message</span> <span class="st">'bump version 0.1.0 -&gt; 0.2.0'</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> git tag <span class="at">--annotate</span> 0.2.0 <span class="at">--message</span> <span class="st">'0.2.0'</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="ex">INFO</span>    <span class="at">-</span> git push origin <span class="at">--follow-tags</span> 0.2.0 HEAD</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We can check on GitHub that the actions triggered by the push and the tag run successfully:</p>
+<p><img src="images/package_python/github_actions_2.png" class="img-fluid"></p>
+<p>And that the package has been updated on TestPyPI:</p>
+<p><img src="images/package_python/test_pypi_new_package_version.png" class="img-fluid"></p>
+<p><em>Remark:</em> with <code>push = true</code> in the <code>[tool.bumpver]</code> section of <code>pyproject.toml</code>, the deployment workflow is triggered at the same time as the other workflows (in particular, testing). However, we want the tests to pass before publishing to TestPyPI. Therefore, we set <code>push = false</code>, and manually perform the push and tag steps.</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="ex">bumpver</span> update <span class="at">--major</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="ex">[waiting</span> for lint and test workflows to be completed]</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push <span class="at">--tags</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+</section>
+<section id="going-further" class="level1">
+<h1>Going Further</h1>
+<ul>
+<li>Pre-commit<br>
+</li>
+<li>Documentation<br>
+</li>
+<li>GitHub Release</li>
+</ul>
+</section>
+<section id="references" class="level1">
+<h1>References</h1>
+<ul>
+<li><p><a href="https://realpython.com/python-modules-packages/">Python Modules and Packages - An Introduction - Real Python</a></p></li>
+<li><p><a href="https://realpython.com/pypi-publish-python-package/#create-a-small-python-package">How to Publish an Open-Source Python Package to PyPI - Real Python</a></p></li>
+<li><p><a href="https://realpython.com/github-actions-python/">Continuous Integration and Deployment for Python With Github Actions - Real Python</a></p></li>
+<li><p><a href="https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide">Python packaging - Jean-Benoist Leger</a></p></li>
+<li><p><a href="https://gouarin.github.io/python-packaging-2023/">Distribuer son application Python - Loïc Gouarin</a></p></li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
