@@ -11,20 +11,33 @@ website:
       - text: "Instructions"
         href: instructions.qmd
     right:
+      - text: Développement
+        menu:
+          - text: How to build your package - Julia edition
+            href: how_to_build_your_package.qmd
+          - text: Positron
+            href: positron.qmd
+          - text: Python packaging
+            href: package_python.qmd
       - text: Différentiation automatique
         href: autodiff.qmd
-      - text: Python packaging
-        href: package_python.qmd  
       - text: animint2
         href: animint.qmd
+      - text: HMSC
+        href: hsmc.qmd  
       - icon: Bicycle
         href: traccar.qmd
         text: GPS -- traccar
+      - text: Sparse Cholesky
+        href: sparse_cholesky.qmd
+      - href: GNNpytgeo.qmd
+        icon: share-fill
+        text: Échantillonnage pour GNN
 format:
   html:
     theme: flatly
     highlight: tango
+    css: styles.css
     toc: true
     
-ressources:
-  - package_python_tuto_annexe.qmd 
+resources: package_python_tuto_annexe.qmd 
