@@ -970,9 +970,9 @@ git push --tags
 
 # Going Further
 
-- Pre-commit  
-- Documentation  
-- GitHub Release  
+- Pre-commit: see the example in Jean-Benoist Leger's [tutorial](https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide). 
+- Documentation: using [sphinx](https://www.sphinx-doc.org/en/master/index.html) (to build the documentation) and [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html) to host it.
+- [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)  
 
 # References
 
