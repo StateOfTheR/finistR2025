@@ -1,0 +1,33 @@
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_run:
+    workflows:
+      - "Build and Push Docker image"
+    types: ["completed"]
+
+jobs:
+  build:
+    name: Build website with rmarkdown
+    runs-on: ubuntu-latest
+    container: mpetienne/finistr2025:latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Additional R packages
+        run: |
+          Rscript -e "install.packages(c('tictoc'))"
+          Rscript -e "install.packages(c('animint2', 'data.table'))"
+      - name: Generate slides
+        run: "quarto render"
+      - name: GitHub Pages action
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
