@@ -1,0 +1,92 @@
+---
+title: "Tutoriel de différentiation automatique - STOR 9/01/2026"
+from: markdown+emoji
+lang: fr
+format: html
+execute:
+    cache: true
+toc: true
+author:
+  - name: Mahendra Mariadassou
+    email: mahendra.mariadassou@inrae.fr
+    affiliations:
+      - name: INRAE - MaIAGE
+  - name: Hugo Gangloff
+    email: hugo.gangloff@inrae.fr
+    affiliations:
+      - name: INRAE - MIA Paris Saclay
+  - name: Arthur Leroy
+    email: arthur.leroy@inrae.fr
+    affiliations:
+      - name: INRAE - GABI
+  - name: Lucia Clarotto
+    email: lucia.clarotto@agroparistech.fr
+    affiliations:
+      - name: AgroParisTech - MIA Paris Saclay
+date: "2026-01-16"
+date-modified: today
+date-format: "DD MMMM YYYY"
+---
+
+::: callout-note
+L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JVP (Jacobian Vector Product) et le VJP (Vector Jacobian Product) d'une fonction qui n'est disponible dans les primitives fournies par JAX/Torch. Les deux cas d'usage envisagées sont:
+
+-   l'utilisation d'une fonction non différentiable pour lesquels on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX
+-   l'utilisation d'une fonction donc une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX
+:::
+
+::: callout-note
+## Installation de l'environnement \[en amont\]
+
+-   Envoyer mail à STOR et MIA PS
+-   Dire que ni la connaissance de JAX ni de l'autodiff n'est nécessaire en amont
+-   nouvel environment python
+-   pip install jax
+
+## Théorie avec illustration sur un exemple simple \[45 minutes\]
+
+Mahendra
+
+Une couche intermédiaire d'un réseau de neurones de $\mathbb{R}^4$ dans $\mathbb{R}^2$.
+
+$$
+f: x = (x_0, x_1, x_2, x_3) \mapsto \tanh(w_0^\top x + b_0, w_1^\top x + b_1) = \tanh(Wx + b)
+$$
+
+où $\tanh$ est la fonction tangente hyperbolique appliqué terme à terme.
+
+-   Montrer les étapes d'une dérivation forward et d'une dérivation backward mathématiquement. Le faire en mode TD après avoir annoncé les principes du mode forward et du mode backward et posé les notations (jacobiennes etc). Introduire VJP et JVP.
+
+## Application sur l'exemple simple \[75 minutes\]
+
+Lucia 1. Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée 2. En utilisant `jax.jacfwd` et `jax.jacbwd` (le principe de ces fonctions est vu en Section 1) 3. En utilisant `jax.grad` + `jax.vmap`
+
+#### COFFEE BREAK + SOCIAL TIME \[15 minutes\]
+
+Demander à Julie si on peut acheter une galette des rois :wink:
+
+Arthur
+
+4.  En utilisant `jax.jvp` et `jax.vjp`
+5.  En redéfinissant *manuellement* le `jvp` et `vjp` associé à notre exemple (`jax.custom_jvp` et `jax.custom_vjp`)
+6.  Vérifier que les différentes approches donnent le même résultat
+7.  Comparer les temps de calcul avec `% timeit`
+
+## Application au calcul de la Hessienne \[30 minutes\]
+
+Hugo
+
+Cette 3ème partie a pour but d'introduire et de faire utiliser les fonctions de dérivée forward et de dérivée backward codées avant (composition des deux), le tout après une explication mathématique de ce qu'il se passe.
+
+https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-using-both-forward-and-reverse-mode
+
+## Discussion de l'utilité (exemples complexes et tordus...) \[15 min\]
+
+Tous
+
+1.  Illuster la différence sur des fonctions très *rectangulaires* pour montrer quand utiliser les modes forward et reverse.
+2.  Plutôt mode reverse / backward quand $d_\text{output} \ll d_\text{input}$
+3.  Plutôt mode forward quand $d_\text{output} \gg d_\text{input}$
+4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
+5.  Evoquer l'intérêt du *jitting* (notamment en JAX) qui rend négligeable le surcoût computationnel de l'autodiff par rapport aux gradients analytiques
+:::
