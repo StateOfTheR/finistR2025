@@ -90,3 +90,175 @@ Tous
 4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
 5.  Evoquer l'intérêt du *jitting* (notamment en JAX) qui rend négligeable le surcoût computationnel de l'autodiff par rapport aux gradients analytiques
 :::
+
+
+
+## Implémentation
+
+### Imports et définition de la fonction
+
+```{python}
+import jax
+import jax.numpy as jnp
+```
+
+```{python}
+key = jax.random.PRNGKey(0)
+
+W = jax.random.normal(key, (2, 4))
+b = jax.random.normal(key, (2,))
+
+def f(x):
+    return jnp.tanh(W @ x + b)
+```
+
+On testera les dérivées en un point donné :
+
+```{python}
+x = jnp.array([0.2, -0.1, 0.5, 1.0])
+```
+
+
+::: callout-note
+Ici on calcule la dérivée par rapport à $\mathbf{x}$ en gardant $W$ et $\mathbf{b}$ comme des paramètres. Dans l'apprentissage d'un réseau de neurones, on calcule plutôt les dérivées par rapport à $W$ et $\mathbf{b}$, mais le principe sera exactement le même!
+:::
+
+---
+
+### 1. Dérivée implémentée analytiquement
+
+On note
+$$
+\mathbf{z} = W\mathbf{x} + \mathbf{b} \in \mathbb{R}^2\\
+f_i(\mathbf{x}) = \tanh(z_i)
+$$
+
+avec $\mathbf{x} \in \mathbb{R}^4$, $W \in \mathbb{R}^{2\times 4}$,  $\mathbf{b} \in \mathbb{R}^2$.
+
+La dérivée de $\tanh$ est :
+$$
+\frac{d}{dz} \tanh(z) = 1 - \tanh^2(z).
+$$
+
+La jacobienne de $f$ est donc
+$$
+J_f(\mathbf{x}) = \begin{bmatrix}
+1 - \tanh^2(z)) & 0 \\
+0 & 1 - \tanh^2(z))
+\end{bmatrix} W
+$$
+
+
+```{python}
+def jacobian_manual(x):
+    z = W @ x + b              # (2,)
+    D = 1.0 - jnp.tanh(z)**2   # (2,)
+    return jnp.diag(D) @ W     # (2, 4)
+```
+
+
+```{python}
+J_manual = jacobian_manual(x)
+J_manual
+```
+
+### 2. Jacobienne avec Jax autodiff
+
+JAX permet de calculer directement la jacobienne complète.
+
+
+Modifier avec focntion à plusieurs paramètres avec argnums 
+
+
+#### Différentiation reverse-mode (`jax.jacrev`)
+
+On peut calculer la formule backward via `jax.jacrev`
+
+```{python}
+J_bwd = jax.jacrev(f)(x)
+
+J_bwd
+```
+
+#### Différentiation forward-mode (`jax.jacfwd`)
+
+On peut aussi calculer la formule forward via `jax.jacfwd`
+
+```{python}
+J_fwd = jax.jacfwd(f)(x)
+
+J_fwd
+```
+
+
+### 3. Jacobienne avec gradient et vmap (`jax.grad` + `jax.vmap`)
+
+`jax.grad` calcule la formule backward par défaut, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. On calcule donc le gradient de chaque composante de `f` séparément.
+
+```{python}
+def f_i(i, x):
+    return f(x)[i]
+```
+
+```{python}
+grad_f_i = lambda i: jax.grad(lambda x: f_i(i, x))
+
+J_grad_vmap = jax.vmap(lambda i: grad_f_i(i)(x))(jnp.arange(2))
+J_grad_vmap
+```
+
+La sortie est bien une matrice $(2 \times 4)$.
+
+---
+
+### 4. Vérification de l’égalité des résultats
+
+```{python}
+print(jnp.allclose(J_manual, J_bwd))
+print(jnp.allclose(J_manual, J_fwd))
+print(jnp.allclose(J_manual, J_grad_vmap))
+```
+
+```{python}
+print(jnp.max(jnp.abs(J_manual - J_fwd)))
+```
+
+---
+
+### 5. Comparaison des temps de calcul
+
+> Les benchmarks doivent être faits après **compilation JIT**.
+
+```{python}
+jac_manual_jit = jax.jit(jacobian_manual)
+jac_bwd_jit = jax.jit(jax.jacrev(f))
+jac_fwd_jit = jax.jit(jax.jacfwd(f))
+jac_grad_vmap_jit = jax.jit(
+    lambda x: jax.vmap(lambda i: jax.grad(lambda x: f(x)[i])(x))(jnp.arange(2))
+)
+```
+
+```{python}
+# Warm-up
+jac_manual_jit(x)
+jac_bwd_jit(x)
+jac_fwd_jit(x)
+jac_grad_vmap_jit(x)
+```
+
+```{python}
+%timeit jac_manual_jit(x)
+%timeit jac_bwd_jit(x)
+%timeit jac_fwd_jit(x)
+%timeit jac_grad_vmap_jit(x)
+```
+
+---
+
+## Conclusion
+
+- La dérivation **manuelle** est la plus rapide et la plus contrôlable, mais peu scalable. Ici elle est aussi longue que `jacrev`.
+- `jacrev`  est souvent préférable quand $\dim(f(x))$ est petite (notre cas ici). Ce cadre correspond exactement à ce qui se passe dans une **couche de réseau de neurones**, et se généralise naturellement à des architectures plus profondes.
+- `jacfwd` est souvent préférable quand $\dim(x)$ est petite.
+
+
