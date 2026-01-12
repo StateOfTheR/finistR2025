@@ -42,20 +42,183 @@ L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JV
 -   Dire que ni la connaissance de JAX ni de l'autodiff n'est nécessaire en amont
 -   nouvel environment python
 -   pip install jax
+:::
 
 ## Théorie avec illustration sur un exemple simple \[45 minutes\]
 
-Mahendra
+### Introduction à la Dérivation Automatique avec JAX
 
-Une couche intermédiaire d'un réseau de neurones de $\mathbb{R}^4$ dans $\mathbb{R}^2$.
+Ce tutoriel introduit les concepts de **Jacobian-Vector Product (JVP)** et **Vector-Jacobian Product (VJP)** à travers un exemple concret : une couche intermédiaire d’un réseau de neurones. L’objectif est de poser les notations mathématiques, puis de montrer comment JAX implémente ces opérations.
+
+**Contexte et Notations**
+
+On considère une couche intermédiaire d’un réseau de neurones :
 
 $$
-f: x = (x_0, x_1, x_2, x_3) \mapsto \tanh(w_0^\top x + b_0, w_1^\top x + b_1) = \tanh(Wx + b)
+f: \mathbb{R}^4 \to \mathbb{R}^2, \quad \mathbf{x} \mapsto \tanh(W\mathbf{x} + \mathbf{b})
 $$
 
-où $\tanh$ est la fonction tangente hyperbolique appliqué terme à terme.
+où :
 
--   Montrer les étapes d'une dérivation forward et d'une dérivation backward mathématiquement. Le faire en mode TD après avoir annoncé les principes du mode forward et du mode backward et posé les notations (jacobiennes etc). Introduire VJP et JVP.
+- $\mathbf{x} = (x_0, x_1, x_2, x_3) \in \mathbb{R}^4$ (entrée),
+- $W \in \mathbb{R}^{2 \times 4} = \begin{pmatrix} \mathbf{w}_0 \\ \mathbf{w}_1 \end{pmatrix}$ (matrice des poids),
+- $\mathbf{b} = (b_0, b_1)\in \mathbb{R}^2$ (biais),
+- $\tanh$ est appliquée **terme à terme**.
+
+**Jacobienne de $f$**
+
+La jacobienne de $f$ au point $\mathbf{x}$ notée $J_f(\mathbf{x})$ (ou parfois $\partial_\mathbf{x} f$ est une application de linéaire de $\mathbb{R}^4$ de $\mathbb{R}^2 de matrice: 
+$$
+J_f(\mathbf{x}) = 
+\frac{\partial f}{\partial \mathbf{x}} =
+\begin{pmatrix}
+\frac{\partial f_i(\mathbf{x})}{\partial x_j}
+\end{pmatrix}_{i=1\dots2, j = 1 \dots4} =
+\begin{bmatrix}
+1 - \tanh^2(\mathbf{w}_0^\top \mathbf{x} + b_0) & . \\
+. & 1 - \tanh^2(\mathbf{w}_1^\top \mathbf{x} + b_1) 
+\end{bmatrix} \cdot W
+$$
+
+### Dérivation Forward (JVP)
+
+**Principe**
+
+Le **JVP** (pour Jacobian Vector Product) calcule la _dérivée directionnelle_ de $f$ dans la direction d’un vecteur $\mathbf{v} \in \mathbb{R}^4$ :
+$$
+J_f(\mathbf{x}) \cdot \mathbf{v} \in \mathbb{R}^{2}
+$$
+$J_f(\mathbf{x}) \cdot \mathbf{v}$ est le vecteur tangent de $f$ au point $\mathbf{x}$ dans la direction $\mathbf{v}$. 
+
+
+Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une direction d'intérêt $\mathbf{v}$, on peut définir une application de $\mathbb{R}^4 \times \mathbb{R}^4 \to \mathbb{R}^2$ donnée par 
+
+$$
+\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = J_f(\mathbf{x}). \mathbf{v} \in \mathbb{R}^{2}
+$$
+
+Dans le langage de l'autodiff:
+
+- $\mathbf{x}$ est le _vecteur primal_ (point d'évaluation)
+- $\mathbf{v}$ est le _vecteur tangent_ (direction d'évaluation de la jacobienne)
+
+Cette écriture et ce vocabulaire sont très utiles pour calculer une dérivée directionnelle de façon séquentielle. Reprenons notre example simple et décomposons le en écrivant $\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)$. On peut calculer:
+
+$$
+\begin{align}
+f(\mathbf{x}) & = \tanh(\mathbf{z}) = \tanh(z(\mathbf{x})) \\
+J_z(\mathbf{x}) & = W \\
+J_{\tanh}(\mathbf{z}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \\
+\texttt{jvp}_z(\mathbf{x}, \mathbf{v}) & = W \cdot \mathbf{v} \\
+\texttt{jvp}_{\tanh}(\mathbf{z}, \mathbf{u}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \mathbf{u}  \\
+\end{align}
+$$
+On voit bien que, avec $\mathbf{z}$ précédemment défini, on a:
+
+$$
+J_f(\mathbf{x}) \cdot \mathbf{v} = J_{\tanh}(\mathbf{z}) \cdot J_z(\mathbf{x})
+$$
+
+Et en particulier: 
+$$
+\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{\tanh}(z(\mathbf{x}), \texttt{jvp}_{z}(\mathbf{x}))  
+$$
+
+::: callout-important
+
+Si $h = g \circ f$, pour calculer $\texttt{jvp}_h(\cdot, \cdot)$, il **suffit** de calculer $(\mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), \texttt{jvp}_f(\mathbf{x}, \mathbf{v}))$ et $(\mathbf{x}, \mathbf{v}) \to (g(\mathbf{x}), \texttt{jvp}_g(\mathbf{x}, \mathbf{v}))$ en des points arbitraires. En d'autres termes, il suffit de propager les vecteurs primaux et tangents le long de la chaîne (approche forward). 
+
+En pratique, la fonction `jax.jvp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), J_f(\mathbf{x})\cdot \mathbf{v})$. 
+
+:::
+
+::: callout-note
+
+L'approche JVP est très frugale en mémoire et conceptuellement simple, les vecteurs primaux et tangent sont calculés et propagés à la volée (approche forward) et il n'est pas nécessaire de stocker quoi que ce soit. Le coût d'une évaluation de $(f(x), \texttt{vjp}_f(x, v))$ est à peu près 3 fois celui d'une évaluation de $f(x)$. 
+
+L'approche JVP est utile pour évaluer les **colonnes** de $J_f(\mathbf{x})$: il suffit de prendre $\mathbf{v}$ de la forme $\mathbf{v} = (0, \dots, 0, 1, 0, \dots, 0)$. Elle fonctionne donc très bien quand $J_f(\mathbf{x})$ est long ($f: \mathbb{R}^n \to \mathbb{R}^m$ avec $n \leq m$). 
+
+:::
+
+### Dérivation Backward (VJP)
+
+**Principe**
+
+Le **VJP** (pour Vector Jacobian Product) calcule le produit d’un vecteur $\mathbf{u} \in \mathbb{R}^2$ avec la transposée de la jacobienne :
+$$
+\mathbf{u}^\top \cdot J_f(\mathbf{x})
+$$
+
+Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une co-direction d'intérêt $\mathbf{u}$, on peut définir une application de $\mathbb{R}^2 \times \mathbb{R}^4 \to \mathbb{R}^4$ donnée par 
+
+$$
+\texttt{vjp}_f(\mathbf{x}, \mathbf{u}) = \mathbf{u}^\top J_f(\mathbf{x}) \in \mathbb{R}^{4}
+$$
+
+Son intérêt est de calculer facilement les lignes de $J_f(\mathbf{x})$ (en prenant $\mathbf{u}$ de la forme $\mathbf{u} = (0, \dots, 0, 1, 0, \dots, 0)$), ce qui est plus efficace pour les matrices larges. 
+
+::: {.callout-note collapse = "true"}
+## Détails de l'utilisation de VJP pour les fonctions composées
+
+Soit une fonction composée $f \circ g$, où :
+- $g: \mathbb{R}^n \to \mathbb{R}^m$ (fonction interne),
+- $f: \mathbb{R}^m \to \mathbb{R}^p$ (fonction externe).
+
+On cherche à calculer la dérivée de $f \circ g$ par rapport à $\mathbf{x} \in \mathbb{R}^n$, c'est-à-dire la **jacobienne** de la composition :
+$$
+J_{f \circ g}(\mathbf{x}) = J_f(g(\mathbf{x})) \cdot J_g(\mathbf{x}).
+$$
+
+La règle de la chaîne pour les fonctions vectorielles s'écrit (en terme de jacobiennes) :
+$$
+J_{f \circ g}(\mathbf{x}) = J_f(\mathbf{y}) \cdot J_g(\mathbf{x}), \quad \text{où } \mathbf{y} = g(\mathbf{x}).
+$$
+
+Le **VJP** (Vector-Jacobian Product) permet de calculer efficacement le produit d'un vecteur cotangent $\mathbf{u} \in \mathbb{R}^p$ avec la jacobienne de la composition :
+$$
+\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x}) = \mathbf{u}^\top \cdot \left( J_f(\mathbf{y}) \cdot J_g(\mathbf{x}) \right).
+$$
+
+1. **Évaluer la fonction interne** :
+   Calculer $\mathbf{y} = g(\mathbf{x})$.
+
+2. **Calculer le VJP de $f$** :
+   Calculer $\mathbf{v}^\top = \mathbf{u}^\top \cdot J_f(\mathbf{y})$.
+   Ce vecteur $\mathbf{v} \in \mathbb{R}^m$ est le **gradient adjoint** de $f$ pondéré par $\mathbf{u}$.
+
+3. **Calculer le VJP de $g$** :
+   Calculer $\mathbf{v}^\top \cdot J_g(\mathbf{x})$.
+   Ce produit donne le gradient final $\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})$.
+::: 
+
+#### Application sur notre exemple. 
+
+On rappelle les notations 
+- $z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}$ (couche linéaire),
+- $f(\mathbf{x}) = \tanh(\mathbf{z})$ (activation).
+
+Pour un vecteur cotangent $\mathbf{u} \in \mathbb{R}^2$:
+
+- Calcul de la couche linéaire $z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}$
+- Première étape de la rétropropagation: 
+$$
+\mathbf{v}^\top = \texttt{vjp}_{\tanh}(\mathbf{z}, \mathbf{u}) = \mathbf{u}^\top J_{\tanh}(\mathbf{z}) = \mathbf{u}^\top \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \in \mathbb{R}^2
+$$
+- Deuxième étape de la rétropropagation: 
+$$
+\mathbf{u}^T J_f(\mathbf{x}) = \texttt{vjp}_{z}(\mathbf{x}, \mathbf{v}) = \mathbf{v}^T J_z(\mathbf{x}) = \mathbf{v}^\top W \in \mathbb{R}^4
+$$
+
+::: callout-important
+## Différence avec le mode forward
+
+- Le VJP permet de **propager les gradients** depuis la sortie de $f$ jusqu'à son entrée.
+- C'est la base du **mode reverse** de la différentiation automatique où l'on calcule les gradients depuis la sortie vers l'entrée.
+- Contrairement au mode forward, il nécessite de stocker les valeurs des vecteurs primaux lors d'une première passe forward avant de retropropager le gradient lors d'une passe reverse. 
+
+En pratique, la fonction `jax.vjp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{u}) \to (f(\mathbf{x}), \mathbf{u}^\top J_f(\mathbf{x}))$. 
+
+:::
 
 ## Application sur l'exemple simple \[75 minutes\]
 
@@ -89,7 +252,7 @@ Tous
 3.  Plutôt mode forward quand $d_\text{output} \gg d_\text{input}$
 4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
 5.  Evoquer l'intérêt du *jitting* (notamment en JAX) qui rend négligeable le surcoût computationnel de l'autodiff par rapport aux gradients analytiques
-:::
+
 
 
 
