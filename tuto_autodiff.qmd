@@ -67,7 +67,7 @@ où :
 
 **Jacobienne de $f$**
 
-La jacobienne de $f$ au point $\mathbf{x}$ notée $J_f(\mathbf{x})$ (ou parfois $\partial_\mathbf{x} f$ est une application de linéaire de $\mathbb{R}^4$ de $\mathbb{R}^2 de matrice: 
+La jacobienne de $f$ au point $\mathbf{x}$ notée $J_f(\mathbf{x})$ (ou parfois $\partial_\mathbf{x} f$ est une application de linéaire de $\mathbb{R}^4$ de $\mathbb{R}^2$ de matrice: 
 $$
 J_f(\mathbf{x}) = 
 \frac{\partial f}{\partial \mathbf{x}} =
@@ -102,7 +102,20 @@ Dans le langage de l'autodiff:
 - $\mathbf{x}$ est le _vecteur primal_ (point d'évaluation)
 - $\mathbf{v}$ est le _vecteur tangent_ (direction d'évaluation de la jacobienne)
 
-Cette écriture et ce vocabulaire sont très utiles pour calculer une dérivée directionnelle de façon séquentielle. Reprenons notre example simple et décomposons le en écrivant $\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)$. On peut calculer:
+Cette écriture et ce vocabulaire sont très utiles pour calculer une dérivée directionnelle de façon séquentielle. 
+
+::: callout-important
+
+Si $h = f \circ g$, pour calculer $\texttt{jvp}_h(\cdot, \cdot)$, il **suffit** de calculer $(\mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), \texttt{jvp}_f(\mathbf{x}, \mathbf{v}))$ et $(\mathbf{x}, \mathbf{v}) \to (g(\mathbf{x}), \texttt{jvp}_g(\mathbf{x}, \mathbf{v}))$ en des points arbitraires. En d'autres termes, il suffit de propager les vecteurs primaux et tangents le long de la chaîne (approche forward). On a en effet: 
+
+$$
+\texttt{jvp}_h(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{f}(g(\mathbf{x}), \texttt{jvp}_{g}(\mathbf{x}))
+$$
+:::
+
+#### Application sur notre exemple. 
+
+Reprenons notre example simple et décomposons le en écrivant $\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)$. On peut calculer:
 
 $$
 \begin{align}
@@ -116,27 +129,21 @@ $$
 On voit bien que, avec $\mathbf{z}$ précédemment défini, on a:
 
 $$
-J_f(\mathbf{x}) \cdot \mathbf{v} = J_{\tanh}(\mathbf{z}) \cdot J_z(\mathbf{x})
+J_f(\mathbf{x}) \cdot \mathbf{v} = J_{\tanh}(\mathbf{z}) \cdot J_z(\mathbf{x})\cdot \mathbf{v}
 $$
 
-Et en particulier: 
+qu'on peut réécrire en terme de `jvp` comme suit
 $$
 \texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{\tanh}(z(\mathbf{x}), \texttt{jvp}_{z}(\mathbf{x}))  
 $$
-
-::: callout-important
-
-Si $h = g \circ f$, pour calculer $\texttt{jvp}_h(\cdot, \cdot)$, il **suffit** de calculer $(\mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), \texttt{jvp}_f(\mathbf{x}, \mathbf{v}))$ et $(\mathbf{x}, \mathbf{v}) \to (g(\mathbf{x}), \texttt{jvp}_g(\mathbf{x}, \mathbf{v}))$ en des points arbitraires. En d'autres termes, il suffit de propager les vecteurs primaux et tangents le long de la chaîne (approche forward). 
-
-En pratique, la fonction `jax.jvp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), J_f(\mathbf{x})\cdot \mathbf{v})$. 
-
-:::
 
 ::: callout-note
 
 L'approche JVP est très frugale en mémoire et conceptuellement simple, les vecteurs primaux et tangent sont calculés et propagés à la volée (approche forward) et il n'est pas nécessaire de stocker quoi que ce soit. Le coût d'une évaluation de $(f(x), \texttt{vjp}_f(x, v))$ est à peu près 3 fois celui d'une évaluation de $f(x)$. 
 
 L'approche JVP est utile pour évaluer les **colonnes** de $J_f(\mathbf{x})$: il suffit de prendre $\mathbf{v}$ de la forme $\mathbf{v} = (0, \dots, 0, 1, 0, \dots, 0)$. Elle fonctionne donc très bien quand $J_f(\mathbf{x})$ est long ($f: \mathbb{R}^n \to \mathbb{R}^m$ avec $n \leq m$). 
+
+En pratique, la fonction `jax.jvp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), J_f(\mathbf{x})\cdot \mathbf{v})$ (elle renvoie à la fois le nouveau vecteur primal et le nouveau vecteur tangent). 
 
 :::
 
@@ -155,47 +162,42 @@ $$
 \texttt{vjp}_f(\mathbf{x}, \mathbf{u}) = \mathbf{u}^\top J_f(\mathbf{x}) \in \mathbb{R}^{4}
 $$
 
-Son intérêt est de calculer facilement les lignes de $J_f(\mathbf{x})$ (en prenant $\mathbf{u}$ de la forme $\mathbf{u} = (0, \dots, 0, 1, 0, \dots, 0)$), ce qui est plus efficace pour les matrices larges. 
+Son intérêt est de calculer facilement les lignes de $J_f(\mathbf{x})$, en prenant $\mathbf{u}$ de la forme $\mathbf{u} = (0, \dots, 0, 1, 0, \dots, 0)$, ce qui est plus efficace pour les matrices larges. 
 
 ::: {.callout-note collapse = "true"}
 ## Détails de l'utilisation de VJP pour les fonctions composées
 
 Soit une fonction composée $f \circ g$, où :
+
 - $g: \mathbb{R}^n \to \mathbb{R}^m$ (fonction interne),
 - $f: \mathbb{R}^m \to \mathbb{R}^p$ (fonction externe).
 
 On cherche à calculer la dérivée de $f \circ g$ par rapport à $\mathbf{x} \in \mathbb{R}^n$, c'est-à-dire la **jacobienne** de la composition :
 $$
-J_{f \circ g}(\mathbf{x}) = J_f(g(\mathbf{x})) \cdot J_g(\mathbf{x}).
+J_{f \circ g}(\mathbf{x}) = J_f(g(\mathbf{x})) \cdot J_g(\mathbf{x}) = J_f(\mathbf{y}) \cdot J_g(\mathbf{x}), \quad \text{où } \mathbf{y} = g(\mathbf{x}).
 $$
 
-La règle de la chaîne pour les fonctions vectorielles s'écrit (en terme de jacobiennes) :
-$$
-J_{f \circ g}(\mathbf{x}) = J_f(\mathbf{y}) \cdot J_g(\mathbf{x}), \quad \text{où } \mathbf{y} = g(\mathbf{x}).
-$$
-
-Le **VJP** (Vector-Jacobian Product) permet de calculer efficacement le produit d'un vecteur cotangent $\mathbf{u} \in \mathbb{R}^p$ avec la jacobienne de la composition :
+Le **VJP** (Vector-Jacobian Product) permet de calculer le produit d'un vecteur cotangent $\mathbf{u} \in \mathbb{R}^p$ avec $J_{f \circ g}(\mathbf{x})$ de façon séquentielle :
 $$
 \mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x}) = \mathbf{u}^\top \cdot \left( J_f(\mathbf{y}) \cdot J_g(\mathbf{x}) \right).
 $$
 
 1. **Évaluer la fonction interne** :
    Calculer $\mathbf{y} = g(\mathbf{x})$.
-
 2. **Calculer le VJP de $f$** :
    Calculer $\mathbf{v}^\top = \mathbf{u}^\top \cdot J_f(\mathbf{y})$.
-   Ce vecteur $\mathbf{v} \in \mathbb{R}^m$ est le **gradient adjoint** de $f$ pondéré par $\mathbf{u}$.
-
+   Ce vecteur $\mathbf{v} \in \mathbb{R}^m$ est le **gradient adjoint** de $f$ au point $\mathbf{y}$ pondéré par $\mathbf{u}$.
 3. **Calculer le VJP de $g$** :
-   Calculer $\mathbf{v}^\top \cdot J_g(\mathbf{x})$.
-   Ce produit donne le gradient final $\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})$.
+   Calculer $\mathbf{v}^\top \cdot J_g(\mathbf{x})$. 
+   Ce produit donne le le **gradient adjoint** de $g$ au point $\mathbf{x}$ pondéré par $\mathbf{u}$ qui correspond au gradient final $\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})$.
 ::: 
 
 #### Application sur notre exemple. 
 
-On rappelle les notations 
-- $z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}$ (couche linéaire),
-- $f(\mathbf{x}) = \tanh(\mathbf{z})$ (activation).
+On rappelle que 
+
+- $z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}$
+- $f(\mathbf{x}) = \tanh(\mathbf{z})$
 
 Pour un vecteur cotangent $\mathbf{u} \in \mathbb{R}^2$:
 
@@ -204,17 +206,17 @@ Pour un vecteur cotangent $\mathbf{u} \in \mathbb{R}^2$:
 $$
 \mathbf{v}^\top = \texttt{vjp}_{\tanh}(\mathbf{z}, \mathbf{u}) = \mathbf{u}^\top J_{\tanh}(\mathbf{z}) = \mathbf{u}^\top \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \in \mathbb{R}^2
 $$
-- Deuxième étape de la rétropropagation: 
+- Deuxième (et dernière) étape de la rétropropagation: 
 $$
 \mathbf{u}^T J_f(\mathbf{x}) = \texttt{vjp}_{z}(\mathbf{x}, \mathbf{v}) = \mathbf{v}^T J_z(\mathbf{x}) = \mathbf{v}^\top W \in \mathbb{R}^4
 $$
 
-::: callout-important
+::: callout-note
 ## Différence avec le mode forward
 
 - Le VJP permet de **propager les gradients** depuis la sortie de $f$ jusqu'à son entrée.
 - C'est la base du **mode reverse** de la différentiation automatique où l'on calcule les gradients depuis la sortie vers l'entrée.
-- Contrairement au mode forward, il nécessite de stocker les valeurs des vecteurs primaux lors d'une première passe forward avant de retropropager le gradient lors d'une passe reverse. 
+- Contrairement au mode forward, il nécessite de **stocker les valeurs** des vecteurs primaux lors d'une première passe forward avant de rétropropager le gradient lors d'une passe reverse. 
 
 En pratique, la fonction `jax.vjp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{u}) \to (f(\mathbf{x}), \mathbf{u}^\top J_f(\mathbf{x}))$. 
 
