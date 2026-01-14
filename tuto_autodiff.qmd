@@ -18,7 +18,7 @@ author:
   - name: Arthur Leroy
     email: arthur.leroy@inrae.fr
     affiliations:
-      - name: INRAE - GABI
+      - name: INRAE - GABI & MIA Paris Saclay
   - name: Lucia Clarotto
     email: lucia.clarotto@agroparistech.fr
     affiliations:
@@ -29,10 +29,10 @@ date-format: "DD MMMM YYYY"
 ---
 
 ::: callout-note
-L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JVP (Jacobian Vector Product) et le VJP (Vector Jacobian Product) d'une fonction qui n'est disponible dans les primitives fournies par JAX/Torch. Les deux cas d'usage envisagées sont:
+L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JVP (Jacobian Vector Product) et le VJP (Vector Jacobian Product) d'une fonction qui n'est pas disponible dans les primitives fournies par JAX/Torch. Les deux cas d'usage envisagés sont:
 
--   l'utilisation d'une fonction non différentiable pour lesquels on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX
--   l'utilisation d'une fonction donc une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX
+-   l'utilisation d'une fonction non différentiable pour laquelle on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX
+-   l'utilisation d'une fonction dont une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX
 :::
 
 ::: callout-note
@@ -67,7 +67,7 @@ où :
 
 **Jacobienne de $f$**
 
-La jacobienne de $f$ au point $\mathbf{x}$ notée $J_f(\mathbf{x})$ (ou parfois $\partial_\mathbf{x} f$) est une application de linéaire de $\mathbb{R}^4$ dans $\mathbb{R}^2$ de matrice: 
+La jacobienne de $f$ au point $\mathbf{x}$ notée $J_f(\mathbf{x})$ (ou parfois $\partial_\mathbf{x} f$ est une application de linéaire de $\mathbb{R}^4$ de $\mathbb{R}^2$ de matrice: 
 $$
 J_f(\mathbf{x}) = 
 \frac{\partial f}{\partial \mathbf{x}} =
@@ -75,9 +75,9 @@ J_f(\mathbf{x}) =
 \frac{\partial f_i(\mathbf{x})}{\partial x_j}
 \end{pmatrix}_{i=1\dots2, j = 1 \dots4} =
 \begin{bmatrix}
-1 - \tanh^2(\mathbf{w}_0^\top \mathbf{x} + b_0) & . \\
-. & 1 - \tanh^2(\mathbf{w}_1^\top \mathbf{x} + b_1) 
-\end{bmatrix} \cdot W \in \mathbb{R}^{2 \times 4}
+1 - \tanh^2(\mathbf{w}_0^\top \mathbf{x} + b_0) & 0 \\
+0 & 1 - \tanh^2(\mathbf{w}_1^\top \mathbf{x} + b_1) 
+\end{bmatrix} \cdot W
 $$
 
 ### Dérivation Forward (JVP)
@@ -91,7 +91,7 @@ $$
 $J_f(\mathbf{x}) \cdot \mathbf{v}$ est le vecteur tangent de $f$ au point $\mathbf{x}$ dans la direction $\mathbf{v}$. 
 
 
-Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une direction d'intérêt $\mathbf{v}$, on peut définir une application $\texttt{jvp}_f$ de $\mathbb{R}^4 \times \mathbb{R}^4 \to \mathbb{R}^2$ via:
+Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une direction d'intérêt $\mathbf{v}$, on peut définir une application de $\mathbb{R}^4 \times \mathbb{R}^4 \to \mathbb{R}^2$ donnée par 
 
 $$
 \texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = J_f(\mathbf{x}). \mathbf{v} \in \mathbb{R}^{2}
@@ -109,21 +109,21 @@ Cette écriture et ce vocabulaire sont très utiles pour calculer une dérivée 
 Si $h = f \circ g$, pour calculer $\texttt{jvp}_h(\cdot, \cdot)$, il **suffit** de calculer $(\mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), \texttt{jvp}_f(\mathbf{x}, \mathbf{v}))$ et $(\mathbf{x}, \mathbf{v}) \to (g(\mathbf{x}), \texttt{jvp}_g(\mathbf{x}, \mathbf{v}))$ en des points arbitraires. En d'autres termes, il suffit de propager les vecteurs primaux et tangents le long de la chaîne (approche forward). On a en effet: 
 
 $$
-\texttt{jvp}_h(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{f}(g(\mathbf{x}), \texttt{jvp}_{g}(\mathbf{x}))
+\texttt{jvp}_h(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{f}(g(\mathbf{x}), \texttt{jvp}_{g}(\mathbf{x}, \mathbf{v}))
 $$
 :::
 
 #### Application sur notre exemple. 
 
-Reprenons notre example simple et décomposons le en écrivant $\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)$. On peut calculer:
+Reprenons notre exemple simple et décomposons le en écrivant $\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)$. On peut calculer:
 
 $$
 \begin{align}
 f(\mathbf{x}) & = \tanh(\mathbf{z}) = \tanh(z(\mathbf{x})) \\
 J_z(\mathbf{x}) & = W \\
-J_{\tanh}(\mathbf{z}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \\
+J_{\tanh}(\mathbf{z}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & 0 \\ 0 & 1 - \tanh^2(z_1) \end{bmatrix} \\
 \texttt{jvp}_z(\mathbf{x}, \mathbf{v}) & = W \cdot \mathbf{v} \\
-\texttt{jvp}_{\tanh}(\mathbf{z}, \mathbf{u}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \mathbf{u}  \\
+\texttt{jvp}_{\tanh}(\mathbf{z}, \mathbf{u}) & = \begin{bmatrix} 1 - \tanh^2(z_0) & 0 \\ 0 & 1 - \tanh^2(z_1) \end{bmatrix} \mathbf{u}  \\
 \end{align}
 $$
 On voit bien que, avec $\mathbf{z}$ précédemment défini, on a:
@@ -132,14 +132,14 @@ $$
 J_f(\mathbf{x}) \cdot \mathbf{v} = J_{\tanh}(\mathbf{z}) \cdot J_z(\mathbf{x})\cdot \mathbf{v}
 $$
 
-qu'on peut réécrire en terme de $\texttt{jvp}$ comme suit
+qu'on peut réécrire en terme de `jvp` comme suit
 $$
-\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{\tanh}(z(\mathbf{x}), \texttt{jvp}_{z}(\mathbf{x}))  
+\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{\tanh}(z(\mathbf{x}), \texttt{jvp}_{z}(\mathbf{x}, \mathbf{v}))  
 $$
 
 ::: callout-note
 
-L'approche JVP est très frugale en mémoire et conceptuellement simple, les vecteurs primaux et tangent sont calculés et propagés à la volée (approche forward) et il n'est pas nécessaire de stocker quoi que ce soit. Le coût d'une évaluation de $(f(x), \texttt{vjp}_f(x, v))$ est à peu près 3 fois celui d'une évaluation de $f(x)$. 
+L'approche JVP est très frugale en mémoire et conceptuellement simple, les vecteurs primaux et tangent sont calculés et propagés à la volée (approche forward) et il n'est pas nécessaire de stocker quoi que ce soit. Le coût d'une évaluation de $(f(x), \texttt{jvp}_f(x, v))$ est à peu près 3 fois celui d'une évaluation de $f(x)$. 
 
 L'approche JVP est utile pour évaluer les **colonnes** de $J_f(\mathbf{x})$: il suffit de prendre $\mathbf{v}$ de la forme $\mathbf{v} = (0, \dots, 0, 1, 0, \dots, 0)$. Elle fonctionne donc très bien quand $J_f(\mathbf{x})$ est long ($f: \mathbb{R}^n \to \mathbb{R}^m$ avec $n \leq m$). 
 
@@ -156,7 +156,7 @@ $$
 \mathbf{u}^\top \cdot J_f(\mathbf{x})
 $$
 
-Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^2 \to \mathbb{R}^4)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une co-direction d'intérêt $\mathbf{u}$, on peut définir une application $\texttt{vjp}$ de $\mathbb{R}^4 \times \mathbb{R}^2 \to \mathbb{R}^4$ via: 
+Si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $J_f$ comme une application $J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)$. En particulier, si on se donne un point d'intérêt $\mathbf{x}$ et une co-direction d'intérêt $\mathbf{u}$, on peut définir une application de $\mathbb{R}^2 \times \mathbb{R}^4 \to \mathbb{R}^4$ donnée par 
 
 $$
 \texttt{vjp}_f(\mathbf{x}, \mathbf{u}) = \mathbf{u}^\top J_f(\mathbf{x}) \in \mathbb{R}^{4}
@@ -167,7 +167,7 @@ Son intérêt est de calculer facilement les lignes de $J_f(\mathbf{x})$, en pre
 ::: {.callout-note collapse = "true"}
 ## Détails de l'utilisation de VJP pour les fonctions composées
 
-Soit une fonction composée $h = f \circ g$, où :
+Soit une fonction composée $f \circ g$, où :
 
 - $g: \mathbb{R}^n \to \mathbb{R}^m$ (fonction interne),
 - $f: \mathbb{R}^m \to \mathbb{R}^p$ (fonction externe).
@@ -182,14 +182,14 @@ $$
 \mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x}) = \mathbf{u}^\top \cdot \left( J_f(\mathbf{y}) \cdot J_g(\mathbf{x}) \right).
 $$
 
-1. **Évaluer les vecteurs primaux** :
+1. **Évaluer la fonction interne** :
    Calculer $\mathbf{y} = g(\mathbf{x})$.
 2. **Calculer le VJP de $f$** :
    Calculer $\mathbf{v}^\top = \mathbf{u}^\top \cdot J_f(\mathbf{y})$.
    Ce vecteur $\mathbf{v} \in \mathbb{R}^m$ est le **gradient adjoint** de $f$ au point $\mathbf{y}$ pondéré par $\mathbf{u}$.
 3. **Calculer le VJP de $g$** :
    Calculer $\mathbf{v}^\top \cdot J_g(\mathbf{x})$. 
-   Ce produit donne le le **gradient adjoint** de $g$ au point $\mathbf{x}$ pondéré par $\mathbf{v}$ qui correspond au gradient final $\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})$.
+   Ce produit donne le le **gradient adjoint** de $g$ au point $\mathbf{x}$ pondéré par $\mathbf{u}$ qui correspond au gradient final $\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})$.
 ::: 
 
 #### Application sur notre exemple. 
@@ -204,7 +204,7 @@ Pour un vecteur cotangent $\mathbf{u} \in \mathbb{R}^2$:
 - Calcul de la couche linéaire $z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}$
 - Première étape de la rétropropagation: 
 $$
-\mathbf{v}^\top = \texttt{vjp}_{\tanh}(\mathbf{z}, \mathbf{u}) = \mathbf{u}^\top J_{\tanh}(\mathbf{z}) = \mathbf{u}^\top \begin{bmatrix} 1 - \tanh^2(z_0) & . \\ . & 1 - \tanh^2(z_1) \end{bmatrix} \in \mathbb{R}^2
+\mathbf{v}^\top = \texttt{vjp}_{\tanh}(\mathbf{z}, \mathbf{u}) = \mathbf{u}^\top J_{\tanh}(\mathbf{z}) = \mathbf{u}^\top \begin{bmatrix} 1 - \tanh^2(z_0) & 0 \\ 0 & 1 - \tanh^2(z_1) \end{bmatrix} \in \mathbb{R}^2
 $$
 - Deuxième (et dernière) étape de la rétropropagation: 
 $$
@@ -216,51 +216,38 @@ $$
 
 - Le VJP permet de **propager les gradients** depuis la sortie de $f$ jusqu'à son entrée.
 - C'est la base du **mode reverse** de la différentiation automatique où l'on calcule les gradients depuis la sortie vers l'entrée.
-- Contrairement au mode forward, il nécessite de **stocker les valeurs** des vecteurs primaux lors d'une première passe forward avant de rétropropager et de mettre à jour le gradient lors d'une passe reverse. 
-
-Cette approche est **beaucoup** plus efficace que l'approche forward pour les jacobiennes larges (peu de lignes, beaucoup de colonnes) mais conceptuellement plus sophistiquée et plus difficile à mettre en oeuvre: la profondeur de la pile mémoire augmente en effet linéairement avec le nombre de fonctions composées. 
+- Contrairement au mode forward, il nécessite de **stocker les valeurs** des vecteurs primaux lors d'une première passe forward avant de rétropropager le gradient lors d'une passe reverse. 
 
 En pratique, la fonction `jax.vjp` est définie par $\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{u}) \to (f(\mathbf{x}), \mathbf{u}^\top J_f(\mathbf{x}))$. 
 
 :::
 
-## Application sur l'exemple simple \[75 minutes\]
+# Implémentation de l'exemple simple \[75 minutes\]
 
-Lucia 1. Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée 2. En utilisant `jax.jacfwd` et `jax.jacbwd` (le principe de ces fonctions est vu en Section 1) 3. En utilisant `jax.grad` + `jax.vmap`
+## Partie Lucia
 
-#### COFFEE BREAK + SOCIAL TIME \[15 minutes\]
+### Rappel des dérivées analytiques pour l'implémentation
 
-Demander à Julie si on peut acheter une galette des rois :wink:
+On note
 
-Arthur
+- $\mathbf{z} = W\mathbf{x} + \mathbf{b} \in \mathbb{R}^2$
+- $f_i(\mathbf{x}) = \tanh(z_i)$
 
-4.  En utilisant `jax.jvp` et `jax.vjp`
-5.  En redéfinissant *manuellement* le `jvp` et `vjp` associé à notre exemple (`jax.custom_jvp` et `jax.custom_vjp`)
-6.  Vérifier que les différentes approches donnent le même résultat
-7.  Comparer les temps de calcul avec `% timeit`
+avec $\mathbf{x} \in \mathbb{R}^4$, $W \in \mathbb{R}^{2\times 4}$,  $\mathbf{b} \in \mathbb{R}^2$.
 
-## Application au calcul de la Hessienne \[30 minutes\]
+La dérivée de $\tanh$ est :
+$$
+\frac{d}{dz} \tanh(z) = 1 - \tanh^2(z).
+$$
 
-Hugo
+La jacobienne de $f$ est donc
+$$
+J_f(\mathbf{x}) = \begin{bmatrix}
+1 - \tanh^2(z)) & 0 \\
+0 & 1 - \tanh^2(z))
+\end{bmatrix} \cdot W
+$$
 
-Cette 3ème partie a pour but d'introduire et de faire utiliser les fonctions de dérivée forward et de dérivée backward codées avant (composition des deux), le tout après une explication mathématique de ce qu'il se passe.
-
-https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-using-both-forward-and-reverse-mode
-
-## Discussion de l'utilité (exemples complexes et tordus...) \[15 min\]
-
-Tous
-
-1.  Illuster la différence sur des fonctions très *rectangulaires* pour montrer quand utiliser les modes forward et reverse.
-2.  Plutôt mode reverse / backward quand $d_\text{output} \ll d_\text{input}$
-3.  Plutôt mode forward quand $d_\text{output} \gg d_\text{input}$
-4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
-5.  Evoquer l'intérêt du *jitting* (notamment en JAX) qui rend négligeable le surcoût computationnel de l'autodiff par rapport aux gradients analytiques
-
-
-
-
-## Implémentation
 
 ### Imports et définition de la fonction
 
@@ -287,35 +274,22 @@ On testera les dérivées en un point donné :
 x = jnp.array([0.2, -0.1, 0.5, 1.0])
 ```
 
-
 ::: callout-note
 Ici on calcule la dérivée par rapport à $\mathbf{x}$ en gardant $W$ et $\mathbf{b}$ comme des paramètres. Dans l'apprentissage d'un réseau de neurones, on calcule plutôt les dérivées par rapport à $W$ et $\mathbf{b}$, mais le principe sera exactement le même!
 :::
 
----
 
-### 1. Dérivée implémentée analytiquement
+::: {.panel-tabset}
 
-On note
-$$
-\mathbf{z} = W\mathbf{x} + \mathbf{b} \in \mathbb{R}^2\\
-f_i(\mathbf{x}) = \tanh(z_i)
-$$
+## Questions
 
-avec $\mathbf{x} \in \mathbb{R}^4$, $W \in \mathbb{R}^{2\times 4}$,  $\mathbf{b} \in \mathbb{R}^2$.
+1. Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée 
+2. En utilisant `jax.jacfwd` et `jax.jacbwd` (le principe de ces fonctions est vu en Section 1) 
+3. En utilisant `jax.grad` + `jax.vmap`
 
-La dérivée de $\tanh$ est :
-$$
-\frac{d}{dz} \tanh(z) = 1 - \tanh^2(z).
-$$
+## Indice
 
-La jacobienne de $f$ est donc
-$$
-J_f(\mathbf{x}) = \begin{bmatrix}
-1 - \tanh^2(z)) & 0 \\
-0 & 1 - \tanh^2(z))
-\end{bmatrix} W
-$$
+## Réponse
 
 
 ```{python}
@@ -339,7 +313,7 @@ JAX permet de calculer directement la jacobienne complète.
 
 On peut calculer la formule backward via `jax.jacrev` (ou son alias `jax.jacobian`). 
 
-Dès le départ on va fixer l'index de l'argument de la fonction `f` par rapport auquel on veut dériver. Dans notre example, on dérive par rapport à `x` qui correspond à l'index 0 des arguments. Par la suite, on utilisera cet index pour pouvoir dire par rapport à quelle variable on veut dériver, avec l'argument `argnum`.
+Dès le départ on va fixer l'index de l'argument de la fonction `f` par rapport auquel on veut dériver. Dans notre exemple, on dérive par rapport à `x` qui correspond à l'index 0 des arguments. Par la suite, on utilisera cet index pour pouvoir dire par rapport à quelle variable on veut dériver, avec l'argument `argnum`.
 
 ```{python}
 idx_jac = 0
@@ -410,7 +384,7 @@ Dans la fonction `vmap`, on observe un argument en plus de la fonction à mapper
   - `0` : on vectorise sur l’argument `i`
   - `None` : `x, W, b` sont partagés (pas vectorisés)
 
-`jnp.arange(dim_sortie)` fournit les indices $i = 0, 1, ..., dim_sortie−1$ pour lesquels on veut calculer le gradient.
+`jnp.arange(dim_sortie)` fournit les indices $i = 0, 1, ..., \text{dim_sortie}−1$ pour lesquels on veut calculer le gradient.
 
 Au final, la sortie est bien la matrice Jacobienne $(2 \times 4)$.
 
@@ -428,43 +402,200 @@ print(jnp.allclose(J_manual, J_grad_vmap))
 print(jnp.max(jnp.abs(J_manual - J_fwd(x))))
 ```
 
+:::
+
+#### COFFEE BREAK + SOCIAL TIME \[15 minutes\]
+
+Demander à Julie si on peut acheter une galette des rois :wink:
+
+
+## Implémentation des JVP et VJP pour une fonction personnalisée
+
+::: {.panel-tabset}
+
+## Questions
+
+4.  Calculer la dérivée de notre fonction en utilisant les fonctions `jax.jvp` et `jax.vjp` fournies en JAX. 
+5.  Redéfinissez *manuellement* les opérateurs `jvp` et `vjp` associés à notre exemple, comme si l'on chercher à créer un brique élémentaire pour la chaine de dérivation.
+
+Vérifier à chaque fois que les différentes approches donnent le même résultat que la version analytique.
+
+## Indice
+
+4. Pour cela nous pouvons utiliser `jax.jvp(f, (x,), (v,))` et `jax.vjp(f, x)` (puis appliquer la fonction retournée par `jax.vjp` sur un vecteur cotangent `u`).
+5. Vous pouvez utiliser les fonctions `jax.custom_jvp` et `jax.custom_vjp` pour cette tâche. Plus spécifiquement, vous devez définir une fonction `f_custom_jvp` et `f_custom_vjp` qui encapsule la fonction `f`, puis définir les règles `jvp` et `vjp` associées en utilisant les dérivées analytiques que nous avons calculées précédemment.
+
+## Réponse
+
+### 4. Jacobienne avec jax.jvp et jax.vjp
+
+Tout d'abord, rappelons que le jvp et le vjp permettent de calculer des produits entre la jacobienne et un vecteur, respectivement dans le sens forward (jvp) et backward (vjp). Nous allons donc définir des vecteurs tangent et cotangent pour tester ces fonctions.
+
+
+```{python}
+# Vecteur tangent pour jvp (dimension d'entrée de f)
+v = jnp.array([1.0, 0.0, 0.0, 0.0])  # Exemple de vecteur tangent
+# Vecteur cotangent pour vjp (dimension de sortie de f)
+u = jnp.array([1.0, 0.0])  # Exemple de vecteur cotangent
+
+# Calcul du JVP
+f_jvp_out, jvp_result = jax.jvp(lambda x: f(x, W, b), (x,), (v,))
+print("JVP Result:", jvp_result)
+
+# Calcul du VJP
+f_vjp_out, vjp_fun = jax.vjp(lambda x: f(x, W, b), x)
+vjp_result = vjp_fun(u)[0]
+print("VJP Result:", vjp_result)
+
+# Vérification que les résultats sont cohérents avec la jacobienne manuelle
+J_manual = jacobian_manual(x, W, b)
+jvp_check = J_manual @ v
+vjp_check = u @ J_manual
+print("JVP Check:", jvp_check)
+print("VJP Check:", vjp_check)
+
+print("JVP matches manual:", jnp.allclose(jvp_result, jvp_check))
+print("VJP matches manual:", jnp.allclose(vjp_result, vjp_check))
+```
+
+### 5. Redéfinition manuelle de jvp et vjp
+
+Nous allons redéfinir le `jvp` et le `vjp` de notre fonction `f` comme s'il s'agissait d'une brique élémentaire pour la chaîne de différentiation automatique. Pour cela, nous utiliserons les décorateurs `@jax.custom_jvp` et `@jax.custom_vjp`.
+
+```{python}
+@jax.custom_jvp
+def f_custom_jvp(x, W, b):
+    return f(x, W, b)
+
+@f_custom_jvp.defjvp
+def f_jvp(primals, tangents):
+    x, W, b = primals
+    v, _, _ = tangents
+    z = W @ x + b
+    D = 1.0 - jnp.tanh(z)**2
+    jvp_result = jnp.diag(D) @ W @ v
+    return f(x, W, b), jvp_result
+
+@jax.custom_vjp
+def f_custom_vjp(x, W, b):
+  return f(x, W, b)
+
+def f_custom_vjp_fwd(x, W, b):
+  y = f(x, W, b)
+  z = W @ x + b
+  D = 1.0 - jnp.tanh(z)**2
+  # residuals needed for backward: x, W, D
+  return y, (x, W, D)
+
+def f_custom_vjp_bwd(residuals, g):
+  x, W, D = residuals
+  # g is the cotangent (u) with shape (dim_sortie,)
+  v = g * D  # element-wise
+  dx = v @ W
+  dW = jnp.outer(v, x)
+  db = v
+  return dx, dW, db
+
+# Liaison des fonctions forward et backward
+f_custom_vjp.defvjp(f_custom_vjp_fwd, f_custom_vjp_bwd)
+
+# Test de la redéfinition
+f_jvp_out_custom, jvp_result_custom = jax.jvp(lambda x: f_custom_jvp(x, W, b), (x,), (v,))
+f_vjp_out_custom, vjp_fun_custom = jax.vjp(lambda x: f_custom_vjp(x, W, b), x)
+vjp_result_custom = vjp_fun_custom(u)[0]
+print("Custom JVP Result:", jvp_result_custom)
+print("Custom VJP Result:", vjp_result_custom)
+
+print("Custom JVP matches manual:", jnp.allclose(jvp_result_custom, jvp_check))
+print("Custom VJP matches manual:", jnp.allclose(vjp_result_custom, vjp_check))
+
+```
+
+Quelques explications sur le code ci-dessus:
+
+- Nous avons du redéfinir `f_custom_jvp` et `f_custom_vjp` en utilisant les décorateurs `@jax.custom_jvp` et `@jax.custom_vjp`. Il s'agit de fonctions qui encapsulent notre fonction `f` originale. On ne peut pas directement décorer `f` car elle ne suit pas la signature attendue par JAX pour les fonctions différentiables. 
+- Nous avons utilisé les décorateurs `@jax.custom_jvp` et `@jax.custom_vjp` pour définir des versions personnalisées de `jvp` et `vjp` pour notre fonction `f`. Cela permet de spécifier explicitement comment calculer ces produits en utilisant les dérivées analytiques.
+- Dans le cas du 'vjp', nous avons défini une fonction de passage avant (`f_custom_vjp_fwd`) qui calcule la sortie de la fonction ainsi que les résidus nécessaires pour le calcul du backward. La fonction de passage arrière (`f_custom_vjp_bwd`) utilise ces résidus pour calculer le produit vectoriel avec la transposée de la jacobienne. Ces résidus sont essentiels pour le calcul correct du gradient.
+
+Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le comportement de la différentiation automatique pour des fonctions spécifiques (potentiellement non implémentées en JAX), notamment lorsque les dérivées analytiques sont disponibles ou lorsque nous souhaitons optimiser les performances.
+:::
+
+## Performance de l'autodifférentiation
+
+::: {.panel-tabset}
+
+## Questions
+
+7.  Comparer, sur un grand nombre d'évaluations, les temps de calcul des dérivées analytiques, de l'autodifférentiation en mode forward et backward.
+8. Essayez d'appliquer une compilation JIT (Just In Time) pour comparer à nouveau les différences entre chaque approche.
+
+## Indice 
+
+7. Vous pouvez utiliser la commande `% timeit` pour calculer le temps d'execution. 
+
+8. Pour 'jitter' une fonction, il suffit soit de la décorer avec `@jax.jit` ou d'utiliser `jax.jit(your_function)`.
+
+## Solution
+
+### 7. Comparaison des temps de calcul
+
+```{python}
+## On utilise %timeit pour mesurer les temps d'exécution
+%timeit jacobian_manual(x, W, b)
+%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
+%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
+```
+On peut constater que la dérivée manuelle est la plus rapide, tandis que `jax.jacrev` et `jax.jacfwd` sont comparables dans notre exemple. De manière générale, les différences de temps vont varier en fonction de la taille des entrées et des sorties. Il faut privilégier `jacrev` lorsque la dimension de sortie est petite ( $d_\text{output} \ll d_\text{input}$), et `jacfwd` lorsque la dimension d'entrée est petite ($d_\text{output} \gg d_\text{input}$).
+
+### 8. Comparaison des temps de calcul avec JIT
+
+Le jitting est une technique d'optimisation qui compile une fonction pour une exécution (parfois beaucoup) plus rapide. En JAX, c'est fait très simplement avec `jax.jit`.
+
+```{python}
+# On redéfinit la fonction f et ses gradients avec JIT
+f_jit = jax.jit(lambda x: f(x, W, b))
+jac_manual_jit = jax.jit(lambda x: jacobian_manual(x, W, b))
+jac_fwd_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x), argnums=0))
+jac_bwd_jit = jax.jit(jax.jacrev(lambda x: f_jit(x), argnums=0))
+```
+
+Il est important de faire un "warm-up" des fonctions JIT avant de mesurer les temps d'exécution, car la première exécution inclut le temps de compilation.
+
+```{python}
+# Warm-up from module import names
+jac_manual_jit(x)
+jac_fwd_jit(x)
+jac_bwd_jit(x)
+```
+
+Puis le benchmarking:
+
+```{python}
+%timeit jac_manual_jit(x)
+%timeit jac_fwd_jit(x)
+%timeit jac_bwd_jit(x)
+```
+
+On peut constater que le jitting réduit considérablement les temps d'exécution pour toutes les méthodes. La dérivée manuelle reste la plus rapide, mais la différence avec `jax.jacrev` devient négligeable. Le jitting rend l'autodifférentiation très compétitive en termes de performance, ce qui est un avantage majeur de JAX pour les applications de machine learning et d'optimisation numérique.
+
+:::
+
+# Partie Hugo : Application au calcul de la Hessienne \[30 minutes\]
+
+Cette 3ème partie a pour but d'introduire et de faire utiliser les fonctions de dérivée forward et de dérivée backward codées avant (composition des deux), le tout après une explication mathématique de ce qu'il se passe.
+
+https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-using-both-forward-and-reverse-mode
+
+## Discussion de l'utilité (exemples complexes et tordus...) \[15 min\]
+
+Tous
+
+4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
+
+
 ---
 
-### 5. Comparaison des temps de calcul
-
-> Les benchmarks doivent être faits après **compilation JIT**.
-
-```{python}
-
-# ## On redéfinit la fonction $f$ et ses gradients avec JIT
-
-# f_jit = jax.jit(lambda x: f(x, W, b))
-# jac_manual_jit = jax.jit(lambda x: jacobian_manual(x, W, b))
-# jac_fwd_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x, W, b), argnums=0))
-# jac_bwd_jit = jax.jit(jax.jacrev(lambda x: f_jit(x, W, b), argnums=0))
-
-# jac_grad_vmap_jit = jax.jit(
-# lambda x: jax.vmap(lambda i: grad_f_i(i)(x))(jnp.arange(2)))
-```
-
-```{python}
-# ## Warm-up
-# jac_manual_jit(x)
-# jac_bwd_jit(x)
-# jac_fwd_jit(x)
-# jac_grad_vmap_jit(x)
-```
-
-```{python}
-# %timeit jac_manual_jit(x)
-# %timeit jac_bwd_jit(x)
-# %timeit jac_fwd_jit(x)
-# %timeit jac_grad_vmap_jit(x)
-```
-
----
-
-## Conclusion
+# Conclusion
 
 - La dérivation **manuelle** est la plus rapide et la plus contrôlable, mais peu scalable. Ici elle est aussi longue que `jacrev`.
 - `jacrev`  est souvent préférable quand `dim_sortie`$=\dim(f(x))$ est petite (notre cas ici). Ce cadre correspond exactement à ce qui se passe dans une **couche de réseau de neurones**, et se généralise naturellement à des architectures plus profondes.
