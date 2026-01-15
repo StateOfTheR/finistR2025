@@ -1,5 +1,5 @@
 ---
-title: "Tutoriel de différentiation automatique - STOR 9/01/2026"
+title: "Tutoriel de différentiation automatique - HappyR 9/01/2026"
 from: markdown+emoji
 lang: fr
 format: html
@@ -36,11 +36,10 @@ L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JV
 :::
 
 ::: callout-note
-## Installation de l'environnement \[en amont\]
+## Installation package \[en amont\]
 
--   Envoyer mail à STOR et MIA PS
--   Dire que ni la connaissance de JAX ni de l'autodiff n'est nécessaire en amont
--   nouvel environment python
+Le seul package nécessaire au tutoriel est [**JAX**](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html).
+Pour l'installation:
 -   pip install jax
 :::
 
@@ -224,7 +223,7 @@ En pratique, la fonction `jax.vjp` est définie par $\texttt{jax.jvp}: (f, \math
 
 :::
 
-# Implémentation de l'exemple simple \[75 minutes\]
+# Implémentation de l'exemple en JAX \[75 minutes\]
 
 ## Partie Lucia
 
@@ -242,7 +241,7 @@ $$
 \frac{d}{dz} \tanh(z) = 1 - \tanh^2(z).
 $$
 
-La jacobienne de $f$ est donc
+La jacobienne de $f$ en $\mathbf{x}$ est donc
 $$
 J_f(\mathbf{x}) = \begin{bmatrix}
 1 - \tanh^2(z)) & 0 \\
@@ -270,13 +269,26 @@ def f(x, W, b):
   return jnp.tanh(W @ x + b)
 ```
 
+`jnp` est l’équivalent de numpy mais compatible avec JAX.
+
+::: callout-note
+## Aléa dans JAX 
+La gestion de l'aléa dans JAX est assez particulière.
+L’aléa est fonctionnel et contrôlé par une *clé* :
+
+- On crée une clé : `key = jax.random.PRNGKey(seed)`
+- Chaque tirage consomme la clé $\rightarrow$ il faut la scinder : `key, subkey = jax.random.split(key)`
+- Les fonctions aléatoires prennent toujours une clé en argument :
+- `x = jax.random.normal(subkey, shape)`
+:::
+
 On testera les dérivées en un point donné :
 
 ```{python}
 x = jnp.array([0.2, -0.1, 0.5, 1.0])
 ```
 
-::: callout-note
+::: callout-important
 Ici on calcule la dérivée par rapport à $\mathbf{x}$ en gardant $W$ et $\mathbf{b}$ comme des paramètres. Dans l'apprentissage d'un réseau de neurones, on calcule plutôt les dérivées par rapport à $W$ et $\mathbf{b}$, mais le principe sera exactement le même!
 :::
 
@@ -285,14 +297,25 @@ Ici on calcule la dérivée par rapport à $\mathbf{x}$ en gardant $W$ et $\math
 
 ## Questions
 
-1. Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée 
+1. Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée dans une fonction `jacobian_manual()`
 2. En utilisant `jax.jacfwd` et `jax.jacbwd` (le principe de ces fonctions est vu en Section 1) 
 3. En utilisant `jax.grad` + `jax.vmap`
+4. Contrôler que toutes les versions donnent le même résultats.
 
 ## Indice
 
+2. Les fonctions `jax.jacrev` et `jax.jacbwd` prennent en entrée au moins une fonction et retourne un *callable*, donc une autre fonction.
+Il faut créer une fonction anonmye `lambda x: f(x, W, b)` pour considérer `f` uniquement comme fonction de `x`
+L'argument `argnums` de `jax.jacrev` et `jax.jacbwd` dit par rapport à quelle variable on veut dériver
+
+3. `jax.grad` calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. 
+Il faut utiliser `jax.vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
+
+4. Vous pouvez utiliser la fonction `jnp.allclose()`.
+
 ## Réponse
 
+### 1. Jacobienne à la main
 
 ```{python}
 def jacobian_manual(x, W, b):
@@ -324,7 +347,6 @@ idx_jac = 0
 ```{python}
 J_bwd = jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac) 
 
-
 J_bwd(x)
 ```
 
@@ -352,7 +374,7 @@ J_fwd(x)
 
 ### 3. Jacobienne avec gradient et vmap (`jax.grad` + `jax.vmap`)
 
-`jax.grad` est une autre fonction qui calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. Pour pouvoir l'utiliser, on doit donc calculer le gradient de chaque composante de `f` séparément et ensuite utiliser `vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
+`jax.grad` est une autre fonction qui calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. Pour pouvoir l'utiliser, on doit donc calculer le gradient de chaque composante de `f` séparément et ensuite utiliser `jax.vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
 
 L’idée de `vmap` est la suivante : *vectoriser une fonction qui agit sur un seul élément pour qu’elle agisse sur tout un lot d’éléments*.
 
@@ -406,9 +428,8 @@ print(jnp.max(jnp.abs(J_manual - J_fwd(x))))
 
 :::
 
-#### COFFEE BREAK + SOCIAL TIME \[15 minutes\]
 
-Demander à Julie si on peut acheter une galette des rois :wink:
+#### COFFEE BREAK + SOCIAL TIME \[15 minutes\]
 
 
 ## Implémentation des JVP et VJP pour une fonction personnalisée
@@ -417,19 +438,19 @@ Demander à Julie si on peut acheter une galette des rois :wink:
 
 ## Questions
 
-4.  Calculer la dérivée de notre fonction en utilisant les fonctions `jax.jvp` et `jax.vjp` fournies en JAX. 
-5.  Redéfinissez *manuellement* les opérateurs `jvp` et `vjp` associés à notre exemple, comme si l'on chercher à créer un brique élémentaire pour la chaine de dérivation.
+5.  Calculer la dérivée de notre fonction en utilisant les fonctions `jax.jvp` et `jax.vjp` fournies en JAX. 
+6.  Redéfinissez *manuellement* les opérateurs `jvp` et `vjp` associés à notre exemple, comme si l'on chercher à créer un brique élémentaire pour la chaine de dérivation.
 
 Vérifier à chaque fois que les différentes approches donnent le même résultat que la version analytique.
 
 ## Indice
 
-4. Pour cela nous pouvons utiliser `jax.jvp(f, (x,), (v,))` et `jax.vjp(f, x)` (puis appliquer la fonction retournée par `jax.vjp` sur un vecteur cotangent `u`).
-5. Vous pouvez utiliser les fonctions `jax.custom_jvp` et `jax.custom_vjp` pour cette tâche. Plus spécifiquement, vous devez définir une fonction `f_custom_jvp` et `f_custom_vjp` qui encapsule la fonction `f`, puis définir les règles `jvp` et `vjp` associées en utilisant les dérivées analytiques que nous avons calculées précédemment.
+5. Pour cela nous pouvons utiliser `jax.jvp(f, (x,), (v,))` et `jax.vjp(f, x)` (puis appliquer la fonction retournée par `jax.vjp` sur un vecteur cotangent `u`).
+6. Vous pouvez utiliser les fonctions `jax.custom_jvp` et `jax.custom_vjp` pour cette tâche. Plus spécifiquement, vous devez définir une fonction `f_custom_jvp` et `f_custom_vjp` qui encapsule la fonction `f`, puis définir les règles `jvp` et `vjp` associées en utilisant les dérivées analytiques que nous avons calculées précédemment.
 
 ## Réponse
 
-### 4. Jacobienne avec jax.jvp et jax.vjp
+### 5. Jacobienne avec jax.jvp et jax.vjp
 
 Tout d'abord, rappelons que le jvp et le vjp permettent de calculer des produits entre la jacobienne et un vecteur, respectivement dans le sens forward (jvp) et backward (vjp). Nous allons donc définir des vecteurs tangent et cotangent pour tester ces fonctions.
 
@@ -460,7 +481,7 @@ print("JVP matches manual:", jnp.allclose(jvp_result, jvp_check))
 print("VJP matches manual:", jnp.allclose(vjp_result, vjp_check))
 ```
 
-### 5. Redéfinition manuelle de jvp et vjp
+### 6. Redéfinition manuelle de jvp et vjp
 
 Nous allons redéfinir le `jvp` et le `vjp` de notre fonction `f` comme s'il s'agissait d'une brique élémentaire pour la chaîne de différentiation automatique. Pour cela, nous utiliserons les décorateurs `@jax.custom_jvp` et `@jax.custom_vjp`.
 
