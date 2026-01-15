@@ -541,6 +541,7 @@ Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le
 
 ### 7. Comparaison des temps de calcul
 
+
 ```{python}
 ## On utilise %timeit pour mesurer les temps d'exécution
 %timeit jacobian_manual(x, W, b)
@@ -582,13 +583,158 @@ On peut constater que le jitting réduit considérablement les temps d'exécutio
 
 :::
 
-# Partie Hugo : Application au calcul de la Hessienne \[30 minutes\]
+# Partie Hugo : Application au calcul de la hessienne \[30 minutes\]
 
-Cette 3ème partie a pour but d'introduire et de faire utiliser les fonctions de dérivée forward et de dérivée backward codées avant (composition des deux), le tout après une explication mathématique de ce qu'il se passe.
+## Calculs de la hessienne
 
-https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-using-both-forward-and-reverse-mode
+Ainsi si la matrice jacobienne représente l'application linéaire qui donne les
+variations de $f$ pour un changement infinitésimal des entrées, alors on peut
+dire que la matrice hessienne représente l'opérateur qui donne les variations
+de la matrice jacobienne de $f$ pour un changement infinitésimal en entrée.
+C'est donc un opérateur qui prend en entrée un vecteur de l'espace tangent et
+donne une matrice.
 
-## Discussion de l'utilité (exemples complexes et tordus...) \[15 min\]
+La hessienne de $f$ ($f$ telle que $f\colon\mathbb{R}^4\to\mathbb{R}^2$)
+au point $\mathbf{x}$ notée $H_f(\mathbf{x})$ est un
+opérateur linéaire (qui produit une matrice) tel que $H_f\colon\mathbb{R}^4
+\times (\mathbb{R}^4\to \mathbb{R}^2)$. On peut donc lui associer une matrice à
+trois dimensions, que l'on nommera, peut-être avec un petit abus de langage,
+matrice hessienne. On peut aussi voir $H_f$ comme une application bilinéaire :
+$H_f\colon(\mathbb{R}^4\times\mathbb{R}^4)\to\mathbb{R}^2$. On peut montrer que
+les deux premiers vecteurs tangents sont interchangeables, ce qui en fait une
+forme bilinéaire symétrique.
+
+De même, si on ne considère pas un point $\mathbf{x}$ en particulier, on peut voir $H_f$ comme une application $H_f: \mathbb{R}^4 \to \mathbb{R}^4 \to \mathbb{R}^4 \to \mathbb{R}^2$.
+
+
+::: {.panel-tabset}
+
+## Question
+
+Calculer la matrice hessienne associée $H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),$ de la manière la plus simple possible avec JAX. Afficher les dimensions de l'objet rétourné.
+
+## Réponse
+
+```{python}
+H_f_x = jax.hessian(f)(x, W, b)
+
+print(H_f_x, H_f_x.shape)
+```
+
+:::
+
+Nous avons dit que la hessienne s'interprétait comme les variations des variations (la dérivée de la jacobienne), essayons alors de reconstruire `jax.hessian` avec les fonctions plus bas-niveau vues plus tôt.
+
+
+::: {.panel-tabset}
+
+## Question
+
+Calculer la matrice hessienne associée $H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),$ en utilisant `jax.jacfwd` et `jax.jacrev`.
+
+## Indice
+
+$\circ$
+
+## Réponse
+
+```{python}
+H_f_x = jax.jacfwd(jax.jacrev(f))(x, W, b)
+H_f_x_1 = jax.jacfwd(jax.jacfwd(f))(x, W, b)
+H_f_x_2 = jax.jacrev(jax.jacrev(f))(x, W, b)
+H_f_x_3 = jax.jacrev(jax.jacfwd(f))(x, W, b)
+
+print(H_f_x, H_f_x.shape)
+
+assert jnp.allclose(H_f_x, H_f_x_1)
+assert jnp.allclose(H_f_x, H_f_x_2)
+assert jnp.allclose(H_f_x, H_f_x_3)
+
+print("All good!")
+```
+
+:::
+
+::: {.panel-tabset}
+
+## Question
+
+En théorie (question papier/crayon), parmi toutes les solutions possibles à la
+question précédente, quelle devrait être la plus efficace en terme de coût
+calculatoire ? La moins efficace ?
+
+## Indice
+
+Se rappeler quand il est préférable d'utiliser les JVP (mécanique derrière `jacfwd`) et quand il est préférable d'utiliser les VJP (mécanique derrière `jacrev`).
+
+## Réponse
+
+Un JVP (resp. VJP) avec $\mathbf{v}$ de la forme $(0, ..., 0, 1, 0, ..., 0)$ est capable de
+dévoiler une colonne (resp. ligne) de la matrice jacobienne. Il vaut donc mieux vectoriser
+les appels aux JVP (resp. VJP) lorsque l'on veut calculer une matrice jacobienne dans
+$\mathbb{R}^{m\times n}$ avec $n\leq m$ (resp. $m\leq n$).
+
+Souvenons-nous aussi que `jacfwd` (resp. `jacrev`) vectorise des appels de JVP
+(resp. VJP) avec des $\mathbf{v}$ tels que ci-dessus.
+
+Lors du calcul de la matrice jacobienne, il vaut mieux privilégier une approche
+*reverse* car $J_f(\mathbf{x})\colon\mathbb{R}^4\to\mathbb{R}^2$, c'est une
+matrice plus large que grande. À l'inverse, lors du calcul de la dérivée de la
+jacobienne la dimension de sortie est plus grande
+$H_f(\mathbf{x})\colon\mathbb{R}^4\to(\mathbb{R}^4\to\mathbb{R}^2)$, il vaut
+mieux privilégier une approche *forward*.
+
+Ainsi théoriquement, pour $f$, on préfère `jacfwd`$\circ$`jacrev` et on évite `jacrev`$circ$`jacfwd`.
+
+NB : Ici les dimensions sont tellement petites que la différence entre les modes de calculs n'est peut-être pas significative. Il faudrait profiler le code.
+
+:::
+
+Regardons ce qu'il se passe pour `jax.jacfwd`$\circ$`jax.jacfwd` !
+
+::: {.panel-tabset}
+
+## Question
+
+Calculer la matrice hessienne associée $H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),$ en utilisant `jax.jvp`.
+
+## Indice
+Les lignes suivantes calculent la matrice jacobienne en vectorisant les JVP sur la base de l'espace tangent ($\mathbb{R}^4$). Nous proposons de suivre la même logique en composant deux JVP.
+
+```{python}
+# Fix W and b for clarity
+f_fixed = lambda x: f(x, W, b)
+
+Jac_f_x_fun = jax.vmap(lambda fun, p, t: jax.jvp(fun, p, t)[1], (None, None, 0))
+Jac_f_x = Jac_f_x_fun(f_fixed, (x,), (jnp.eye(4),)).T
+print(Jac_f_x.shape)
+```
+
+## Réponse
+
+Plutôt que deux composer 2 appels à `jax.vmap` ce qui paraît syntaxiquement complexe, nous créons le tableau du produit cartésien des indices des lignes de 2 matrices identités (2 bases de l'espace tangent). Nous parcourons ensuite ces paires d'indices avec un seul `jax.vmap` et composons les 2 JVP, où chacun prend un vecteur tangent indicé par un des deux indice de la paire.
+
+Ce qui est intéressant ici c'est que nous voyons assez bien la hessienne sous l'angle application bilinéaire s'appliquant à 2 vecteurs de l'espace tangent (rappel : $H_f(\mathbf{x})\colon \mathbb{R}^4\to\mathbb{R}^4\to\mathbb{R}^2$).
+
+```{python}
+# Fix W and b for clarity
+f_fixed = lambda x: f(x, W, b)
+
+cartesian_prod = jnp.indices((4, 4)).reshape(2,-1).T
+
+H_f_x_4 = jax.vmap(lambda pair: jax.jvp(lambda x: jax.jvp(f_fixed, (x,), (jnp.eye(4)[pair[1]],))[1], (x,), (jnp.eye(4)[pair[0]],))[1], (0,))(cartesian_prod).T.reshape(2, 4, 4)
+
+assert jnp.allclose(H_f_x, H_f_x_4)
+print(H_f_x_4.shape)
+print("All good!")
+```
+
+:::
+
+## HVP et VHP
+
+
+# Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
 
 Tous
 
