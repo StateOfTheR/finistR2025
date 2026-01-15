@@ -262,8 +262,10 @@ key = jax.random.PRNGKey(0)
 
 dim_entree = 4
 dim_sortie = 2
-W = jax.random.normal(key, (dim_sortie, dim_entree))
-b = jax.random.normal(key, (dim_sortie,))
+key, subkey = jax.random.split(key)
+W = jax.random.normal(subkey, (dim_sortie, dim_entree))
+key, subkey = jax.random.split(key)
+b = jax.random.normal(subkey, (dim_sortie,))
 
 def f(x, W, b):
   return jnp.tanh(W @ x + b)
@@ -742,7 +744,17 @@ f_fixed = lambda x: f(x, W, b)
 
 cartesian_prod = jnp.indices((4, 4)).reshape(2,-1).T
 
-H_f_x_4 = jax.vmap(lambda pair: jax.jvp(lambda x: jax.jvp(f_fixed, (x,), (jnp.eye(4)[pair[1]],))[1], (x,), (jnp.eye(4)[pair[0]],))[1], (0,))(cartesian_prod).T.reshape(2, 4, 4)
+H_f_x_4 = jax.vmap(
+    lambda pair: jax.jvp(
+        lambda x: jax.jvp(
+            f_fixed,
+            (x,),
+            (jnp.eye(4)[pair[1]],)
+        )[1],
+        (x,),
+        (jnp.eye(4)[pair[0]],)
+    )[1], (0,)
+)(cartesian_prod).T.reshape(2, 4, 4)
 
 assert jnp.allclose(H_f_x, H_f_x_4)
 print(H_f_x_4.shape)
@@ -761,6 +773,42 @@ $$
 (\mathbf{x},\mathbf{v})&\mapsto H_f(\mathbf{x})\mathbf{v}
 \end{align*}
 $$
+
+$$
+\begin{align*}
+\texttt{vhp}_f\colon\mathbb{R}^4\times\mathbb{R}^2&\to\mathbb{R}^4\times\mathbb{R}^4\\
+(\mathbf{x},\mathbf{u})&\mapsto \mathbf{u}^TH_f(\mathbf{x})
+\end{align*}
+$$
+
+(où il faut définir rigoureuseument le produit $H_f(\mathbf{x})\mathbf{v}$ dans [cet article](https://arxiv.org/pdf/1911.13292)). 
+
+En dérivant $J_{f\circ g}(x)=J_f(g(x)) + J_g(x)$, on peut voir que :
+
+$$
+H_{f\circ g}(\mathbf{x}) = (H_f(g(x)) J_g(x)) J_g(x) + J_f(g(x))H_g(x)
+$$
+
+Attention, les produits de l'équation précédente sont définis au sens de la proposition 1 de [cet article](https://arxiv.org/pdf/1911.13292).
+De plus on remarque que dans le cas de $g$ application linéaire (c'est notre cas ici), le deuxième terme est nul.
+
+::: {.panel-tabset}
+
+## Question
+
+## Indice
+
+## Réponse
+
+:::
+ 
+
+# Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
+
+Tous
+
+4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
+
 
 ---
 
