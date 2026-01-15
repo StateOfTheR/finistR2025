@@ -544,9 +544,10 @@ Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le
 
 ```{python}
 ## On utilise %timeit pour mesurer les temps d'exécution
-%timeit jacobian_manual(x, W, b)
-%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
-%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
+# NOTE 
+####%timeit jacobian_manual(x, W, b)
+####%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
+####%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
 ```
 On peut constater que la dérivée manuelle est la plus rapide, tandis que `jax.jacrev` et `jax.jacfwd` sont comparables dans notre exemple. De manière générale, les différences de temps vont varier en fonction de la taille des entrées et des sorties. Il faut privilégier `jacrev` lorsque la dimension de sortie est petite ( $d_\text{output} \ll d_\text{input}$), et `jacfwd` lorsque la dimension d'entrée est petite ($d_\text{output} \gg d_\text{input}$).
 
@@ -574,9 +575,10 @@ jac_bwd_jit(x)
 Puis le benchmarking:
 
 ```{python}
-%timeit jac_manual_jit(x)
-%timeit jac_fwd_jit(x)
-%timeit jac_bwd_jit(x)
+# NOTE 
+####%timeit jac_manual_jit(x)
+####%timeit jac_fwd_jit(x)
+####%timeit jac_bwd_jit(x)
 ```
 
 On peut constater que le jitting réduit considérablement les temps d'exécution pour toutes les méthodes. La dérivée manuelle reste la plus rapide, mais la différence avec `jax.jacrev` devient négligeable. Le jitting rend l'autodifférentiation très compétitive en termes de performance, ce qui est un avantage majeur de JAX pour les applications de machine learning et d'optimisation numérique.
@@ -684,7 +686,7 @@ jacobienne la dimension de sortie est plus grande
 $H_f(\mathbf{x})\colon\mathbb{R}^4\to(\mathbb{R}^4\to\mathbb{R}^2)$, il vaut
 mieux privilégier une approche *forward*.
 
-Ainsi théoriquement, pour $f$, on préfère `jacfwd`$\circ$`jacrev` et on évite `jacrev`$circ$`jacfwd`.
+Ainsi théoriquement, pour $f$, on préfère `jacfwd`$\circ$`jacrev` et on évite `jacrev`$\circ$`jacfwd`.
 
 NB : Ici les dimensions sont tellement petites que la différence entre les modes de calculs n'est peut-être pas significative. Il faudrait profiler le code.
 
@@ -731,7 +733,16 @@ print("All good!")
 
 :::
 
-## HVP et VHP
+## HVP et VHP (bonus)
+
+De manière similaire à la définition du JVP et du VJP, les opérations HVP et VHP sont définies par:
+
+$$
+\begin{align*}
+\texttt{hvp}_f\colon\mathbb{R}^4\times\mathbb{R}^4&\to\mathbb{R}^4\times\mathbb{R}^2\\
+(\mathbf{x},\mathbf{v})&\mapsto H_f(\mathbf{x})\mathbf{v}
+\end{align*}
+$$
 
 
 # Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
