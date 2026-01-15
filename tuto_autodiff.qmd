@@ -29,10 +29,11 @@ date-format: "DD MMMM YYYY"
 ---
 
 ::: callout-note
-L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JVP (Jacobian Vector Product) et le VJP (Vector Jacobian Product) d'une fonction qui n'est pas disponible dans les primitives fournies par JAX/Torch. Les deux cas d'usage envisagés sont:
+L’objectif de ce tutoriel est triple :
 
--   l'utilisation d'une fonction non différentiable pour laquelle on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX
--   l'utilisation d'une fonction dont une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX
+- présenter les bases mathématiques du calcul de la Jacobienne d’une fonction arbitrairement complexe par différentiation automatique (modes forward et backward),
+- mettre ces concepts en pratique en Python,
+- comparer les performances computationnelles des différentes approches.
 :::
 
 ::: callout-note
@@ -40,7 +41,8 @@ L'obectif de ce tutoriel est de montrer comment utiliser JAX pour calculer le JV
 
 Le seul package nécessaire au tutoriel est [**JAX**](https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html).
 Pour l'installation:
--   pip install jax
+
+-  pip install jax
 :::
 
 ## Théorie avec illustration sur un exemple simple \[45 minutes\]
@@ -225,8 +227,6 @@ En pratique, la fonction `jax.vjp` est définie par $\texttt{jax.jvp}: (f, \math
 
 # Implémentation de l'exemple en JAX \[75 minutes\]
 
-## Partie Lucia
-
 ### Rappel des dérivées analytiques pour l'implémentation
 
 On note
@@ -407,8 +407,7 @@ Dans la fonction `vmap`, on observe un argument en plus de la fonction à mapper
 - `in_axes=(0, None, None, None)` est le *mapping pattern* de `vmap` :
   - `0` : on vectorise sur l’argument `i`
   - `None` : `x, W, b` sont partagés (pas vectorisés)
-
-`jnp.arange(dim_sortie)` fournit les indices $i = 0, 1, ..., \text{dim_sortie}−1$ pour lesquels on veut calculer le gradient.
+- `jnp.arange(dim_sortie)` fournit les indices $i = 0, 1, ..., \texttt{dim\_sortie}−1$ pour lesquels on veut calculer le gradient.
 
 Au final, la sortie est bien la matrice Jacobienne $(2 \times 4)$.
 
@@ -579,8 +578,8 @@ Le jitting est une technique d'optimisation qui compile une fonction pour une ex
 # On redéfinit la fonction f et ses gradients avec JIT
 f_jit = jax.jit(lambda x: f(x, W, b))
 jac_manual_jit = jax.jit(lambda x: jacobian_manual(x, W, b))
-jac_fwd_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x), argnums=0))
-jac_bwd_jit = jax.jit(jax.jacrev(lambda x: f_jit(x), argnums=0))
+jac_fwd_jit = jax.jit(jax.jacfwd(lambda x: f_jit(x), argnums=idx_jac))
+jac_bwd_jit = jax.jit(jax.jacrev(lambda x: f_jit(x), argnums=idx_jac))
 ```
 
 Il est important de faire un "warm-up" des fonctions JIT avant de mesurer les temps d'exécution, car la première exécution inclut le temps de compilation.
@@ -604,7 +603,7 @@ On peut constater que le jitting réduit considérablement les temps d'exécutio
 
 :::
 
-# Partie Hugo : Application au calcul de la hessienne \[30 minutes\]
+# Application au calcul de la hessienne \[30 minutes\]
 
 ## Calculs de la hessienne
 
@@ -763,20 +762,18 @@ $$
 \end{align*}
 $$
 
-
-# Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
-
-Tous
-
-4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
-
-
 ---
 
-# Conclusion
+# Conclusion et conclusion \[5 minutes\]
 
 - La dérivation **manuelle** est la plus rapide et la plus contrôlable, mais peu scalable. Ici elle est aussi longue que `jacrev`.
 - `jacrev`  est souvent préférable quand `dim_sortie`$=\dim(f(x))$ est petite (notre cas ici). Ce cadre correspond exactement à ce qui se passe dans une **couche de réseau de neurones**, et se généralise naturellement à des architectures plus profondes.
-- `jacfwd` est souvent préférable quand `dim_entree`$=$\dim(x)$ est petite.
+- `jacfwd` est souvent préférable quand `dim_entree`$=\dim(x)$ est petite.
+
+
+La rédifinition de JVP (Jacobian Vector Product) et VJP (Vector Jacobian Product) d'une fonction qui n'est pas disponible dans les primitives fournies par JAX pourraient être utiles dans les cas suivants :
+
+-   l'utilisation d'une fonction non différentiable pour laquelle on veut écrire une dérivée "non-standard" afin de pouvoir l'utiliser dans JAX
+-   l'utilisation d'une fonction dont une approximation analytique de la dérivée est disponible mais qui n'est pas implémentée dans JAX
 
 
