@@ -796,6 +796,8 @@ De plus on remarque que dans le cas de $g$ application linéaire (c'est notre ca
 
 ## Question
 
+Utiliser la formule précédente pour calculer $H_f_(\mathbf{x})$
+
 ## Indice
 
 ## Réponse
