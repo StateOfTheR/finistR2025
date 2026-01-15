@@ -565,10 +565,9 @@ Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le
 
 ```{python}
 ## On utilise %timeit pour mesurer les temps d'exécution
-# NOTE 
-####%timeit jacobian_manual(x, W, b)
-####%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
-####%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
+%timeit jacobian_manual(x, W, b)
+%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
+%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
 ```
 On peut constater que la dérivée manuelle est la plus rapide, tandis que `jax.jacrev` et `jax.jacfwd` sont comparables dans notre exemple. De manière générale, les différences de temps vont varier en fonction de la taille des entrées et des sorties. Il faut privilégier `jacrev` lorsque la dimension de sortie est petite ( $d_\text{output} \ll d_\text{input}$), et `jacfwd` lorsque la dimension d'entrée est petite ($d_\text{output} \gg d_\text{input}$).
 
@@ -596,10 +595,9 @@ jac_bwd_jit(x)
 Puis le benchmarking:
 
 ```{python}
-# NOTE 
-####%timeit jac_manual_jit(x)
-####%timeit jac_fwd_jit(x)
-####%timeit jac_bwd_jit(x)
+%timeit jac_manual_jit(x)
+%timeit jac_fwd_jit(x)
+%timeit jac_bwd_jit(x)
 ```
 
 On peut constater que le jitting réduit considérablement les temps d'exécution pour toutes les méthodes. La dérivée manuelle reste la plus rapide, mais la différence avec `jax.jacrev` devient négligeable. Le jitting rend l'autodifférentiation très compétitive en termes de performance, ce qui est un avantage majeur de JAX pour les applications de machine learning et d'optimisation numérique.
