@@ -566,9 +566,9 @@ Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le
 
 ```{python}
 ## On utilise %timeit pour mesurer les temps d'exécution
-%timeit jacobian_manual(x, W, b)
-%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
-%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
+##%timeit jacobian_manual(x, W, b)
+##%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)
+##%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)
 ```
 On peut constater que la dérivée manuelle est la plus rapide, tandis que `jax.jacrev` et `jax.jacfwd` sont comparables dans notre exemple. De manière générale, les différences de temps vont varier en fonction de la taille des entrées et des sorties. Il faut privilégier `jacrev` lorsque la dimension de sortie est petite ( $d_\text{output} \ll d_\text{input}$), et `jacfwd` lorsque la dimension d'entrée est petite ($d_\text{output} \gg d_\text{input}$).
 
@@ -596,9 +596,9 @@ jac_bwd_jit(x)
 Puis le benchmarking:
 
 ```{python}
-%timeit jac_manual_jit(x)
-%timeit jac_fwd_jit(x)
-%timeit jac_bwd_jit(x)
+##%timeit jac_manual_jit(x)
+##%timeit jac_fwd_jit(x)
+##%timeit jac_bwd_jit(x)
 ```
 
 On peut constater que le jitting réduit considérablement les temps d'exécution pour toutes les méthodes. La dérivée manuelle reste la plus rapide, mais la différence avec `jax.jacrev` devient négligeable. Le jitting rend l'autodifférentiation très compétitive en termes de performance, ce qui est un avantage majeur de JAX pour les applications de machine learning et d'optimisation numérique.
@@ -763,9 +763,9 @@ print("All good!")
 
 :::
 
-## HVP et VHP (bonus)
+## Hessian-vector product et Vector-Hessian product
 
-De manière similaire à la définition du JVP et du VJP, les opérations HVP et VHP sont définies par:
+De manière similaire à la définition du JVP et du VJP, les opérations HVP et VHP sont définies par :
 
 $$
 \begin{align*}
@@ -783,34 +783,81 @@ $$
 
 (où il faut définir rigoureuseument le produit $H_f(\mathbf{x})\mathbf{v}$ dans [cet article](https://arxiv.org/pdf/1911.13292)). 
 
-En dérivant $J_{f\circ g}(x)=J_f(g(x)) + J_g(x)$, on peut voir que :
+Leur intérêt réside dans le fait qu'on n'instancie pas la matrice hessienne dans sa globalité. On a néanmoins besoin d'instancier les matrices jacobiennes des calculs intermédiaires.
 
-$$
-H_{f\circ g}(\mathbf{x}) = (H_f(g(x)) J_g(x)) J_g(x) + J_f(g(x))H_g(x)
-$$
+### HVP
 
-Attention, les produits de l'équation précédente sont définis au sens de la proposition 1 de [cet article](https://arxiv.org/pdf/1911.13292).
-De plus on remarque que dans le cas de $g$ application linéaire (c'est notre cas ici), le deuxième terme est nul.
+La
+[documentation de JAX](https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-with-grad-of-grad)
+donne de exemples concrets d'utilisation du HVP.
 
 ::: {.panel-tabset}
 
 ## Question
 
-Utiliser la formule précédente pour calculer $H_f_(\mathbf{x})$
+1. Écrire la fonction $\texttt{hvp}_f$ en composant les dérivations forward. 
+2. Calculer $\texttt{hvp}_f(\mathbf{x},(1, 0, 0, 0))$, avec le même $\mathbf{x}$ que précédemment.
+3. Quelles parties de la matrice hessienne révèle-t-on avec le calcul précédent ?
 
 ## Indice
 
+Voir les exemples de la documentation de JAX.
+
 ## Réponse
+
+```{python}
+f_fixed = lambda x: f(x, W, b)
+
+# 1.
+def hvp(f, primals, tangents):
+    # on a besoin de calculer une matrice jacobienne
+    return jax.jvp(jax.jacrev(f), primals, tangents)[1]
+
+# 2.
+H_f_x_5_partial = hvp(f_fixed, (x,), (jnp.array([1., 0., 0., 0.]),))
+
+# 3.
+assert jnp.allclose(H_f_x_5_partial[0, :], H_f_x[0, :, 0])
+print("On découvre la première colonne du première bloc")
+assert jnp.allclose(H_f_x_5_partial[1, :], H_f_x[1, :, 0])
+print("On découvre la première colonne du deuxième bloc")
+```
+
+:::
+
+### Compatibilité avec la *chain rule* ? (bonus)
+
+
+::: {.panel-tabset}
+
+## Question
+
+Peut-on composer les HVP et / ou VHP comme on l'a fait pour les VJP et JVP ? Si oui, est-ce avantageux de le faire ?
+
+## Indice
+
+Notons que avec $f=f_2\circ f_1$, on a $J_{{f_2}\circ {f_1}}(\mathbf{x})=J_{f_2}({f_1}(\mathbf{x})) + J_{f_1}(\mathbf{x})$, et on peut voir que :
+
+$$
+H_{{f_2}\circ {f_1}}({f_2}{\mathbf{x}}) = (H_{f_2}({f_1}(\mathbf{x})) J_{f_1}(\mathbf{x})) J_{f_1}(\mathbf{x}) + J_{f_2}({f_1}(\mathbf{x}))H_{f_1}(\mathbf{x})
+$$
+
+Attention, les produits de l'équation précédente sont définis au sens de la proposition 1 de l'article cité précédemment.
+De plus on remarque que dans le cas de $f_1$ application linéaire (c'est notre cas ici), le deuxième terme est nul.
+
+## Réponse
+
 
 :::
  
 
+<!--
 # Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
 
 Tous
 
 4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
-
+-->
 
 ---
 
