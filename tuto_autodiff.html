@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mahendra Mariadassou">
+<meta name="author" content="Hugo Gangloff">
+<meta name="author" content="Arthur Leroy">
+<meta name="author" content="Lucia Clarotto">
+
+<title>Tutoriel de différentiation automatique - HappyR 9/01/2026 – Finist’R 2025</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-60b0263506cd53edaa55cb35cc4fcac5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Pas de résultats",
+    "search-matching-documents-text": "documents trouvés",
+    "search-copy-link-title": "Copier le lien vers la recherche",
+    "search-hide-matches-text": "Cacher les correspondances additionnelles",
+    "search-more-match-text": "correspondance de plus dans ce document",
+    "search-more-matches-text": "correspondances de plus dans ce document",
+    "search-clear-button-title": "Effacer",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Annuler",
+    "search-submit-button-title": "Envoyer",
+    "search-label": "Recherche"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Finist’R 2025</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Recherche"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Basculer la navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/StateOfTheR/finistR2025"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./instructions.html"> 
+<span class="menu-text">Instructions</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-développement" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Développement</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-développement">    
+        <li>
+    <a class="dropdown-item" href="./how_to_build_your_package.html">
+ <span class="dropdown-text">How to build your package - Julia edition</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./positron.html">
+ <span class="dropdown-text">Positron</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./package_python.html">
+ <span class="dropdown-text">Python packaging</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-différentiation-automatique" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Différentiation automatique</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-différentiation-automatique">    
+        <li class="dropdown-header">Autodiff avec JAX et torch</li>
+        <li>
+    <a class="dropdown-item" href="./autodiff.html">
+ <span class="dropdown-text">Tutoriel de différentiation automatique</span></a>
+  </li>  
+        <li class="dropdown-header">Tuto autodiff StateOfTheR</li>
+        <li>
+    <a class="dropdown-item" href="./tuto_autodiff.html">
+ <span class="dropdown-text">Tutoriel de différentiation automatique - HappyR 9/01/2026</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="./animint.html"> 
+<span class="menu-text">animint2</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./hsmc.qmd"> 
+<span class="menu-text">HMSC</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./traccar.html"> <i class="bi bi-Bicycle" role="img">
+</i> 
+<span class="menu-text">GPS – traccar</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./sparse_cholesky.html"> 
+<span class="menu-text">Sparse Cholesky</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./GNNpytgeo.html"> <i class="bi bi-share-fill" role="img">
+</i> 
+<span class="menu-text">Échantillonnage pour GNN</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Sur cette page</h2>
+   
+  <ul>
+  <li><a href="#théorie-avec-illustration-sur-un-exemple-simple-45-minutes" id="toc-théorie-avec-illustration-sur-un-exemple-simple-45-minutes" class="nav-link active" data-scroll-target="#théorie-avec-illustration-sur-un-exemple-simple-45-minutes">Théorie avec illustration sur un exemple simple [45 minutes]</a>
+  <ul class="collapse">
+  <li><a href="#introduction-à-la-dérivation-automatique-avec-jax" id="toc-introduction-à-la-dérivation-automatique-avec-jax" class="nav-link" data-scroll-target="#introduction-à-la-dérivation-automatique-avec-jax">Introduction à la Dérivation Automatique avec JAX</a></li>
+  <li><a href="#dérivation-forward-jvp" id="toc-dérivation-forward-jvp" class="nav-link" data-scroll-target="#dérivation-forward-jvp">Dérivation Forward (JVP)</a></li>
+  <li><a href="#dérivation-backward-vjp" id="toc-dérivation-backward-vjp" class="nav-link" data-scroll-target="#dérivation-backward-vjp">Dérivation Backward (VJP)</a></li>
+  </ul></li>
+  <li><a href="#implémentation-de-lexemple-en-jax-75-minutes" id="toc-implémentation-de-lexemple-en-jax-75-minutes" class="nav-link" data-scroll-target="#implémentation-de-lexemple-en-jax-75-minutes">Implémentation de l’exemple en JAX [75 minutes]</a>
+  <ul class="collapse">
+  <li><a href="#rappel-des-dérivées-analytiques-pour-limplémentation" id="toc-rappel-des-dérivées-analytiques-pour-limplémentation" class="nav-link" data-scroll-target="#rappel-des-dérivées-analytiques-pour-limplémentation">Rappel des dérivées analytiques pour l’implémentation</a></li>
+  <li><a href="#imports-et-définition-de-la-fonction" id="toc-imports-et-définition-de-la-fonction" class="nav-link" data-scroll-target="#imports-et-définition-de-la-fonction">Imports et définition de la fonction</a></li>
+  <li><a href="#implémentation-des-jvp-et-vjp-pour-une-fonction-personnalisée" id="toc-implémentation-des-jvp-et-vjp-pour-une-fonction-personnalisée" class="nav-link" data-scroll-target="#implémentation-des-jvp-et-vjp-pour-une-fonction-personnalisée">Implémentation des JVP et VJP pour une fonction personnalisée</a></li>
+  <li><a href="#performance-de-lautodifférentiation" id="toc-performance-de-lautodifférentiation" class="nav-link" data-scroll-target="#performance-de-lautodifférentiation">Performance de l’autodifférentiation</a></li>
+  </ul></li>
+  <li><a href="#application-au-calcul-de-la-hessienne-30-minutes" id="toc-application-au-calcul-de-la-hessienne-30-minutes" class="nav-link" data-scroll-target="#application-au-calcul-de-la-hessienne-30-minutes">Application au calcul de la hessienne [30 minutes]</a>
+  <ul class="collapse">
+  <li><a href="#calculs-de-la-hessienne" id="toc-calculs-de-la-hessienne" class="nav-link" data-scroll-target="#calculs-de-la-hessienne">Calculs de la hessienne</a></li>
+  <li><a href="#hessian-vector-product-et-vector-hessian-product" id="toc-hessian-vector-product-et-vector-hessian-product" class="nav-link" data-scroll-target="#hessian-vector-product-et-vector-hessian-product">Hessian-vector product et Vector-Hessian product</a>
+  <ul class="collapse">
+  <li><a href="#hvp" id="toc-hvp" class="nav-link" data-scroll-target="#hvp">HVP</a></li>
+  <li><a href="#compatibilité-avec-la-chain-rule-bonus" id="toc-compatibilité-avec-la-chain-rule-bonus" class="nav-link" data-scroll-target="#compatibilité-avec-la-chain-rule-bonus">Compatibilité avec la <em>chain rule</em> ? (bonus)</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#conclusion-et-conclusion-5-minutes" id="toc-conclusion-et-conclusion-5-minutes" class="nav-link" data-scroll-target="#conclusion-et-conclusion-5-minutes">Conclusion et conclusion [5 minutes]</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Tutoriel de différentiation automatique - HappyR 9/01/2026</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Auteur·rice·s</div>
+  <div class="quarto-title-meta-heading">Affiliations</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Mahendra Mariadassou <a href="mailto:mahendra.mariadassou@inrae.fr" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            INRAE - MaIAGE
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Hugo Gangloff <a href="mailto:hugo.gangloff@inrae.fr" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            INRAE - MIA Paris Saclay
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Arthur Leroy <a href="mailto:arthur.leroy@inrae.fr" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            INRAE - GABI &amp; MIA Paris Saclay
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Lucia Clarotto <a href="mailto:lucia.clarotto@agroparistech.fr" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            AgroParisTech - MIA Paris Saclay
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Date de publication</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">16 janvier 2026</p>
+    </div>
+  </div>
+  
+    <div>
+    <div class="quarto-title-meta-heading">Modifié</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">16 janvier 2026</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>L’objectif de ce tutoriel est triple :</p>
+<ul>
+<li>présenter les bases mathématiques du calcul de la Jacobienne d’une fonction arbitrairement complexe par différentiation automatique (modes forward et backward),</li>
+<li>mettre ces concepts en pratique en Python,</li>
+<li>comparer les performances computationnelles des différentes approches.</li>
+</ul>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Installation package [en amont]
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Le seul package nécessaire au tutoriel est <a href="https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html"><strong>JAX</strong></a>. Pour l’installation:</p>
+<ul>
+<li>pip install jax</li>
+</ul>
+</div>
+</div>
+<section id="théorie-avec-illustration-sur-un-exemple-simple-45-minutes" class="level2">
+<h2 class="anchored" data-anchor-id="théorie-avec-illustration-sur-un-exemple-simple-45-minutes">Théorie avec illustration sur un exemple simple [45 minutes]</h2>
+<section id="introduction-à-la-dérivation-automatique-avec-jax" class="level3">
+<h3 class="anchored" data-anchor-id="introduction-à-la-dérivation-automatique-avec-jax">Introduction à la Dérivation Automatique avec JAX</h3>
+<p>Ce tutoriel introduit les concepts de <strong>Jacobian-Vector Product (JVP)</strong> et <strong>Vector-Jacobian Product (VJP)</strong> à travers un exemple concret : une couche intermédiaire d’un réseau de neurones. L’objectif est de poser les notations mathématiques, puis de montrer comment JAX implémente ces opérations.</p>
+<p><strong>Contexte et Notations</strong></p>
+<p>On considère une couche intermédiaire d’un réseau de neurones :</p>
+<p><span class="math display">\[
+f: \mathbb{R}^4 \to \mathbb{R}^2, \quad \mathbf{x} \mapsto \tanh(W\mathbf{x} + \mathbf{b})
+\]</span></p>
+<p>où :</p>
+<ul>
+<li><span class="math inline">\(\mathbf{x} = (x_0, x_1, x_2, x_3) \in \mathbb{R}^4\)</span> (entrée),</li>
+<li><span class="math inline">\(W \in \mathbb{R}^{2 \times 4} = \begin{pmatrix} \mathbf{w}_0 \\ \mathbf{w}_1 \end{pmatrix}\)</span> (matrice des poids),</li>
+<li><span class="math inline">\(\mathbf{b} = (b_0, b_1)\in \mathbb{R}^2\)</span> (biais),</li>
+<li><span class="math inline">\(\tanh\)</span> est appliquée <strong>terme à terme</strong>.</li>
+</ul>
+<p><strong>Jacobienne de <span class="math inline">\(f\)</span></strong></p>
+<p>La jacobienne de <span class="math inline">\(f\)</span> au point <span class="math inline">\(\mathbf{x}\)</span> notée <span class="math inline">\(J_f(\mathbf{x})\)</span> (ou parfois <span class="math inline">\(\partial_\mathbf{x} f\)</span>) est une application de linéaire de <span class="math inline">\(\mathbb{R}^4\)</span> dans <span class="math inline">\(\mathbb{R}^2\)</span> de matrice: <span class="math display">\[
+J_f(\mathbf{x}) =
+\frac{\partial f}{\partial \mathbf{x}} =
+\begin{pmatrix}
+\frac{\partial f_i(\mathbf{x})}{\partial x_j}
+\end{pmatrix}_{i=1\dots2, j = 1 \dots4} =
+\begin{bmatrix}
+1 - \tanh^2(\mathbf{w}_0^\top \mathbf{x} + b_0) &amp; 0 \\
+0 &amp; 1 - \tanh^2(\mathbf{w}_1^\top \mathbf{x} + b_1)
+\end{bmatrix} \cdot W \in \mathbb{R}^{2 \times 4}
+\]</span></p>
+</section>
+<section id="dérivation-forward-jvp" class="level3">
+<h3 class="anchored" data-anchor-id="dérivation-forward-jvp">Dérivation Forward (JVP)</h3>
+<p><strong>Principe</strong></p>
+<p>Le <strong>JVP</strong> (pour Jacobian Vector Product) calcule la <em>dérivée directionnelle</em> de <span class="math inline">\(f\)</span> dans la direction d’un vecteur <span class="math inline">\(\mathbf{v} \in \mathbb{R}^4\)</span> : <span class="math display">\[
+J_f(\mathbf{x}) \cdot \mathbf{v} \in \mathbb{R}^{2}
+\]</span> <span class="math inline">\(J_f(\mathbf{x}) \cdot \mathbf{v}\)</span> est le vecteur tangent de <span class="math inline">\(f\)</span> au point <span class="math inline">\(\mathbf{x}\)</span> dans la direction <span class="math inline">\(\mathbf{v}\)</span>.</p>
+<p>Si on ne considère pas un point <span class="math inline">\(\mathbf{x}\)</span> en particulier, on peut voir <span class="math inline">\(J_f\)</span> comme une application <span class="math inline">\(J_f: \mathbb{R}^4 \to (\mathbb{R}^4 \to \mathbb{R}^2)\)</span>. En particulier, si on se donne un point d’intérêt <span class="math inline">\(\mathbf{x}\)</span> et une direction d’intérêt <span class="math inline">\(\mathbf{v}\)</span>, on peut définir une application <span class="math inline">\(\texttt{jvp}_f\)</span> de <span class="math inline">\(\mathbb{R}^4 \times \mathbb{R}^4 \to \mathbb{R}^2\)</span> via:</p>
+<p><span class="math display">\[
+\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = J_f(\mathbf{x}). \mathbf{v} \in \mathbb{R}^{2}
+\]</span></p>
+<p>Dans le langage de l’autodiff:</p>
+<ul>
+<li><span class="math inline">\(\mathbf{x}\)</span> est le <em>vecteur primal</em> (point d’évaluation)</li>
+<li><span class="math inline">\(\mathbf{v}\)</span> est le <em>vecteur tangent</em> (direction d’évaluation de la jacobienne)</li>
+</ul>
+<p>Cette écriture et ce vocabulaire sont très utiles pour calculer une dérivée directionnelle de façon séquentielle.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Si <span class="math inline">\(h = f \circ g\)</span>, pour calculer <span class="math inline">\(\texttt{jvp}_h(\cdot, \cdot)\)</span>, il <strong>suffit</strong> de calculer <span class="math inline">\((\mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), \texttt{jvp}_f(\mathbf{x}, \mathbf{v}))\)</span> et <span class="math inline">\((\mathbf{x}, \mathbf{v}) \to (g(\mathbf{x}), \texttt{jvp}_g(\mathbf{x}, \mathbf{v}))\)</span> en des points arbitraires. En d’autres termes, il suffit de propager les vecteurs primaux et tangents le long de la chaîne (approche forward). On a en effet:</p>
+<p><span class="math display">\[
+\texttt{jvp}_h(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{f}(g(\mathbf{x}), \texttt{jvp}_{g}(\mathbf{x}, \mathbf{v}))
+\]</span></p>
+</div>
+</div>
+<section id="application-sur-notre-exemple." class="level4">
+<h4 class="anchored" data-anchor-id="application-sur-notre-exemple.">Application sur notre exemple.</h4>
+<p>Reprenons notre exemple simple et décomposons le en écrivant <span class="math inline">\(\mathbf{z} = (z_0, z_1) = z(\mathbf{x}) = W\mathbf{x} + \mathbf{b} = (\mathbf{w}_0^\top \mathbf{x} + b_0, \mathbf{w}_1^\top \mathbf{x} + b_1)\)</span>. On peut calculer:</p>
+<p><span class="math display">\[
+\begin{align}
+f(\mathbf{x}) &amp; = \tanh(\mathbf{z}) = \tanh(z(\mathbf{x})) \\
+J_z(\mathbf{x}) &amp; = W \\
+J_{\tanh}(\mathbf{z}) &amp; = \begin{bmatrix} 1 - \tanh^2(z_0) &amp; 0 \\ 0 &amp; 1 - \tanh^2(z_1) \end{bmatrix} \\
+\texttt{jvp}_z(\mathbf{x}, \mathbf{v}) &amp; = W \cdot \mathbf{v} \\
+\texttt{jvp}_{\tanh}(\mathbf{z}, \mathbf{u}) &amp; = \begin{bmatrix} 1 - \tanh^2(z_0) &amp; 0 \\ 0 &amp; 1 - \tanh^2(z_1) \end{bmatrix} \mathbf{u}  \\
+\end{align}
+\]</span> On voit bien que, avec <span class="math inline">\(\mathbf{z}\)</span> précédemment défini, on a:</p>
+<p><span class="math display">\[
+J_f(\mathbf{x}) \cdot \mathbf{v} = J_{\tanh}(\mathbf{z}) \cdot J_z(\mathbf{x})\cdot \mathbf{v}
+\]</span></p>
+<p>qu’on peut réécrire en terme de <span class="math inline">\(\texttt{jvp}\)</span> comme suit <span class="math display">\[
+\texttt{jvp}_f(\mathbf{x}, \mathbf{v}) = \texttt{jvp}_{\tanh}(z(\mathbf{x}), \texttt{jvp}_{z}(\mathbf{x}, \mathbf{v}))  
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>L’approche JVP est très frugale en mémoire et conceptuellement simple, les vecteurs primaux et tangent sont calculés et propagés à la volée (approche forward) et il n’est pas nécessaire de stocker quoi que ce soit. Le coût d’une évaluation de <span class="math inline">\((f(x), \texttt{jvp}_f(x, v))\)</span> est à peu près 3 fois celui d’une évaluation de <span class="math inline">\(f(x)\)</span>.</p>
+<p>L’approche JVP est utile pour évaluer les <strong>colonnes</strong> de <span class="math inline">\(J_f(\mathbf{x})\)</span>: il suffit de prendre <span class="math inline">\(\mathbf{v}\)</span> de la forme <span class="math inline">\(\mathbf{v} = (0, \dots, 0, 1, 0, \dots, 0)\)</span>. Elle fonctionne donc très bien quand <span class="math inline">\(J_f(\mathbf{x})\)</span> est long (<span class="math inline">\(f: \mathbb{R}^n \to \mathbb{R}^m\)</span> avec <span class="math inline">\(n \leq m\)</span>).</p>
+<p>En pratique, la fonction <code>jax.jvp</code> est définie par <span class="math inline">\(\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{v}) \to (f(\mathbf{x}), J_f(\mathbf{x})\cdot \mathbf{v})\)</span> (elle renvoie à la fois le nouveau vecteur primal et le nouveau vecteur tangent).</p>
+</div>
+</div>
+</section>
+</section>
+<section id="dérivation-backward-vjp" class="level3">
+<h3 class="anchored" data-anchor-id="dérivation-backward-vjp">Dérivation Backward (VJP)</h3>
+<p><strong>Principe</strong></p>
+<p>Le <strong>VJP</strong> (pour Vector Jacobian Product) calcule le produit d’un vecteur <span class="math inline">\(\mathbf{u} \in \mathbb{R}^2\)</span> avec la transposée de la jacobienne : <span class="math display">\[
+\mathbf{u}^\top \cdot J_f(\mathbf{x})
+\]</span></p>
+<p>Si on ne considère pas un point <span class="math inline">\(\mathbf{x}\)</span> en particulier, on peut voir <span class="math inline">\(J_f\)</span> comme une application <span class="math inline">\(J_f: \mathbb{R}^4 \to (\mathbb{R}^2 \to \mathbb{R}^4)\)</span>. En particulier, si on se donne un point d’intérêt <span class="math inline">\(\mathbf{x}\)</span> et une co-direction d’intérêt <span class="math inline">\(\mathbf{u}\)</span>, on peut définir une application <span class="math inline">\(\texttt{vjp}\)</span> de <span class="math inline">\(\mathbb{R}^4 \times \mathbb{R}^2 \to \mathbb{R}^4\)</span> via:</p>
+<p><span class="math display">\[
+\texttt{vjp}_f(\mathbf{x}, \mathbf{u}) = \mathbf{u}^\top J_f(\mathbf{x}) \in \mathbb{R}^{4}
+\]</span></p>
+<p>Son intérêt est de calculer facilement les lignes de <span class="math inline">\(J_f(\mathbf{x})\)</span>, en prenant <span class="math inline">\(\mathbf{u}\)</span> de la forme <span class="math inline">\(\mathbf{u} = (0, \dots, 0, 1, 0, \dots, 0)\)</span>, ce qui est plus efficace pour les matrices larges.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Détails de l’utilisation de VJP pour les fonctions composées
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Soit une fonction composée <span class="math inline">\(h = f \circ g\)</span>, où :</p>
+<ul>
+<li><span class="math inline">\(g: \mathbb{R}^n \to \mathbb{R}^m\)</span> (fonction interne),</li>
+<li><span class="math inline">\(f: \mathbb{R}^m \to \mathbb{R}^p\)</span> (fonction externe).</li>
+</ul>
+<p>On cherche à calculer la dérivée de <span class="math inline">\(f \circ g\)</span> par rapport à <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span>, c’est-à-dire la <strong>jacobienne</strong> de la composition : <span class="math display">\[
+J_{f \circ g}(\mathbf{x}) = J_f(g(\mathbf{x})) \cdot J_g(\mathbf{x}) = J_f(\mathbf{y}) \cdot J_g(\mathbf{x}), \quad \text{où } \mathbf{y} = g(\mathbf{x}).
+\]</span></p>
+<p>Le <strong>VJP</strong> (Vector-Jacobian Product) permet de calculer le produit d’un vecteur cotangent <span class="math inline">\(\mathbf{u} \in \mathbb{R}^p\)</span> avec <span class="math inline">\(J_{f \circ g}(\mathbf{x})\)</span> de façon séquentielle : <span class="math display">\[
+\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x}) = \mathbf{u}^\top \cdot \left( J_f(\mathbf{y}) \cdot J_g(\mathbf{x}) \right).
+\]</span></p>
+<ol type="1">
+<li><strong>Évaluer les vecteurs primaux</strong> : Calculer <span class="math inline">\(\mathbf{y} = g(\mathbf{x})\)</span>.</li>
+<li><strong>Calculer le VJP de <span class="math inline">\(f\)</span></strong> : Calculer <span class="math inline">\(\mathbf{v}^\top = \mathbf{u}^\top \cdot J_f(\mathbf{y})\)</span>. Ce vecteur <span class="math inline">\(\mathbf{v} \in \mathbb{R}^m\)</span> est le <strong>gradient adjoint</strong> de <span class="math inline">\(f\)</span> au point <span class="math inline">\(\mathbf{y}\)</span> pondéré par <span class="math inline">\(\mathbf{u}\)</span>.</li>
+<li><strong>Calculer le VJP de <span class="math inline">\(g\)</span></strong> : Calculer <span class="math inline">\(\mathbf{v}^\top \cdot J_g(\mathbf{x})\)</span>. Ce produit donne le le <strong>gradient adjoint</strong> de <span class="math inline">\(g\)</span> au point <span class="math inline">\(\mathbf{x}\)</span> pondéré par <span class="math inline">\(\mathbf{v}\)</span> qui correspond au gradient final <span class="math inline">\(\mathbf{u}^\top \cdot J_{f \circ g}(\mathbf{x})\)</span>.</li>
+</ol>
+</div>
+</div>
+</div>
+<section id="application-sur-notre-exemple.-1" class="level4">
+<h4 class="anchored" data-anchor-id="application-sur-notre-exemple.-1">Application sur notre exemple.</h4>
+<p>On rappelle que</p>
+<ul>
+<li><span class="math inline">\(z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}\)</span></li>
+<li><span class="math inline">\(f(\mathbf{x}) = \tanh(\mathbf{z})\)</span></li>
+</ul>
+<p>Pour un vecteur cotangent <span class="math inline">\(\mathbf{u} \in \mathbb{R}^2\)</span>:</p>
+<ul>
+<li>Calcul de la couche linéaire <span class="math inline">\(z(\mathbf{x}) = W\mathbf{x} + \mathbf{b}\)</span></li>
+<li>Première étape de la rétropropagation: <span class="math display">\[
+\mathbf{v}^\top = \texttt{vjp}_{\tanh}(\mathbf{z}, \mathbf{u}) = \mathbf{u}^\top J_{\tanh}(\mathbf{z}) = \mathbf{u}^\top \begin{bmatrix} 1 - \tanh^2(z_0) &amp; 0 \\ 0 &amp; 1 - \tanh^2(z_1) \end{bmatrix} \in \mathbb{R}^2
+\]</span></li>
+<li>Deuxième (et dernière) étape de la rétropropagation: <span class="math display">\[
+\mathbf{u}^T J_f(\mathbf{x}) = \texttt{vjp}_{z}(\mathbf{x}, \mathbf{v}) = \mathbf{v}^T J_z(\mathbf{x}) = \mathbf{v}^\top W \in \mathbb{R}^4
+\]</span></li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Différence avec le mode forward
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Le VJP permet de <strong>propager les gradients</strong> depuis la sortie de <span class="math inline">\(f\)</span> jusqu’à son entrée.</li>
+<li>C’est la base du <strong>mode reverse</strong> de la différentiation automatique où l’on calcule les gradients depuis la sortie vers l’entrée.</li>
+<li>Contrairement au mode forward, il nécessite de <strong>stocker les valeurs</strong> des vecteurs primaux lors d’une première passe forward avant de rétropropager et de mettre à jour le gradient lors d’une passe reverse.</li>
+</ul>
+<p>Cette approche est <strong>beaucoup</strong> plus efficace que l’approche forward pour les jacobiennes larges (peu de lignes, beaucoup de colonnes) mais conceptuellement plus sophistiquée et plus difficile à mettre en oeuvre: la profondeur de la pile mémoire augmente en effet linéairement avec le nombre de fonctions composées.</p>
+<p>En pratique, la fonction <code>jax.vjp</code> est définie par <span class="math inline">\(\texttt{jax.jvp}: (f, \mathbf{x}, \mathbf{u}) \to (f(\mathbf{x}), \mathbf{u}^\top J_f(\mathbf{x}))\)</span>.</p>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="implémentation-de-lexemple-en-jax-75-minutes" class="level1">
+<h1>Implémentation de l’exemple en JAX [75 minutes]</h1>
+<section id="rappel-des-dérivées-analytiques-pour-limplémentation" class="level3">
+<h3 class="anchored" data-anchor-id="rappel-des-dérivées-analytiques-pour-limplémentation">Rappel des dérivées analytiques pour l’implémentation</h3>
+<p>On note</p>
+<ul>
+<li><span class="math inline">\(\mathbf{z} = W\mathbf{x} + \mathbf{b} \in \mathbb{R}^2\)</span></li>
+<li><span class="math inline">\(f_i(\mathbf{x}) = \tanh(z_i)\)</span></li>
+</ul>
+<p>avec <span class="math inline">\(\mathbf{x} \in \mathbb{R}^4\)</span>, <span class="math inline">\(W \in \mathbb{R}^{2\times 4}\)</span>, <span class="math inline">\(\mathbf{b} \in \mathbb{R}^2\)</span>.</p>
+<p>La dérivée de <span class="math inline">\(\tanh\)</span> est : <span class="math display">\[
+\frac{d}{dz} \tanh(z) = 1 - \tanh^2(z).
+\]</span></p>
+<p>La jacobienne de <span class="math inline">\(f\)</span> en <span class="math inline">\(\mathbf{x}\)</span> est donc <span class="math display">\[
+J_f(\mathbf{x}) = \begin{bmatrix}
+1 - \tanh^2(z)) &amp; 0 \\
+0 &amp; 1 - \tanh^2(z))
+\end{bmatrix} \cdot W
+\]</span></p>
+</section>
+<section id="imports-et-définition-de-la-fonction" class="level3">
+<h3 class="anchored" data-anchor-id="imports-et-définition-de-la-fonction">Imports et définition de la fonction</h3>
+<div id="39d20e85" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="468c460f" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>key <span class="op">=</span> jax.random.PRNGKey(<span class="dv">0</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>dim_entree <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>dim_sortie <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>key, subkey <span class="op">=</span> jax.random.split(key)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> jax.random.normal(subkey, (dim_sortie, dim_entree))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>key, subkey <span class="op">=</span> jax.random.split(key)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> jax.random.normal(subkey, (dim_sortie,))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(x, W, b):</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> jnp.tanh(W <span class="op">@</span> x <span class="op">+</span> b)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>jnp</code> est l’équivalent de numpy mais compatible avec JAX.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Aléa dans JAX
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>La gestion de l’aléa dans JAX est assez particulière. L’aléa est fonctionnel et contrôlé par une <em>clé</em> :</p>
+<ul>
+<li>On crée une clé : <code>key = jax.random.PRNGKey(seed)</code></li>
+<li>Chaque tirage consomme la clé <span class="math inline">\(\rightarrow\)</span> il faut la scinder : <code>key, subkey = jax.random.split(key)</code></li>
+<li>Les fonctions aléatoires prennent toujours une clé en argument :</li>
+<li><code>x = jax.random.normal(subkey, shape)</code></li>
+</ul>
+</div>
+</div>
+<p>On testera les dérivées en un point donné :</p>
+<div id="99c2995d" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> jnp.array([<span class="fl">0.2</span>, <span class="op">-</span><span class="fl">0.1</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span>])</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ici on calcule la dérivée par rapport à <span class="math inline">\(\mathbf{x}\)</span> en gardant <span class="math inline">\(W\)</span> et <span class="math inline">\(\mathbf{b}\)</span> comme des paramètres. Dans l’apprentissage d’un réseau de neurones, on calcule plutôt les dérivées par rapport à <span class="math inline">\(W\)</span> et <span class="math inline">\(\mathbf{b}\)</span>, mais le principe sera exactement le même!</p>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Questions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<ol type="1">
+<li>Sans passer par les fonctions forward et backward de JAX, implémenter la dérivée dans une fonction <code>jacobian_manual()</code></li>
+<li>En utilisant <code>jax.jacfwd</code> et <code>jax.jacbwd</code> (le principe de ces fonctions est vu en Section 1)</li>
+<li>En utilisant <code>jax.grad</code> + <code>jax.vmap</code></li>
+<li>Contrôler que toutes les versions donnent le même résultats.</li>
+</ol>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<ol start="2" type="1">
+<li><p>Les fonctions <code>jax.jacrev</code> et <code>jax.jacbwd</code> prennent en entrée au moins une fonction et retourne un <em>callable</em>, donc une autre fonction. Il faut créer une fonction anonmye <code>lambda x: f(x, W, b)</code> pour considérer <code>f</code> uniquement comme fonction de <code>x</code> L’argument <code>argnums</code> de <code>jax.jacrev</code> et <code>jax.jacbwd</code> dit par rapport à quelle variable on veut dériver</p></li>
+<li><p><code>jax.grad</code> calcule la dérivée d’une fonction par formule backward, mais elle ne s’applique qu’aux fonctions scalaire → scalaire. Il faut utiliser <code>jax.vmap</code> pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.</p></li>
+<li><p>Vous pouvez utiliser la fonction <code>jnp.allclose()</code>.</p></li>
+</ol>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<section id="jacobienne-à-la-main" class="level3">
+<h3 class="anchored" data-anchor-id="jacobienne-à-la-main">1. Jacobienne à la main</h3>
+<div id="ec1d62ee" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> jacobian_manual(x, W, b):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> W <span class="op">@</span> x <span class="op">+</span> b              <span class="co"># (2,)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> <span class="fl">1.0</span> <span class="op">-</span> jnp.tanh(z)<span class="op">**</span><span class="dv">2</span>   <span class="co"># (2,)</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.diag(D) <span class="op">@</span> W     <span class="co"># (2, 4)</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="30be01e1" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>J_manual <span class="op">=</span> jacobian_manual(x, W, b)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>J_manual</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>Array([[-0.2562241 , -0.21355163,  0.02156247, -0.03708893],
+       [-0.4760124 , -0.7362525 , -0.7173037 ,  0.18564229]],      dtype=float32)</code></pre>
+</div>
+</div>
+</section>
+<section id="jacobienne-avec-jax-autodiff" class="level3">
+<h3 class="anchored" data-anchor-id="jacobienne-avec-jax-autodiff">2. Jacobienne avec Jax autodiff</h3>
+<p>JAX permet de calculer directement la jacobienne complète.</p>
+<section id="différentiation-reverse-mode-jax.jacrev" class="level4">
+<h4 class="anchored" data-anchor-id="différentiation-reverse-mode-jax.jacrev">Différentiation reverse-mode (<code>jax.jacrev</code>)</h4>
+<p>On peut calculer la formule backward via <code>jax.jacrev</code> (ou son alias <code>jax.jacobian</code>).</p>
+<p>Dès le départ on va fixer l’index de l’argument de la fonction <code>f</code> par rapport auquel on veut dériver. Dans notre exemple, on dérive par rapport à <code>x</code> qui correspond à l’index 0 des arguments. Par la suite, on utilisera cet index pour pouvoir dire par rapport à quelle variable on veut dériver, avec l’argument <code>argnum</code>.</p>
+<div id="5f8e7fa2" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>idx_jac <span class="op">=</span> <span class="dv">0</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="02f8225c" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>J_bwd <span class="op">=</span> jax.jacrev(<span class="kw">lambda</span> x: f(x, W, b), argnums<span class="op">=</span>idx_jac) </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>J_bwd(x)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>Array([[-0.2562241 , -0.21355163,  0.02156247, -0.03708893],
+       [-0.47601238, -0.7362524 , -0.7173036 ,  0.18564227]],      dtype=float32)</code></pre>
+</div>
+</div>
+<ul>
+<li><p>La fonction <code>jax.jacrev</code> prend en entrée au moins une fonction et retourne un <em>callable</em>, donc une autre fonction.</p></li>
+<li><p><code>lambda x: f(x, W, b)</code> est une fonction anonyme qui :</p>
+<ul>
+<li>prend un seul argument x</li>
+<li>appelle <code>f</code> en gardant <code>W</code> et <code>b</code> constants (fermés dans la closure)</li>
+</ul></li>
+<li><p>l’argument <code>argnums</code> dit par rapport à quelle variable on veut dériver, ici <code>x</code></p></li>
+</ul>
+<p>L’appel du <em>callable</em> <code>J_bwd</code> sur <code>x</code> nous donne la Jacobienne calculée par différentiation automatique.</p>
+</section>
+<section id="différentiation-forward-mode-jax.jacfwd" class="level4">
+<h4 class="anchored" data-anchor-id="différentiation-forward-mode-jax.jacfwd">Différentiation forward-mode (<code>jax.jacfwd</code>)</h4>
+<p>On peut aussi calculer la formule forward via <code>jax.jacfwd</code> avec le même principe que la précédente.</p>
+<div id="9bdf9cec" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>J_fwd <span class="op">=</span> jax.jacfwd(<span class="kw">lambda</span> x: f(x, W, b), argnums<span class="op">=</span>idx_jac)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>J_fwd(x)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="8">
+<pre><code>Array([[-0.25622407, -0.21355158,  0.02156247, -0.03708893],
+       [-0.47601235, -0.7362524 , -0.71730363,  0.18564227]],      dtype=float32)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="jacobienne-avec-gradient-et-vmap-jax.grad-jax.vmap" class="level3">
+<h3 class="anchored" data-anchor-id="jacobienne-avec-gradient-et-vmap-jax.grad-jax.vmap">3. Jacobienne avec gradient et vmap (<code>jax.grad</code> + <code>jax.vmap</code>)</h3>
+<p><code>jax.grad</code> est une autre fonction qui calcule la dérivée d’une fonction par formule backward, mais elle ne s’applique qu’aux fonctions scalaire → scalaire. Pour pouvoir l’utiliser, on doit donc calculer le gradient de chaque composante de <code>f</code> séparément et ensuite utiliser <code>jax.vmap</code> pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.</p>
+<p>L’idée de <code>vmap</code> est la suivante : <em>vectoriser une fonction qui agit sur un seul élément pour qu’elle agisse sur tout un lot d’éléments</em>.</p>
+<p>Si on a une fonction <span class="math inline">\(g\)</span> telle que <span class="math display">\[g(i) = \nabla_x f_i(x,W,b),\]</span></p>
+<p>la fonction <code>jax.vmap(g)([0, 1])</code> construit automatiquement le vecteur</p>
+<p><span class="math display">\[\begin{pmatrix}
+\nabla_x f_0(x,W,b)\\
+\nabla_x f_1(x,W,b)
+\end{pmatrix},\]</span></p>
+<p>qui est la Jacobienne de <span class="math inline">\(g\)</span>.</p>
+<div id="662c6b10" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>grad_f_i <span class="op">=</span> jax.grad(<span class="kw">lambda</span> i, x, W, b: f(x, W, b)[i], argnums<span class="op">=</span><span class="dv">1</span><span class="op">+</span>idx_jac)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>J_grad_vmap <span class="op">=</span> jax.vmap(grad_f_i, in_axes<span class="op">=</span>(<span class="dv">0</span>,<span class="va">None</span>,<span class="va">None</span>,<span class="va">None</span>))(jnp.arange(dim_sortie),x,W,b)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>J_grad_vmap</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>Array([[-0.2562241 , -0.21355163,  0.02156247, -0.03708893],
+       [-0.47601238, -0.7362524 , -0.7173036 ,  0.18564227]],      dtype=float32)</code></pre>
+</div>
+</div>
+<ul>
+<li><code>jax.grad</code> calcule une ligne de la Jacobienne (gradient d’une sortie scalaire), c’est un <em>callable</em></li>
+<li><code>jax.vmap</code> empile ces lignes en parallèle, sans boucle, de façon efficace</li>
+</ul>
+<p>Dans la fonction <code>jax.grad</code>, l’argnum devient <code>1 + idx_jac</code> car il faut considérer le nouveau premier argument <code>i</code>.</p>
+<p>Dans la fonction <code>vmap</code>, on observe un argument en plus de la fonction à mapper :</p>
+<ul>
+<li><code>in_axes=(0, None, None, None)</code> est le <em>mapping pattern</em> de <code>vmap</code> :
+<ul>
+<li><code>0</code> : on vectorise sur l’argument <code>i</code></li>
+<li><code>None</code> : <code>x, W, b</code> sont partagés (pas vectorisés)</li>
+</ul></li>
+<li><code>jnp.arange(dim_sortie)</code> fournit les indices <span class="math inline">\(i = 0, 1, ..., \texttt{dim\_sortie}−1\)</span> pour lesquels on veut calculer le gradient.</li>
+</ul>
+<p>Au final, la sortie est bien la matrice Jacobienne <span class="math inline">\((2 \times 4)\)</span>.</p>
+<hr>
+</section>
+<section id="vérification-de-légalité-des-résultats" class="level3">
+<h3 class="anchored" data-anchor-id="vérification-de-légalité-des-résultats">4. Vérification de l’égalité des résultats</h3>
+<div id="6f751ddd" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(jnp.allclose(J_manual, J_bwd(x)))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(jnp.allclose(J_manual, J_fwd(x)))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(jnp.allclose(J_manual, J_grad_vmap))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>True
+True
+True</code></pre>
+</div>
+</div>
+<div id="07f78646" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(jnp.<span class="bu">max</span>(jnp.<span class="bu">abs</span>(J_manual <span class="op">-</span> J_fwd(x))))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>5.9604645e-08</code></pre>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<section id="coffee-break-social-time-15-minutes" class="level4">
+<h4 class="anchored" data-anchor-id="coffee-break-social-time-15-minutes">COFFEE BREAK + SOCIAL TIME [15 minutes]</h4>
+</section>
+</section>
+<section id="implémentation-des-jvp-et-vjp-pour-une-fonction-personnalisée" class="level2">
+<h2 class="anchored" data-anchor-id="implémentation-des-jvp-et-vjp-pour-une-fonction-personnalisée">Implémentation des JVP et VJP pour une fonction personnalisée</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Questions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<ol start="5" type="1">
+<li>Calculer la dérivée de notre fonction en utilisant les fonctions <code>jax.jvp</code> et <code>jax.vjp</code> fournies en JAX.</li>
+<li>Redéfinissez <em>manuellement</em> les opérateurs <code>jvp</code> et <code>vjp</code> associés à notre exemple, comme si l’on chercher à créer un brique élémentaire pour la chaine de dérivation.</li>
+</ol>
+<p>Vérifier à chaque fois que les différentes approches donnent le même résultat que la version analytique.</p>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<ol start="5" type="1">
+<li>Pour cela nous pouvons utiliser <code>jax.jvp(f, (x,), (v,))</code> et <code>jax.vjp(f, x)</code> (puis appliquer la fonction retournée par <code>jax.vjp</code> sur un vecteur cotangent <code>u</code>).</li>
+<li>Vous pouvez utiliser les fonctions <code>jax.custom_jvp</code> et <code>jax.custom_vjp</code> pour cette tâche. Plus spécifiquement, vous devez définir une fonction <code>f_custom_jvp</code> et <code>f_custom_vjp</code> qui encapsule la fonction <code>f</code>, puis définir les règles <code>jvp</code> et <code>vjp</code> associées en utilisant les dérivées analytiques que nous avons calculées précédemment.</li>
+</ol>
+</div>
+<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
+<section id="jacobienne-avec-jax.jvp-et-jax.vjp" class="level3">
+<h3 class="anchored" data-anchor-id="jacobienne-avec-jax.jvp-et-jax.vjp">5. Jacobienne avec jax.jvp et jax.vjp</h3>
+<p>Tout d’abord, rappelons que le jvp et le vjp permettent de calculer des produits entre la jacobienne et un vecteur, respectivement dans le sens forward (jvp) et backward (vjp). Nous allons donc définir des vecteurs tangent et cotangent pour tester ces fonctions.</p>
+<div id="bb96ed9a" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Vecteur tangent pour jvp (dimension d'entrée de f)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>])  <span class="co"># Exemple de vecteur tangent</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Vecteur cotangent pour vjp (dimension de sortie de f)</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>u <span class="op">=</span> jnp.array([<span class="fl">1.0</span>, <span class="fl">0.0</span>])  <span class="co"># Exemple de vecteur cotangent</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcul du JVP</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>f_jvp_out, jvp_result <span class="op">=</span> jax.jvp(<span class="kw">lambda</span> x: f(x, W, b), (x,), (v,))</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"JVP Result:"</span>, jvp_result)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcul du VJP</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>f_vjp_out, vjp_fun <span class="op">=</span> jax.vjp(<span class="kw">lambda</span> x: f(x, W, b), x)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>vjp_result <span class="op">=</span> vjp_fun(u)[<span class="dv">0</span>]</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"VJP Result:"</span>, vjp_result)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Vérification que les résultats sont cohérents avec la jacobienne manuelle</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>J_manual <span class="op">=</span> jacobian_manual(x, W, b)</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>jvp_check <span class="op">=</span> J_manual <span class="op">@</span> v</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>vjp_check <span class="op">=</span> u <span class="op">@</span> J_manual</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"JVP Check:"</span>, jvp_check)</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"VJP Check:"</span>, vjp_check)</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"JVP matches manual:"</span>, jnp.allclose(jvp_result, jvp_check))</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"VJP matches manual:"</span>, jnp.allclose(vjp_result, vjp_check))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>JVP Result: [-0.25622407 -0.47601235]
+VJP Result: [-0.2562241  -0.21355163  0.02156247 -0.03708893]
+JVP Check: [-0.2562241 -0.4760124]
+VJP Check: [-0.2562241  -0.21355163  0.02156247 -0.03708893]
+JVP matches manual: True
+VJP matches manual: True</code></pre>
+</div>
+</div>
+</section>
+<section id="redéfinition-manuelle-de-jvp-et-vjp" class="level3">
+<h3 class="anchored" data-anchor-id="redéfinition-manuelle-de-jvp-et-vjp">6. Redéfinition manuelle de jvp et vjp</h3>
+<p>Nous allons redéfinir le <code>jvp</code> et le <code>vjp</code> de notre fonction <code>f</code> comme s’il s’agissait d’une brique élémentaire pour la chaîne de différentiation automatique. Pour cela, nous utiliserons les décorateurs <code>@jax.custom_jvp</code> et <code>@jax.custom_vjp</code>.</p>
+<div id="a0bb427e" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="at">@jax.custom_jvp</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_custom_jvp(x, W, b):</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> f(x, W, b)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="at">@f_custom_jvp.defjvp</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_jvp(primals, tangents):</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    x, W, b <span class="op">=</span> primals</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    v, _, _ <span class="op">=</span> tangents</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> W <span class="op">@</span> x <span class="op">+</span> b</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> <span class="fl">1.0</span> <span class="op">-</span> jnp.tanh(z)<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    jvp_result <span class="op">=</span> jnp.diag(D) <span class="op">@</span> W <span class="op">@</span> v</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> f(x, W, b), jvp_result</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="at">@jax.custom_vjp</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_custom_vjp(x, W, b):</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> f(x, W, b)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_custom_vjp_fwd(x, W, b):</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  y <span class="op">=</span> f(x, W, b)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  z <span class="op">=</span> W <span class="op">@</span> x <span class="op">+</span> b</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  D <span class="op">=</span> <span class="fl">1.0</span> <span class="op">-</span> jnp.tanh(z)<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># residuals needed for backward: x, W, D</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> y, (x, W, D)</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f_custom_vjp_bwd(residuals, g):</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>  x, W, D <span class="op">=</span> residuals</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># g is the cotangent (u) with shape (dim_sortie,)</span></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>  v <span class="op">=</span> g <span class="op">*</span> D  <span class="co"># element-wise</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>  dx <span class="op">=</span> v <span class="op">@</span> W</span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>  dW <span class="op">=</span> jnp.outer(v, x)</span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>  db <span class="op">=</span> v</span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> dx, dW, db</span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Liaison des fonctions forward et backward</span></span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a>f_custom_vjp.defvjp(f_custom_vjp_fwd, f_custom_vjp_bwd)</span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Test de la redéfinition</span></span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a>f_jvp_out_custom, jvp_result_custom <span class="op">=</span> jax.jvp(<span class="kw">lambda</span> x: f_custom_jvp(x, W, b), (x,), (v,))</span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>f_vjp_out_custom, vjp_fun_custom <span class="op">=</span> jax.vjp(<span class="kw">lambda</span> x: f_custom_vjp(x, W, b), x)</span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>vjp_result_custom <span class="op">=</span> vjp_fun_custom(u)[<span class="dv">0</span>]</span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Custom JVP Result:"</span>, jvp_result_custom)</span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Custom VJP Result:"</span>, vjp_result_custom)</span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Custom JVP matches manual:"</span>, jnp.allclose(jvp_result_custom, jvp_check))</span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Custom VJP matches manual:"</span>, jnp.allclose(vjp_result_custom, vjp_check))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Custom JVP Result: [-0.2562241 -0.4760124]
+Custom VJP Result: [-0.2562241  -0.21355163  0.02156247 -0.03708893]
+Custom JVP matches manual: True
+Custom VJP matches manual: True</code></pre>
+</div>
+</div>
+<p>Quelques explications sur le code ci-dessus:</p>
+<ul>
+<li>Nous avons du redéfinir <code>f_custom_jvp</code> et <code>f_custom_vjp</code> en utilisant les décorateurs <code>@jax.custom_jvp</code> et <code>@jax.custom_vjp</code>. Il s’agit de fonctions qui encapsulent notre fonction <code>f</code> originale. On ne peut pas directement décorer <code>f</code> car elle ne suit pas la signature attendue par JAX pour les fonctions différentiables.</li>
+<li>Nous avons utilisé les décorateurs <code>@jax.custom_jvp</code> et <code>@jax.custom_vjp</code> pour définir des versions personnalisées de <code>jvp</code> et <code>vjp</code> pour notre fonction <code>f</code>. Cela permet de spécifier explicitement comment calculer ces produits en utilisant les dérivées analytiques.</li>
+<li>Dans le cas du ‘vjp’, nous avons défini une fonction de passage avant (<code>f_custom_vjp_fwd</code>) qui calcule la sortie de la fonction ainsi que les résidus nécessaires pour le calcul du backward. La fonction de passage arrière (<code>f_custom_vjp_bwd</code>) utilise ces résidus pour calculer le produit vectoriel avec la transposée de la jacobienne. Ces résidus sont essentiels pour le calcul correct du gradient.</li>
+</ul>
+<p>Cette fonctionnalité est utile lorsque nous voulons contrôler précisément le comportement de la différentiation automatique pour des fonctions spécifiques (potentiellement non implémentées en JAX), notamment lorsque les dérivées analytiques sont disponibles ou lorsque nous souhaitons optimiser les performances.</p>
+</section>
+</div>
+</div>
+</div>
+</section>
+<section id="performance-de-lautodifférentiation" class="level2">
+<h2 class="anchored" data-anchor-id="performance-de-lautodifférentiation">Performance de l’autodifférentiation</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">Questions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false">Solution</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<ol start="7" type="1">
+<li>Comparer, sur un grand nombre d’évaluations, les temps de calcul des dérivées analytiques, de l’autodifférentiation en mode forward et backward.</li>
+<li>Essayez d’appliquer une compilation JIT (Just In Time) pour comparer à nouveau les différences entre chaque approche.</li>
+</ol>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<ol start="7" type="1">
+<li><p>Vous pouvez utiliser la commande <code>% timeit</code> pour calculer le temps d’execution.</p></li>
+<li><p>Pour ‘jitter’ une fonction, il suffit soit de la décorer avec <code>@jax.jit</code> ou d’utiliser <code>jax.jit(your_function)</code>.</p></li>
+</ol>
+</div>
+<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<section id="comparaison-des-temps-de-calcul" class="level3">
+<h3 class="anchored" data-anchor-id="comparaison-des-temps-de-calcul">7. Comparaison des temps de calcul</h3>
+<div id="eaa5cc6d" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">## On utilise %timeit pour mesurer les temps d'exécution</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jacobian_manual(x, W, b)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jax.jacfwd(lambda x: f(x, W, b), argnums=idx_jac)(x)</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jax.jacrev(lambda x: f(x, W, b), argnums=idx_jac)(x)</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>On peut constater que la dérivée manuelle est la plus rapide, tandis que <code>jax.jacrev</code> et <code>jax.jacfwd</code> sont comparables dans notre exemple. De manière générale, les différences de temps vont varier en fonction de la taille des entrées et des sorties. Il faut privilégier <code>jacrev</code> lorsque la dimension de sortie est petite ( <span class="math inline">\(d_\text{output} \ll d_\text{input}\)</span>), et <code>jacfwd</code> lorsque la dimension d’entrée est petite (<span class="math inline">\(d_\text{output} \gg d_\text{input}\)</span>).</p>
+</section>
+<section id="comparaison-des-temps-de-calcul-avec-jit" class="level3">
+<h3 class="anchored" data-anchor-id="comparaison-des-temps-de-calcul-avec-jit">8. Comparaison des temps de calcul avec JIT</h3>
+<p>Le jitting est une technique d’optimisation qui compile une fonction pour une exécution (parfois beaucoup) plus rapide. En JAX, c’est fait très simplement avec <code>jax.jit</code>.</p>
+<div id="64dce2a4" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># On redéfinit la fonction f et ses gradients avec JIT</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f_jit <span class="op">=</span> jax.jit(<span class="kw">lambda</span> x: f(x, W, b))</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>jac_manual_jit <span class="op">=</span> jax.jit(<span class="kw">lambda</span> x: jacobian_manual(x, W, b))</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>jac_fwd_jit <span class="op">=</span> jax.jit(jax.jacfwd(<span class="kw">lambda</span> x: f_jit(x), argnums<span class="op">=</span>idx_jac))</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>jac_bwd_jit <span class="op">=</span> jax.jit(jax.jacrev(<span class="kw">lambda</span> x: f_jit(x), argnums<span class="op">=</span>idx_jac))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Il est important de faire un “warm-up” des fonctions JIT avant de mesurer les temps d’exécution, car la première exécution inclut le temps de compilation.</p>
+<div id="ac725f9b" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Warm-up from module import names</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>jac_manual_jit(x)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>jac_fwd_jit(x)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>jac_bwd_jit(x)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>Array([[-0.25622404, -0.21355158,  0.02156247, -0.03708893],
+       [-0.47601238, -0.7362524 , -0.7173036 ,  0.18564227]],      dtype=float32)</code></pre>
+</div>
+</div>
+<p>Puis le benchmarking:</p>
+<div id="820218d2" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jac_manual_jit(x)</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jac_fwd_jit(x)</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co">##%timeit jac_bwd_jit(x)</span></span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>On peut constater que le jitting réduit considérablement les temps d’exécution pour toutes les méthodes. La dérivée manuelle reste la plus rapide, mais la différence avec <code>jax.jacrev</code> devient négligeable. Le jitting rend l’autodifférentiation très compétitive en termes de performance, ce qui est un avantage majeur de JAX pour les applications de machine learning et d’optimisation numérique.</p>
+</section>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="application-au-calcul-de-la-hessienne-30-minutes" class="level1">
+<h1>Application au calcul de la hessienne [30 minutes]</h1>
+<section id="calculs-de-la-hessienne" class="level2">
+<h2 class="anchored" data-anchor-id="calculs-de-la-hessienne">Calculs de la hessienne</h2>
+<p>Ainsi si la matrice jacobienne représente l’application linéaire qui donne les variations de <span class="math inline">\(f\)</span> pour un changement infinitésimal des entrées, alors on peut dire que la matrice hessienne représente l’opérateur qui donne les variations de la matrice jacobienne de <span class="math inline">\(f\)</span> pour un changement infinitésimal en entrée. C’est donc un opérateur qui prend en entrée un vecteur de l’espace tangent et donne une matrice.</p>
+<p>La hessienne de <span class="math inline">\(f\)</span> (<span class="math inline">\(f\)</span> telle que <span class="math inline">\(f\colon\mathbb{R}^4\to\mathbb{R}^2\)</span>) au point <span class="math inline">\(\mathbf{x}\)</span> notée <span class="math inline">\(H_f(\mathbf{x})\)</span> est un opérateur linéaire (qui produit une matrice) tel que <span class="math inline">\(H_f\colon\mathbb{R}^4
+\times (\mathbb{R}^4\to \mathbb{R}^2)\)</span>. On peut donc lui associer une matrice à trois dimensions, que l’on nommera, peut-être avec un petit abus de langage, matrice hessienne. On peut aussi voir <span class="math inline">\(H_f\)</span> comme une application bilinéaire : <span class="math inline">\(H_f\colon(\mathbb{R}^4\times\mathbb{R}^4)\to\mathbb{R}^2\)</span>. On peut montrer que les deux premiers vecteurs tangents sont interchangeables, ce qui en fait une forme bilinéaire symétrique.</p>
+<p>De même, si on ne considère pas un point <span class="math inline">\(\mathbf{x}\)</span> en particulier, on peut voir <span class="math inline">\(H_f\)</span> comme une application <span class="math inline">\(H_f: \mathbb{R}^4 \to \mathbb{R}^4 \to \mathbb{R}^4 \to \mathbb{R}^2\)</span>.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<p>Calculer la matrice hessienne associée <span class="math inline">\(H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),\)</span> de la manière la plus simple possible avec JAX. Afficher les dimensions de l’objet rétourné.</p>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div id="a7c85d65" class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>H_f_x <span class="op">=</span> jax.hessian(f)(x, W, b)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(H_f_x, H_f_x.shape)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[[ 1.1841627   0.9869479  -0.0996529   0.17140983]
+  [ 0.9869481   0.8225781  -0.08305635  0.14286263]
+  [-0.09965291 -0.08305635  0.00838626 -0.01442495]
+  [ 0.17140985  0.14286262 -0.01442495  0.0248119 ]]
+
+ [[ 0.44439813  0.6873544   0.66966414 -0.17331289]
+  [ 0.68735445  1.0631369   1.0357753  -0.26806453]
+  [ 0.6696641   1.0357752   1.0091177  -0.2611654 ]
+  [-0.17331289 -0.26806453 -0.2611654   0.06759109]]] (2, 4, 4)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>Nous avons dit que la hessienne s’interprétait comme les variations des variations (la dérivée de la jacobienne), essayons alors de reconstruire <code>jax.hessian</code> avec les fonctions plus bas-niveau vues plus tôt.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-3" role="tab" aria-controls="tabset-5-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
+<p>Calculer la matrice hessienne associée <span class="math inline">\(H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),\)</span> en utilisant <code>jax.jacfwd</code> et <code>jax.jacrev</code>.</p>
+</div>
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<p><span class="math inline">\(\circ\)</span></p>
+</div>
+<div id="tabset-5-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-3-tab">
+<div id="ce765958" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>H_f_x <span class="op">=</span> jax.jacfwd(jax.jacrev(f))(x, W, b)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>H_f_x_1 <span class="op">=</span> jax.jacfwd(jax.jacfwd(f))(x, W, b)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>H_f_x_2 <span class="op">=</span> jax.jacrev(jax.jacrev(f))(x, W, b)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>H_f_x_3 <span class="op">=</span> jax.jacrev(jax.jacfwd(f))(x, W, b)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(H_f_x, H_f_x.shape)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x, H_f_x_1)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x, H_f_x_2)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x, H_f_x_3)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All good!"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[[ 1.1841627   0.9869479  -0.0996529   0.17140983]
+  [ 0.9869481   0.8225781  -0.08305635  0.14286263]
+  [-0.09965291 -0.08305635  0.00838626 -0.01442495]
+  [ 0.17140985  0.14286262 -0.01442495  0.0248119 ]]
+
+ [[ 0.44439813  0.6873544   0.66966414 -0.17331289]
+  [ 0.68735445  1.0631369   1.0357753  -0.26806453]
+  [ 0.6696641   1.0357752   1.0091177  -0.2611654 ]
+  [-0.17331289 -0.26806453 -0.2611654   0.06759109]]] (2, 4, 4)
+All good!</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-3" role="tab" aria-controls="tabset-6-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
+<p>En théorie (question papier/crayon), parmi toutes les solutions possibles à la question précédente, quelle devrait être la plus efficace en terme de coût calculatoire ? La moins efficace ?</p>
+</div>
+<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
+<p>Se rappeler quand il est préférable d’utiliser les JVP (mécanique derrière <code>jacfwd</code>) et quand il est préférable d’utiliser les VJP (mécanique derrière <code>jacrev</code>).</p>
+</div>
+<div id="tabset-6-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-3-tab">
+<p>Un JVP (resp. VJP) avec <span class="math inline">\(\mathbf{v}\)</span> de la forme <span class="math inline">\((0, ..., 0, 1, 0, ..., 0)\)</span> est capable de dévoiler une colonne (resp. ligne) de la matrice jacobienne. Il vaut donc mieux vectoriser les appels aux JVP (resp. VJP) lorsque l’on veut calculer une matrice jacobienne dans <span class="math inline">\(\mathbb{R}^{m\times n}\)</span> avec <span class="math inline">\(n\leq m\)</span> (resp. <span class="math inline">\(m\leq n\)</span>).</p>
+<p>Souvenons-nous aussi que <code>jacfwd</code> (resp. <code>jacrev</code>) vectorise des appels de JVP (resp. VJP) avec des <span class="math inline">\(\mathbf{v}\)</span> tels que ci-dessus.</p>
+<p>Lors du calcul de la matrice jacobienne, il vaut mieux privilégier une approche <em>reverse</em> car <span class="math inline">\(J_f(\mathbf{x})\colon\mathbb{R}^4\to\mathbb{R}^2\)</span>, c’est une matrice plus large que grande. À l’inverse, lors du calcul de la dérivée de la jacobienne la dimension de sortie est plus grande <span class="math inline">\(H_f(\mathbf{x})\colon\mathbb{R}^4\to(\mathbb{R}^4\to\mathbb{R}^2)\)</span>, il vaut mieux privilégier une approche <em>forward</em>.</p>
+<p>Ainsi théoriquement, pour <span class="math inline">\(f\)</span>, on préfère <code>jacfwd</code><span class="math inline">\(\circ\)</span><code>jacrev</code> et on évite <code>jacrev</code><span class="math inline">\(\circ\)</span><code>jacfwd</code>.</p>
+<p>NB : Ici les dimensions sont tellement petites que la différence entre les modes de calculs n’est peut-être pas significative. Il faudrait profiler le code.</p>
+</div>
+</div>
+</div>
+<p>Regardons ce qu’il se passe pour <code>jax.jacfwd</code><span class="math inline">\(\circ\)</span><code>jax.jacfwd</code> !</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-3" role="tab" aria-controls="tabset-7-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
+<p>Calculer la matrice hessienne associée <span class="math inline">\(H_f(\mathbf{x}), \mathbf{x}=(0.2, -0.1, 0.5, 1.0),\)</span> en utilisant <code>jax.jvp</code>.</p>
+</div>
+<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
+<p>Les lignes suivantes calculent la matrice jacobienne en vectorisant les JVP sur la base de l’espace tangent (<span class="math inline">\(\mathbb{R}^4\)</span>). Nous proposons de suivre la même logique en composant deux JVP.</p>
+<div id="7f97523d" class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fix W and b for clarity</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>f_fixed <span class="op">=</span> <span class="kw">lambda</span> x: f(x, W, b)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>Jac_f_x_fun <span class="op">=</span> jax.vmap(<span class="kw">lambda</span> fun, p, t: jax.jvp(fun, p, t)[<span class="dv">1</span>], (<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>))</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>Jac_f_x <span class="op">=</span> Jac_f_x_fun(f_fixed, (x,), (jnp.eye(<span class="dv">4</span>),)).T</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(Jac_f_x.shape)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(2, 4)</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-7-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-3-tab">
+<p>Plutôt que deux composer 2 appels à <code>jax.vmap</code> ce qui paraît syntaxiquement complexe, nous créons le tableau du produit cartésien des indices des lignes de 2 matrices identités (2 bases de l’espace tangent). Nous parcourons ensuite ces paires d’indices avec un seul <code>jax.vmap</code> et composons les 2 JVP, où chacun prend un vecteur tangent indicé par un des deux indice de la paire.</p>
+<p>Ce qui est intéressant ici c’est que nous voyons assez bien la hessienne sous l’angle application bilinéaire s’appliquant à 2 vecteurs de l’espace tangent (rappel : <span class="math inline">\(H_f(\mathbf{x})\colon \mathbb{R}^4\to\mathbb{R}^4\to\mathbb{R}^2\)</span>).</p>
+<div id="fbf0711e" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fix W and b for clarity</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>f_fixed <span class="op">=</span> <span class="kw">lambda</span> x: f(x, W, b)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>cartesian_prod <span class="op">=</span> jnp.indices((<span class="dv">4</span>, <span class="dv">4</span>)).reshape(<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>).T</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>H_f_x_4 <span class="op">=</span> jax.vmap(</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lambda</span> pair: jax.jvp(</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">lambda</span> x: jax.jvp(</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>            f_fixed,</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>            (x,),</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>            (jnp.eye(<span class="dv">4</span>)[pair[<span class="dv">1</span>]],)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>        )[<span class="dv">1</span>],</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>        (x,),</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>        (jnp.eye(<span class="dv">4</span>)[pair[<span class="dv">0</span>]],)</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>    )[<span class="dv">1</span>], (<span class="dv">0</span>,)</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>)(cartesian_prod).T.reshape(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">4</span>)</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x, H_f_x_4)</span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(H_f_x_4.shape)</span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All good!"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(2, 4, 4)
+All good!</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="hessian-vector-product-et-vector-hessian-product" class="level2">
+<h2 class="anchored" data-anchor-id="hessian-vector-product-et-vector-hessian-product">Hessian-vector product et Vector-Hessian product</h2>
+<p>De manière similaire à la définition du JVP et du VJP, les opérations HVP et VHP sont définies par :</p>
+<p><span class="math display">\[
+\begin{align*}
+\texttt{hvp}_f\colon\mathbb{R}^4\times\mathbb{R}^4&amp;\to\mathbb{R}^4\times\mathbb{R}^2\\
+(\mathbf{x},\mathbf{v})&amp;\mapsto H_f(\mathbf{x})\mathbf{v}
+\end{align*}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align*}
+\texttt{vhp}_f\colon\mathbb{R}^4\times\mathbb{R}^2&amp;\to\mathbb{R}^4\times\mathbb{R}^4\\
+(\mathbf{x},\mathbf{u})&amp;\mapsto \mathbf{u}^TH_f(\mathbf{x})
+\end{align*}
+\]</span></p>
+<p>(où il faut définir rigoureuseument le produit <span class="math inline">\(H_f(\mathbf{x})\mathbf{v}\)</span> dans <a href="https://arxiv.org/pdf/1911.13292">cet article</a>).</p>
+<p>Leur intérêt réside dans le fait qu’on n’instancie pas la matrice hessienne dans sa globalité. On a néanmoins besoin d’instancier les matrices jacobiennes des calculs intermédiaires.</p>
+<section id="hvp" class="level3">
+<h3 class="anchored" data-anchor-id="hvp">HVP</h3>
+<p>La <a href="https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#hessian-vector-products-with-grad-of-grad">documentation de JAX</a> donne de exemples concrets d’utilisation du HVP.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-8-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-1" role="tab" aria-controls="tabset-8-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-2" role="tab" aria-controls="tabset-8-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-3" role="tab" aria-controls="tabset-8-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-8-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-8-1-tab">
+<ol type="1">
+<li>Écrire la fonction <span class="math inline">\(\texttt{hvp}_f\)</span> en composant les dérivations forward.</li>
+<li>Calculer <span class="math inline">\(\texttt{hvp}_f(\mathbf{x},(1, 0, 0, 0))\)</span>, avec le même <span class="math inline">\(\mathbf{x}\)</span> que précédemment.</li>
+<li>Quelles parties de la matrice hessienne révèle-t-on avec le calcul précédent ?</li>
+</ol>
+</div>
+<div id="tabset-8-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-2-tab">
+<p>Voir les exemples de la documentation de JAX.</p>
+</div>
+<div id="tabset-8-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-3-tab">
+<div id="5950de0d" class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>f_fixed <span class="op">=</span> <span class="kw">lambda</span> x: f(x, W, b)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1.</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> hvp(f, primals, tangents):</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># on a besoin de calculer une matrice jacobienne</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jax.jvp(jax.jacrev(f), primals, tangents)[<span class="dv">1</span>]</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 2.</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>H_f_x_5_partial <span class="op">=</span> hvp(f_fixed, (x,), (jnp.array([<span class="fl">1.</span>, <span class="fl">0.</span>, <span class="fl">0.</span>, <span class="fl">0.</span>]),))</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="co"># 3.</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x_5_partial[<span class="dv">0</span>, :], H_f_x[<span class="dv">0</span>, :, <span class="dv">0</span>])</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"On découvre la première colonne du première bloc"</span>)</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.allclose(H_f_x_5_partial[<span class="dv">1</span>, :], H_f_x[<span class="dv">1</span>, :, <span class="dv">0</span>])</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"On découvre la première colonne du deuxième bloc"</span>)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>On découvre la première colonne du première bloc
+On découvre la première colonne du deuxième bloc</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="compatibilité-avec-la-chain-rule-bonus" class="level3">
+<h3 class="anchored" data-anchor-id="compatibilité-avec-la-chain-rule-bonus">Compatibilité avec la <em>chain rule</em> ? (bonus)</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">Question</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">Indice</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-3" role="tab" aria-controls="tabset-9-3" aria-selected="false">Réponse</a></li></ul>
+<div class="tab-content">
+<div id="tabset-9-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-9-1-tab">
+<p>Peut-on composer les HVP et / ou VHP comme on l’a fait pour les VJP et JVP ? Si oui, est-ce avantageux de le faire ?</p>
+</div>
+<div id="tabset-9-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-2-tab">
+<p>Notons que avec <span class="math inline">\(f=f_2\circ f_1\)</span>, on a <span class="math inline">\(J_{{f_2}\circ {f_1}}(\mathbf{x})=J_{f_2}({f_1}(\mathbf{x})) + J_{f_1}(\mathbf{x})\)</span>, et on peut voir que :</p>
+<p><span class="math display">\[
+H_{{f_2}\circ {f_1}}({f_2}{\mathbf{x}}) = (H_{f_2}({f_1}(\mathbf{x})) J_{f_1}(\mathbf{x})) J_{f_1}(\mathbf{x}) + J_{f_2}({f_1}(\mathbf{x}))H_{f_1}(\mathbf{x})
+\]</span></p>
+<p>Attention, les produits de l’équation précédente sont définis au sens de la proposition 1 de l’article cité précédemment. De plus on remarque que dans le cas de <span class="math inline">\(f_1\)</span> application linéaire (c’est notre cas ici), le deuxième terme est nul.</p>
+</div>
+<div id="tabset-9-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-3-tab">
+
+</div>
+</div>
+</div>
+<!--
+# Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
+
+Tous
+
+4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
+-->
+<hr>
+</section>
+</section>
+</section>
+<section id="conclusion-et-conclusion-5-minutes" class="level1">
+<h1>Conclusion et conclusion [5 minutes]</h1>
+<ul>
+<li>La dérivation <strong>manuelle</strong> est la plus rapide et la plus contrôlable, mais peu scalable. Ici elle est aussi longue que <code>jacrev</code>.</li>
+<li><code>jacrev</code> est souvent préférable quand <code>dim_sortie</code><span class="math inline">\(=\dim(f(x))\)</span> est petite (notre cas ici). Ce cadre correspond exactement à ce qui se passe dans une <strong>couche de réseau de neurones</strong>, et se généralise naturellement à des architectures plus profondes.</li>
+<li><code>jacfwd</code> est souvent préférable quand <code>dim_entree</code><span class="math inline">\(=\dim(x)\)</span> est petite.</li>
+</ul>
+<p>La rédifinition de JVP (Jacobian Vector Product) et VJP (Vector Jacobian Product) d’une fonction qui n’est pas disponible dans les primitives fournies par JAX pourraient être utiles dans les cas suivants :</p>
+<ul>
+<li>l’utilisation d’une fonction non différentiable pour laquelle on veut écrire une dérivée “non-standard” afin de pouvoir l’utiliser dans JAX</li>
+<li>l’utilisation d’une fonction dont une approximation analytique de la dérivée est disponible mais qui n’est pas implémentée dans JAX</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copié");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copié");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

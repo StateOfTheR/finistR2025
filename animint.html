@@ -157,10 +157,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </li>  
     </ul>
   </li>
-  <li class="nav-item">
-    <a class="nav-link" href="./autodiff.html"> 
-<span class="menu-text">Différentiation automatique</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-différentiation-automatique" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Différentiation automatique</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-différentiation-automatique">    
+        <li class="dropdown-header">Autodiff avec JAX et torch</li>
+        <li>
+    <a class="dropdown-item" href="./autodiff.html">
+ <span class="dropdown-text">Tutoriel de différentiation automatique</span></a>
   </li>  
+        <li class="dropdown-header">Tuto autodiff StateOfTheR</li>
+        <li>
+    <a class="dropdown-item" href="./tuto_autodiff.html">
+ <span class="dropdown-text">Tutoriel de différentiation automatique - HappyR 9/01/2026</span></a>
+  </li>  
+    </ul>
+  </li>
   <li class="nav-item">
     <a class="nav-link active" href="./animint.html" aria-current="page"> 
 <span class="menu-text">animint2</span></a>
@@ -282,7 +295,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modifié</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">14 octobre 2025</p>
+      <p class="date-modified">16 janvier 2026</p>
     </div>
   </div>
     
@@ -360,12 +373,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" type="text/css" href="unnamedchunk5/vendor/selectize.css">
 <script type="text/javascript" src="unnamedchunk5/vendor/driver.js.iife.js"></script>
 <link rel="stylesheet" href="unnamedchunk5/vendor/driver.css">
-<p>
-</p>
 <div id="unnamedchunk5">
 
 </div>
-<script>var unnamedchunk5 = new animint("#unnamedchunk5", "unnamedchunk5/plot.json");</script>
+<script>var unnamedchunk5 = new animint("#unnamedchunk5","unnamedchunk5/plot.json");</script>
 </div>
 </div>
 </section>
@@ -380,9 +391,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                               <span class="at">alpha=</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>, <span class="at">show.legend =</span> T)</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(plot_with_bar)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk6"></div>
-<script>var unnamedchunk6 = new animint("#unnamedchunk6", "unnamedchunk6/plot.json");</script>
+<script>var unnamedchunk6 = new animint("#unnamedchunk6","unnamedchunk6/plot.json");</script>
 </div>
 </div>
 </section>
@@ -401,9 +411,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(plot_with_bar)  </span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk7"></div>
-<script>var unnamedchunk7 = new animint("#unnamedchunk7", "unnamedchunk7/plot.json");</script>
+<script>var unnamedchunk7 = new animint("#unnamedchunk7","unnamedchunk7/plot.json");</script>
 </div>
 </div>
 </section>
@@ -421,9 +430,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                               <span class="at">data =</span> <span class="fu">facet_right</span>(df)) </span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(full_plot)  </span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk8"></div>
-<script>var unnamedchunk8 = new animint("#unnamedchunk8", "unnamedchunk8/plot.json");</script>
+<script>var unnamedchunk8 = new animint("#unnamedchunk8","unnamedchunk8/plot.json");</script>
 </div>
 </div>
 </section>
@@ -451,9 +459,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(plot_both)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk11"></div>
-<script>var unnamedchunk11 = new animint("#unnamedchunk11", "unnamedchunk11/plot.json");</script>
+<script>var unnamedchunk11 = new animint("#unnamedchunk11","unnamedchunk11/plot.json");</script>
 </div>
 </div>
 </section>
@@ -483,9 +490,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">alpha=</span><span class="dv">1</span>)</span>
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(map)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk13"></div>
-<script>var unnamedchunk13 = new animint("#unnamedchunk13", "unnamedchunk13/plot.json");</script>
+<script>var unnamedchunk13 = new animint("#unnamedchunk13","unnamedchunk13/plot.json");</script>
 </div>
 </div>
 </section>
@@ -502,9 +508,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>                              <span class="at">data=</span>UStornadoes) </span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(tornadoes_map)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk14"></div>
-<script>var unnamedchunk14 = new animint("#unnamedchunk14", "unnamedchunk14/plot.json");</script>
+<script>var unnamedchunk14 = new animint("#unnamedchunk14","unnamedchunk14/plot.json");</script>
 </div>
 </div>
 </section>
@@ -521,9 +526,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">size=</span><span class="dv">1</span>)</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(tornadoes_map)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk15"></div>
-<script>var unnamedchunk15 = new animint("#unnamedchunk15", "unnamedchunk15/plot.json");</script>
+<script>var unnamedchunk15 = new animint("#unnamedchunk15","unnamedchunk15/plot.json");</script>
 </div>
 </div>
 </section>
@@ -548,9 +552,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>                          <span class="at">position=</span><span class="st">"identity"</span>)</span>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(tornadoes_hist)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk17"></div>
-<script>var unnamedchunk17 = new animint("#unnamedchunk17", "unnamedchunk17/plot.json");</script>
+<script>var unnamedchunk17 = new animint("#unnamedchunk17","unnamedchunk17/plot.json");</script>
 </div>
 </div>
 <p>Adding value on top of the bar when it is clicked.</p>
@@ -561,9 +564,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">data=</span>UStornadoCounts, <span class="at">size=</span><span class="dv">20</span>)</span>
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(tornadoes_hist)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk18"></div>
-<script>var unnamedchunk18 = new animint("#unnamedchunk18", "unnamedchunk18/plot.json");</script>
+<script>var unnamedchunk18 = new animint("#unnamedchunk18","unnamedchunk18/plot.json");</script>
 </div>
 </div>
 </section>
@@ -572,9 +574,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(tornadoes_map, tornadoes_hist)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk19"></div>
-<script>var unnamedchunk19 = new animint("#unnamedchunk19", "unnamedchunk19/plot.json");</script>
+<script>var unnamedchunk19 = new animint("#unnamedchunk19","unnamedchunk19/plot.json");</script>
 </div>
 </div>
 </section>
@@ -628,8 +629,8 @@ Attaching package: 'lubridate'</code></pre>
 <div class="cell-output cell-output-stderr">
 <pre><code>The following objects are masked from 'package:data.table':
 
-    hour, isoweek, mday, minute, month, quarter, second, wday, week,
-    yday, year</code></pre>
+    hour, isoweek, isoyear, mday, minute, month, quarter, second, wday,
+    week, yday, year</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>The following objects are masked from 'package:base':
@@ -754,9 +755,8 @@ Attaching package: 'lubridate'</code></pre>
 <span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(plot_QER)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk24"></div>
-<script>var unnamedchunk24 = new animint("#unnamedchunk24", "unnamedchunk24/plot.json");</script>
+<script>var unnamedchunk24 = new animint("#unnamedchunk24","unnamedchunk24/plot.json");</script>
 </div>
 </div>
 <p>We can add a rectangle, higlighting a selected day (will be useful later)</p>
@@ -780,9 +780,8 @@ Attaching package: 'lubridate'</code></pre>
 <span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(plot_QER)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk25"></div>
-<script>var unnamedchunk25 = new animint("#unnamedchunk25", "unnamedchunk25/plot.json");</script>
+<script>var unnamedchunk25 = new animint("#unnamedchunk25","unnamedchunk25/plot.json");</script>
 </div>
 </div>
 </section>
@@ -822,9 +821,8 @@ Attaching package: 'lubridate'</code></pre>
 <span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  animint2<span class="sc">::</span><span class="fu">labs</span>(<span class="at">fill =</span> <span class="st">"temperature"</span>)<span class="sc">+</span><span class="fu">theme_bw</span>()</span>
 <span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(map_plot)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk26"></div>
-<script>var unnamedchunk26 = new animint("#unnamedchunk26", "unnamedchunk26/plot.json");</script>
+<script>var unnamedchunk26 = new animint("#unnamedchunk26","unnamedchunk26/plot.json");</script>
 </div>
 </div>
 </section>
@@ -834,9 +832,8 @@ Attaching package: 'lubridate'</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>animint2<span class="sc">::</span><span class="fu">animint</span>(plot_QER,map_plot, <span class="at">first =</span> <span class="fu">list</span>(<span class="at">year =</span> <span class="fu">c</span>(<span class="dv">2003</span>), <span class="at">day_of_year =</span> <span class="fu">c</span>(<span class="dv">200</span>)))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk27"></div>
-<script>var unnamedchunk27 = new animint("#unnamedchunk27", "unnamedchunk27/plot.json");</script>
+<script>var unnamedchunk27 = new animint("#unnamedchunk27","unnamedchunk27/plot.json");</script>
 </div>
 </div>
 </section>
@@ -893,9 +890,8 @@ Attaching package: 'lubridate'</code></pre>
 <span id="cb44-48"><a href="#cb44-48" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-49"><a href="#cb44-49" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(map_t_minus1,map_t,map_t_plus1)</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk28"></div>
-<script>var unnamedchunk28 = new animint("#unnamedchunk28", "unnamedchunk28/plot.json");</script>
+<script>var unnamedchunk28 = new animint("#unnamedchunk28","unnamedchunk28/plot.json");</script>
 </div>
 </div>
 </section>
@@ -908,9 +904,8 @@ Attaching package: 'lubridate'</code></pre>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">bottom_row   =</span> <span class="st">"plot_QER"</span>                               <span class="co"># bottom row</span></span>
 <span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  ))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk29"></div>
-<script>var unnamedchunk29 = new animint("#unnamedchunk29", "unnamedchunk29/plot.json");</script>
+<script>var unnamedchunk29 = new animint("#unnamedchunk29","unnamedchunk29/plot.json");</script>
 </div>
 </div>
 </section>
@@ -985,9 +980,8 @@ will replace the existing scale.</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">animint</span>(map_t,plot_QER, <span class="at">first =</span> <span class="fu">list</span>(<span class="at">year =</span> <span class="fu">c</span>(<span class="dv">2003</span>), <span class="at">day_of_year =</span> <span class="fu">c</span>(<span class="dv">200</span>)))</span></code><button title="Copier vers le presse-papier" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p></p>
 <div id="unnamedchunk31"></div>
-<script>var unnamedchunk31 = new animint("#unnamedchunk31", "unnamedchunk31/plot.json");</script>
+<script>var unnamedchunk31 = new animint("#unnamedchunk31","unnamedchunk31/plot.json");</script>
 </div>
 </div>
 </section>
