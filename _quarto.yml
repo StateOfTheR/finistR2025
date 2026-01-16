@@ -12,7 +12,11 @@ website:
         href: instructions.qmd
     right:
       - text: Différentiation automatique
-        href: autodiff.qmd
+        menu:
+          - text: Autodiff avec JAX et torch
+          - href: autodiff.qmd
+          - text: Tuto autodiff StateOfTheR
+          - href: tuto_autodiff.qmd
       - text: animint2
         href: animint.qmd
       - icon: Bicycle
