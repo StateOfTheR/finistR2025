@@ -1,0 +1,985 @@
+---
+title: "Python packaging"
+from: markdown+emoji
+lang: fr
+format: html
+execute:
+    cache: true
+toc: true
+author:
+  - name: Léo Micollet 
+  - name: Arthur Leroy
+  - name: Armand Favrot
+    affiliations:
+      - name: INRAE - MIA Paris Saclay
+date: "2025-08-22"
+date-modified: today
+date-format: "DD MMMM YYYY"
+---
+
+The goal of this workshop is to learn how to build a Python package. It is divided into three parts. In the first part, we create a toy package and install it locally. In the second part, we publish this package on [TestPyPI](https://test.pypi.org/) (which allows us to verify that the package is correct before publishing it on [PyPI](https://pypi.org/), Python’s equivalent of CRAN for R). In the third part, we integrate CI/CD (continuous integration / continuous deployment) via GitHub to ensure package maintenance and automatic deployment to PyPI when releasing a new version. The associated code is available here: [https://github.com/armandfavrot/ammonia_predict_3](https://github.com/armandfavrot/ammonia_predict_3).
+
+The resources we used come mainly from [Real Python](https://realpython.com/) (very pedagogical):
+
+- [How to Publish an Open-Source Python Package to PyPI - Real Python](https://realpython.com/pypi-publish-python-package/)
+- [Continuous Integration and Deployment for Python With Github Actions - Real Python](https://realpython.com/github-actions-python/) 
+- [Python Modules and Packages - An Introduction - Real Python](https://realpython.com/python-modules-packages/)
+
+To a lesser extent, we also used the tutorials [Python packaging - Jean-Benoist Leger](https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide) (CI/CD with GitLab) and [Distribuer son application Python - Loïc Gouarin](https://gouarin.github.io/python-packaging-2023/).
+
+A short note from RealPython about the Python packaging ecosystem, often criticized by R coders who are too proud of their CRAN:
+
+*"Over the last decade, many initiatives have improved the packaging landscape, bringing it from the Wild West and into a fairly modern and capable system. This is mainly done through Python Enhancement Proposals (**PEPs**) that are reviewed and implemented by the Python Packaging Authority (**PyPA**) working group."*
+
+This highlights the fact that there are rules. For example, [PEP 508](https://peps.python.org/pep-0508/) describes how dependencies should be specified.
+
+# Creating a toy package
+
+We start by creating a virtual environment in which the package will be developed. Next, we create the package itself, including the source code and the standard supporting files. Then we install it locally, and finally we run the tests.
+
+## Creating a virtual environment
+
+The first step is to create a virtual environment where the package will be developed. We used `pyenv virtualenv` to create the environment. Unlike `venv`, which only manages package versions, `pyenv virtualenv` also allows you to manage the Python version. For more information on environments, see this tutorial: [Python Virtual Environments: A Primer](https://realpython.com/python-virtual-environments-a-primer/).
+
+The package was developed with `python 3.12.3`, `torch 2.5.0`, and `pandas 2.2.3`.
+
+Install Python 3.12.3 with:
+
+```bash
+pyenv install 3.12.3
+```
+
+Create a virtual environment with:
+
+```bash
+pyenv virtualenv 3.12.3 ammonia_predict_3
+```
+
+Where 'ammonia_predict_3' is the name of the environment.
+
+Create a directory where the package will be developed, move inside it, and activate the environment.
+
+```bash
+mmip: mkdir ammonia_predict_3
+mmip: cd ammonia_predict_3/
+ammonia_predict_3: pyenv local ammonia_predict_3
+(ammonia_predict_3) ammonia_predict_3:
+```
+
+Install the packages:
+
+```bash 
+pip install torch==2.5.0
+pip install pandas==2.2.3
+```
+
+Check the versions:
+
+```bash 
+(ammonia_predict_3) ammonia_predict_3: python --version
+Python 3.12.3
+(ammonia_predict_3) ammonia_predict_3: pip list | egrep 'torch|pandas'
+pandas                   2.2.3
+torch                    2.5.0
+```
+
+## Package creation 
+
+
+The second step is to create the package. But first, what is a package in Python? Since we couldn’t find an official definition, we propose to see a package as a collection of modules, each of which is a file containing function definitions, classes, variables, and executable statements. Modules allow for modular programming, which “refers to the process of breaking a large, unwieldy programming task into separate, smaller, more manageable subtasks or modules” (Real Python). In other words, a package is essentially a collection of code divided into multiple files through a well-organized directory structure, which makes its use and maintenance easier.
+
+The toy package we created predicts the dynamics of ammonia emissions under environmental conditions using a recurrent neural network.
+
+Our package consists of the following files:
+
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: tree
+.
+├── pyproject.toml
+├── README.md
+├── src
+│   └── ammonia_predict_3
+│       ├── __init__.py
+│       ├── api.py
+│       ├── model_def.py
+│       ├── utils.py
+│       └── data
+│          └── final_model.pth
+└── tests
+    └── test_predict.py
+```
+
+
+Let’s go through these files:
+
+- `pyproject.toml`: a configuration file that tells Python tools how to build, install, and manage your package. This file typically contains three sections: [build-system], [project], and [tool].  
+  - [build-system] tells Python which tool should be used to build the package (e.g., setuptools, poetry, ...).  
+  - [project] is used to specify the project’s basic metadata, such as dependencies, author information, etc.  
+  - [tool] is used to configure the tools used in the project, such as setuptools, pytest, ruff, and so on.  
+
+  For more information on how to write this file, check the [documentation](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/). Configuration of the setuptools tool is explained [here](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html).
+
+```{python filename="pyproject.toml"}
+#| code-fold: true
+#| code-summary: "pyproject.toml"
+#| eval: false
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ammonia-predict-3"
+version = "0.1.0"
+description = "Predict ammonia emissions with a simple RNN model"
+readme = "README.md"
+requires-python = ">=3.12.3"
+authors = [
+  { name = "Armand Favrot", email = "armand.favrot@inrae.fr" }
+]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python",
+]
+dependencies = [
+  "pandas>=2.2.3",
+  "torch>=2.5.0"
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ammonia_predict_3 = ["data/*.pth"]
+
+[project.optional-dependencies]
+build = ["build", "twine"]
+dev = ["pytest"]
+```
+
+- `README.md`: documentation for the package.
+
+```{python filename="README.md"}
+#| code-fold: true
+#| code-summary : "README.md"
+#| eval: false
+# ammonia-predict
+
+Predict ammonia emissions with a simple RNN model.
+
+## Install (dev)
+
+pip install -e .
+
+## Usage
+
+You can use the package in Python as follows:
+
+import pandas as pd
+from ammonia_predict_3 import predict
+
+df = pd.DataFrame({
+    "pmid": [1, 1],
+    "ct": [2, 4],
+    "dt": [2, 2],
+    "air_temp": [12, 15],
+    "wind_2m": [3, 3],
+    "rain_rate": [0, 0],
+    "tan_app": [36.7, 36.7],
+    "app_rate": [10, 10],
+    "man_dm": [0.1, 0.1],
+    "man_ph": [7, 7],
+    "t_incorp": [0, 0],
+    "app_mthd": [1, 1],
+    "incorp": [0, 0],
+    "man_source": [1, 1],
+})
+
+pred = predict(df)
+print(pred[["prediction_delta_ecum", "prediction_ecum"]])
+
+
+## Notes
+
+- The trained weights are included in the package under `ammonia_predict/data/final_model.pth`.
+- The package requires **Python ≥3.9**, **PyTorch**, and **pandas**.
+```
+
+
+- `__init__.py`: a script that is executed when the package or one of its modules is imported. It is used, among other things, to control what the package exposes (for example, whether specific functions can be imported directly). More information on this file can be found [here](https://realpython.com/python-init-py/).
+
+```{python filename="__init__.py"}
+#| code-fold: true
+#| code-summary: "init.py"
+#| eval: false
+from .api import predict
+
+__all__ = ["predict"]
+
+
+from importlib.metadata import version
+
+__version__ = version("ammonia-predict-3")  
+```
+
+- The other files are the package’s source code. `api.py` contains the function available to the package user, `model_def.py` defines the model class, and `utils.py` contains helper functions. `final_model.pth` is a data file that stores the model parameters.
+
+```{python filename="api.py"}
+#| code-fold: true
+#| code-summary: "api.py"
+#| eval: false
+import pandas as pd
+import torch
+import torch.nn as nn
+from importlib.resources import files, as_file
+
+from .model_def import AmmoniaRNN
+from .utils import generate_tensors_predictors
+
+DEVICE = "cpu"
+num_layers = 1
+nonlinearity = "relu"
+bidirectional = True
+hidden_size = 512 
+
+cat_dims = [5, 3, 2]  
+embedding_dims = [10, 9, 8]  
+input_size = 13   
+output_size = 1
+
+model = AmmoniaRNN(input_size = input_size, 
+                   output_size = output_size, 
+                   hidden_size = hidden_size, 
+                   nonlinearity = nonlinearity,
+                   num_layers = num_layers,
+                   bidirectional = bidirectional,
+                   cat_dims = cat_dims, 
+                   embedding_dims = embedding_dims).to(DEVICE)
+
+
+resource = files(__package__) / "data" / "final_model.pth"
+with as_file(resource) as path:
+    model.load_state_dict(torch.load(str(path), weights_only = True, map_location=torch.device('cpu')))
+
+
+def predict (df):
+
+    data_predictions = df.copy()
+
+    pmids = data_predictions['pmid'].unique()
+    
+    data_predictions['prediction_ecum'] = None
+    data_predictions['prediction_delta_ecum'] = None
+        
+    with torch.no_grad():
+    
+        all_predictions = torch.empty(0).to(DEVICE)
+    
+            
+        for i in pmids:
+    
+            x = generate_tensors_predictors (data_predictions, i, device = DEVICE)
+            y = model(x)
+            all_predictions = torch.cat ((all_predictions, y.squeeze()), 0)
+    
+        data_predictions['prediction_delta_ecum'] = all_predictions.to("cpu").detach()
+    
+    data_predictions['prediction_ecum'] = data_predictions.groupby('pmid')['prediction_delta_ecum'].cumsum()
+
+    return data_predictions
+```
+
+```{python filename="model_def"}
+#| code-fold: true
+#| code-summary: "model_def.py"
+#| eval: false
+import torch
+import torch.nn as nn
+
+class AmmoniaRNN(nn.Module):
+    
+    def __init__(self, 
+                 input_size, 
+                 output_size, 
+                 hidden_size, 
+                 num_layers,
+                 nonlinearity, 
+                 bidirectional,
+                 cat_dims = None, embedding_dims = None):
+        
+        super(AmmoniaRNN, self).__init__()
+        
+        D = 1 + 1 * bidirectional
+               
+        self.embeddings = nn.ModuleList([
+            nn.Embedding(num_embeddings = cat_dim, embedding_dim = embed_dim)
+            for cat_dim, embed_dim in zip(cat_dims, embedding_dims)
+        ])
+        
+        input_size = input_size - len(cat_dims) + sum(embedding_dims)           
+        
+        self.rnn = nn.RNN(input_size, 
+                          hidden_size, 
+                          num_layers = num_layers,
+                          nonlinearity = nonlinearity, 
+                          bidirectional = bidirectional)    
+        
+        self.fc1 = nn.Linear(hidden_size * D, 6)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(6, output_size)
+
+    def forward(self, x):
+
+        x_continuous = x[0]
+        x_categoricals = x[1]
+        
+        x_embeds = [embed(x_cat) for embed, x_cat in zip(self.embeddings, x_categoricals)]
+        
+        x = torch.cat([x_continuous] + x_embeds, dim = -1)
+        
+        h, _ = self.rnn(x)
+
+        out = self.fc1(h)
+        out = self.relu(out)
+        out = self.fc2(out)
+       
+        return out
+```
+
+```{python filename="utils.py"}
+#| code-fold: true
+#| code-summary: "utils.py"
+#| eval: false
+import torch
+
+def generate_tensors_predictors(df, pmid, device):
+    
+    data_filtered = df[df['pmid'] == pmid]
+
+    x_cont = data_filtered[['ct', 'dt', 'air_temp', 'wind_2m', 'rain_rate', 'tan_app', 'app_rate', 'man_dm', 'man_ph', 't_incorp']]
+
+    x_cont_tensor = torch.tensor(x_cont.values, dtype=torch.float32).view(len(x_cont), len(x_cont.columns))
+    x_cont_tensor = x_cont_tensor.to(device)
+    
+    x_cat = data_filtered[['app_mthd', 'incorp', 'man_source']]
+    
+    x_cat_tensor = torch.tensor(x_cat.values, dtype=torch.long).view(len(x_cat), len(x_cat.columns))
+    x_cat_tensor = x_cat_tensor.to(device)
+    x_cat_tensor = torch.unbind (x_cat_tensor, dim = 1)
+
+    output = [x_cont_tensor, x_cat_tensor]
+    
+    return output
+```
+
+- `test_predict.py` contains the tests to be run, which can be executed directly with the `pytest` tool.
+
+```{python filename="test_predict.py"}
+#| code-fold: true
+#| code-summary: "test_predict.py"
+#| eval: false
+
+import pandas as pd
+from ammonia_predict_3 import predict
+
+def test_predict_columns():
+    df = pd.DataFrame({
+        "pmid": [1, 1, 2, 2],
+        "ct": [2, 4, 2, 4],
+        "dt": [2, 2, 2, 2],
+        "air_temp": [12, 15, 11, 10],
+        "wind_2m": [3, 3, 4, 2],
+        "rain_rate": [0, 0, 1, 0],
+        "tan_app": [36.7, 36.7, 36.7, 36.7],
+        "app_rate": [10, 10, 12, 12],
+        "man_dm": [0.1, 0.1, 0.1, 0.1],
+        "man_ph": [7, 7, 7, 7],
+        "t_incorp": [0, 0, 0, 0],
+        "app_mthd": [1, 1, 1, 1],
+        "incorp": [0, 0, 0, 0],
+        "man_source": [1, 1, 1, 1],
+    })
+
+    out = predict(df)
+    assert "prediction_delta_ecum" in out.columns
+    assert "prediction_ecum" in out.columns
+    assert len(out) == len(df)
+```
+
+For more details on package structuring, how imports work, and the role of `__init__.py`, we have prepared an additional tutorial available [here](package_python_tuto_annexe.qmd).
+
+
+## Local installation of the package
+
+At this point, we can now install the package:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: pip install .
+```
+
+To check the installation, go into another directory, activate the environment where the package was installed, start Python, import the package, and run the example provided in the `README.md` file.
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: cd
+mmip: pyenv activate ammonia_predict_3
+```
+
+```bash
+(ammonia_predict_3) mmip: python
+Python 3.12.3 (main, Sep  1 2025, 16:05:27) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from ammonia_predict_3 import predict
+>>> import pandas as pd
+>>>
+>>> df = pd.DataFrame({
+...     "pmid": [1, 1],
+...     "ct": [2, 4],
+...     "dt": [2, 2],
+...     "air_temp": [12, 15],
+...     "wind_2m": [3, 3],
+...     "rain_rate": [0, 0],
+...     "tan_app": [36.7, 36.7],
+...     "app_rate": [10, 10],
+...     "man_dm": [0.1, 0.1],
+...     "man_ph": [7, 7],
+...     "t_incorp": [0, 0],
+...     "app_mthd": [1, 1],
+...     "incorp": [0, 0],
+...     "man_source": [1, 1],
+... })
+>>>
+>>> pred = predict(df)
+>>> print(pred[["prediction_delta_ecum", "prediction_ecum"]])
+   prediction_delta_ecum  prediction_ecum
+0               7.981954         7.981954
+1               4.829587        12.811542
+>>>
+```
+
+
+::: {.callout-note}
+## Development mode installation
+
+Installing in development mode means that modifications to the source code are taken into account immediately, without needing to reinstall the package each time you make changes. It can be done with: 
+
+```bash
+pip install -e .
+```
+
+See [Install Your Package Locally - Real Python](https://realpython.com/pypi-publish-python-package/#install-your-package-locally) for more details.
+:::
+
+## Tests with pytest
+
+To run the test that have been placed in ./tests/, we just need to run `pytest` in the terminal:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: pytest
+================================================================== test session starts ==================================================================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /home/mmip/FinistR/ammonia_predict_3
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.6.2.post1
+collected 1 item
+
+tests/test_predict.py .                                                                                                                           [100%]
+
+=================================================================== warnings summary ====================================================================
+../../.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:60
+  /home/mmip/.local/lib/python3.12/site-packages/pandas/core/arrays/masked.py:60: UserWarning: Pandas requires version '1.3.6' or newer of 'bottleneck' (version '1.3.5' currently installed).
+    from pandas.core import (
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================= 1 passed, 1 warning in 1.76s ==============================================================
+```
+
+More details here: [Effective Python Testing With pytest - Real Python](https://realpython.com/pytest-python-testing/).
+
+
+# Deployment on TestPyPI
+
+
+But first, what is [PyPI](https://pypi.org/)?  
+
+PyPI (The Python Package Index) is a repository of software for the Python programming language — the equivalent of CRAN for R.
+
+[TestPyPI](https://test.pypi.org/) is a separate instance of the Python Package Index that allows you to try out distribution tools and processes without affecting the real index.
+
+To deploy to TestPyPI, you first need to create an account.  
+
+Next, you’ll need two packages: **Build** and **Twine**. Build is used to create an archive of the package, and Twine is used to upload the archives to TestPyPI.
+
+Install both tools:
+
+```bash 
+(ammonia_predict_3) pip install build twine
+```
+
+Build the archives:
+
+```bash 
+(ammonia_predict_3) python -m build
+```
+
+The archives created by Build are placed in a folder called `dist`:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: tree dist
+dist
+├── ammonia_predict_3-0.1.0-py3-none-any.whl
+└── ammonia_predict_3-0.1.0.tar.gz
+```
+
+Here's what they contain:
+
+```{python}
+#| code-fold: true
+#| code-summary: "ammonia_predict_3-0.1.0-py3-none-any.whl"
+#| eval: false
+(ammonia_predict_3) ammonia_predict_3: unzip dist/ammonia_predict_3-0.1.0-py3-none-any.whl -d whl_archive_check
+(ammonia_predict_3) ammonia_predict_3: tree whl_archive_check/
+whl_archive_check/
+├── ammonia_predict_3
+│   ├── api.py
+│   ├── data
+│   │   └── final_model.pth
+│   ├── __init__.py
+│   ├── model_def.py
+│   └── utils.py
+└── ammonia_predict_3-0.1.0.dist-info
+    ├── METADATA
+    ├── RECORD
+    ├── top_level.txt
+    └── WHEEL
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "ammonia_predict_3-0.1.0.tar.gz"
+#| eval: false
+(ammonia_predict_3) ammonia_predict_3: tar -xf dist/ammonia_predict_3-0.1.0.tar.gz
+(ammonia_predict_3) ammonia_predict_3: tree ammonia_predict_3-0.1.0/
+ammonia_predict_3-0.1.0/
+├── PKG-INFO
+├── pyproject.toml
+├── README.md
+├── setup.cfg
+├── src
+│   ├── ammonia_predict_3
+│   │   ├── api.py
+│   │   ├── data
+│   │   │   └── final_model.pth
+│   │   ├── __init__.py
+│   │   ├── model_def.py
+│   │   └── utils.py
+│   └── ammonia_predict_3.egg-info
+│       ├── dependency_links.txt
+│       ├── PKG-INFO
+│       ├── requires.txt
+│       ├── SOURCES.txt
+│       └── top_level.txt
+└── tests
+    └── test_predict.py
+```
+
+Check that everything is ready for upload to TestPyPI:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: twine check dist/*
+Checking dist/ammonia_predict_3-0.1.0-py3-none-any.whl: PASSED
+Checking dist/ammonia_predict_3-0.1.0.tar.gz: PASSED
+```
+
+Upload to TestPyPI:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: twine upload -r testpypi dist/*
+Uploading distributions to https://test.pypi.org/legacy/
+WARNING  This environment is not supported for trusted publishing
+Enter your API token:
+Uploading ammonia_predict_3-0.1.0-py3-none-any.whl
+100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB • 00:00 • 13.3 MB/s
+Uploading ammonia_predict_3-0.1.0.tar.gz
+100% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB • 00:00 • 10.0 MB/s
+
+View at:
+https://test.pypi.org/project/ammonia-predict-3/
+```
+
+The package is now available here: [https://test.pypi.org/project/ammonia-predict-3/](https://test.pypi.org/project/ammonia-predict-3/)
+
+We can verify that it installs correctly from TestPyPI. Create a new folder and a new environment, install the package, and run the examples.
+
+First, create a new folder with the appropriate environment:
+
+```bash
+mmip: mkdir package_test
+mmip: cd package_test/
+package_test: python3 -m venv venv
+package_test: source venv/bin/activate
+(venv) package_test: pip install pandas
+(venv) package_test: pip install torch
+```
+
+Then install the package from TestPyPI:
+
+```bash
+(venv) package_test: pip install -i https://test.pypi.org/simple/ ammonia-predict-3
+```
+
+Then run the example from the `README.md` file:
+
+```bash 
+(venv) package_test: python
+Python 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import pandas as pd
+>>> from ammonia_predict_3 import predict
+>>>
+>>> df = pd.DataFrame({
+...     "pmid": [1, 1],
+...     "ct": [2, 4],
+...     "dt": [2, 2],
+...     "air_temp": [12, 15],
+...     "wind_2m": [3, 3],
+...     "rain_rate": [0, 0],
+...     "tan_app": [36.7, 36.7],
+...     "app_rate": [10, 10],
+...     "man_dm": [0.1, 0.1],
+...     "man_ph": [7, 7],
+...     "t_incorp": [0, 0],
+...     "app_mthd": [1, 1],
+...     "incorp": [0, 0],
+...     "man_source": [1, 1],
+... })
+>>>
+>>> pred = predict(df)
+>>> print(pred[["prediction_delta_ecum", "prediction_ecum"]])
+   prediction_delta_ecum  prediction_ecum
+0               7.981954         7.981954
+1               4.829587        12.811542
+>>>
+```
+
+At this stage, everything looks good — we have a package on TestPyPI.  
+But what about **maintenance**?
+
+Do we really think the package will still work in 6 months?
+
+That’s where **CI/CD** comes in.
+
+# Adding CI/CD
+
+This section is based on the tutorial [Continuous Integration and Deployment for Python With GitHub Actions - Real Python](https://realpython.com/github-actions-python/).
+
+
+CI/CD stands for **Continuous Integration / Continuous Deployment**. Continuous integration helps keep software functional in an ever-changing environment, while continuous deployment ensures it is automatically made available on platforms such as PyPI or CRAN whenever a new version is released. The key idea is: **automation of tests**.
+
+In this section, we will use **GitHub workflows**, a tool that automates actions when working with GitHub. We will use GitHub workflows to automate linting (code formatting), testing, and deployment of a Python project. Workflows are defined in YAML files stored in the `.github/workflows/` folder at the root of the project.
+
+To do this, we first need to initialize git in our project, create a new repository on GitHub, and connect it to the local project.
+
+With git, we only want to track the source code, so we create a `.gitignore` file that excludes the `build/`, `dist/`, `__pycache__`, and `*.egg-info` folders.
+
+```{python filename=".gitignore"}
+#| code-fold: true
+#| code-summary: ".gitignore"
+#| eval: false
+build/
+
+dist/ 
+
+*.egg-info/ 
+
+__pycache__/
+```
+
+what we track with git:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: tree -I 'build|dist|__pycache__|*.egg-info'
+.
+├── pyproject.toml
+├── README.md
+├── src
+│   └── ammonia_predict_3
+│       ├── __init__.py
+│       ├── api.py
+│       ├── model_def.py
+│       ├── utils.py
+│       └── data
+│          └── final_model.pth
+└── tests
+    └── test_predict.py
+```
+
+## First workflow: linting
+
+We add the following file in `.github/workflows`:
+
+```{python filename="lint.yml"}
+#| code-summary: "lint.yml"
+#| eval: false
+name: Lint Python Code
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff
+
+      - name: Run Ruff
+        run: ruff check --output-format=github
+```
+
+
+This action will be triggered on GitHub when pushing, making a pull request, or manually using a button in github (`workflow_dispatch`).
+
+Actions are visible in the **Actions** tab of the GitHub repository:
+
+![](images/package_python/github_actions.png)
+
+At this stage, excluding the “parasitic” files and folders created during local installation and usage of the package (such as `__pycache__`, `*.egg-info`, ...), the project tree looks like this:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: tree -a -I '.git|build|dist|__pycache__|*.egg-info|.pytest_cache|.python-version'
+.
+├── .gitignore
+├── .github
+│   └── .workflows
+│       └── lint.yml
+│   
+├── pyproject.toml
+├── README.md
+├── src
+│   └── ammonia_predict_3
+│       ├── __init__.py
+│       ├── api.py
+│       ├── model_def.py
+│       ├── utils.py
+│       └── data
+│          └── final_model.pth
+└── tests
+    └── test_predict.py
+```
+
+## Second workflow: testing
+
+We specified in the `.toml` file that the package works with `python>=3.12`, `pandas>=2.2.3`, and `torch>=2.5.0`.
+
+However, we had not actually verified that it truly works.
+
+Testing all possible combinations would be too costly.
+
+Instead, we adopt a **min-max strategy**: for each Python version, we run pytest with (i) the minimal versions of pandas and torch, and (ii) the latest available versions. [Refs?]
+
+We add the following file in `.github/workflows`:
+
+```{python filename="test.yml"}
+#| code-fold: true
+#| code-summary: "test.yml"
+#| eval: false
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - python-version: "3.12"
+            pandas-version: "2.2.3"
+            torch-version: "2.5.0"
+          - python-version: "3.13"
+            pandas-version: "2.2.3"
+            torch-version: "2.5.0"
+          - python-version: "3.12"
+            pandas-version: "latest"
+            torch-version: "latest"
+          - python-version: "3.13"
+            pandas-version: "latest"
+            torch-version: "latest"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ "${{ matrix.pandas-version }}" = "latest" ]; then
+            python -m pip install "pandas>=2.2.3"
+          else
+            python -m pip install pandas==${{ matrix.pandas-version }}
+          fi
+
+          if [ "${{ matrix.torch-version }}" = "latest" ]; then
+            python -m pip install "torch>=2.5.0"
+          else
+            python -m pip install torch==${{ matrix.torch-version }}
+          fi
+
+          python -m pip install .[dev]
+
+      - name: Run Pytest
+        run: pytest
+```
+
+## Third workflow: deployment
+
+In order to automate deployment to PyPI when we change our package version, we need to add our token as a *secret* in the GitHub repository. To do that, follow these instructions: [Using secrets in GitHub Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-a-repository)
+
+**Note:** the secret is the token itself, which starts with `pypi-` (e.g., `pypi-AgENdG...`).
+
+We then add the following file in `.github/workflows`:
+
+```{python filename="deploy.yml"}
+#| eval: false
+name: Publish to PyPI
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[build]
+
+    - name: Build package
+      run: python -m build
+
+    - name: Test publish package
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        repository-url: https://test.pypi.org/legacy/
+```
+
+*Remark:* `PYPI_API_TOKEN` is the name we gave to the token secret in GitHub.
+
+A useful tool for handling versioning is **bumpver**. It automates updating versions in all files where the version appears, and we will use it to automatically commit and tag new versions.
+
+We install and initialize bumpver:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: pip install bumpver
+(ammonia_predict_3) ammonia_predict_3: bumpver init
+```
+
+After initialization, we need to ensure that the end of the `pyproject.toml` file looks like this:
+
+```{python filename="pyproject.toml"}
+#| eval: false
+...
+
+[tool.bumpver]
+current_version = "0.1.0"
+version_pattern = "MAJOR.MINOR.PACH"
+commit_message = "bump version {old_version} -> {new_version}"
+tag_message = "{new_version}"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+    'version = "{version}"',
+]
+```
+
+Now let’s update our package to a new version:
+
+```bash
+(ammonia_predict_3) ammonia_predict_3: bumpver update --minor
+INFO    - fetching tags from remote (to turn off use: -n / --no-fetch)
+INFO    - Old Version: 0.1.0
+INFO    - New Version: 0.2.0
+INFO    - git commit --message 'bump version 0.1.0 -> 0.2.0'
+INFO    - git tag --annotate 0.2.0 --message '0.2.0'
+INFO    - git push origin --follow-tags 0.2.0 HEAD
+```
+
+We can check on GitHub that the actions triggered by the push and the tag run successfully:
+
+![](images/package_python/github_actions_2.png)
+
+And that the package has been updated on TestPyPI:
+
+![](images/package_python/test_pypi_new_package_version.png)
+
+*Remark:* with `push = true` in the `[tool.bumpver]` section of `pyproject.toml`, the deployment workflow is triggered at the same time as the other workflows (in particular, testing). However, we want the tests to pass before publishing to TestPyPI. Therefore, we set `push = false`, and manually perform the push and tag steps.
+
+```bash
+bumpver update --major
+git push
+[waiting for lint and test workflows to be completed]
+git push --tags
+```
+
+# Going Further
+
+- Pre-commit: see the example in Jean-Benoist Leger's [tutorial](https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide). 
+- Documentation: using [sphinx](https://www.sphinx-doc.org/en/master/index.html) (to build the documentation) and [Read the Docs](https://docs.readthedocs.com/platform/stable/index.html) to host it.
+- [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)  
+
+# References
+
+- [Python Modules and Packages - An Introduction - Real Python](https://realpython.com/python-modules-packages/)
+- [How to Publish an Open-Source Python Package to PyPI - Real Python](https://realpython.com/pypi-publish-python-package/#create-a-small-python-package)
+- [Continuous Integration and Deployment for Python With Github Actions - Real Python](https://realpython.com/github-actions-python/) 
+
+- [Python packaging - Jean-Benoist Leger](https://jbleger.gitlab.io/python-packaging/slides.html#/title-slide)
+- [Distribuer son application Python - Loïc Gouarin](https://gouarin.github.io/python-packaging-2023/)
+
