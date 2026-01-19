@@ -271,7 +271,7 @@ def f(x, W, b):
   return jnp.tanh(W @ x + b)
 ```
 
-`jnp` est l’équivalent de numpy mais compatible avec JAX.
+`jnp` est un module de JAX qui reprend l'essentiel des fonctions numpy.
 
 ::: callout-note
 ## Aléa dans JAX 
@@ -310,8 +310,8 @@ Ici on calcule la dérivée par rapport à $\mathbf{x}$ en gardant $W$ et $\math
 Il faut créer une fonction anonmye `lambda x: f(x, W, b)` pour considérer `f` uniquement comme fonction de `x`
 L'argument `argnums` de `jax.jacrev` et `jax.jacbwd` dit par rapport à quelle variable on veut dériver
 
-3. `jax.grad` calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. 
-Il faut utiliser `jax.vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
+3. `jax.grad` calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions à valeurs dans $\mathbb{R}$.
+Il faut utiliser `jax.vmap` pour appliquer la même fonction à toutes les composantes du vecteur de sortie.
 
 4. Vous pouvez utiliser la fonction `jnp.allclose()`.
 
@@ -376,7 +376,7 @@ J_fwd(x)
 
 ### 3. Jacobienne avec gradient et vmap (`jax.grad` + `jax.vmap`)
 
-`jax.grad` est une autre fonction qui calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions scalaire → scalaire. Pour pouvoir l'utiliser, on doit donc calculer le gradient de chaque composante de `f` séparément et ensuite utiliser `jax.vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
+`jax.grad` est une autre fonction qui calcule la dérivée d'une fonction par formule backward, mais elle ne s'applique qu’aux fonctions à valeurs dans $\mathbb{R}$. Pour pouvoir l'utiliser, on doit donc calculer le gradient de chaque composante de `f` séparément et ensuite utiliser `jax.vmap` pour appliquer la même fonction à toutes les valeurs du vecteur de sortie.
 
 L’idée de `vmap` est la suivante : *vectoriser une fonction qui agit sur un seul élément pour qu’elle agisse sur tout un lot d’éléments*.
 
@@ -400,14 +400,14 @@ J_grad_vmap
 ```
 
 - `jax.grad` calcule une ligne de la Jacobienne (gradient d’une sortie scalaire), c'est un *callable*
-- `jax.vmap` empile ces lignes en parallèle, sans boucle, de façon efficace
+- `jax.vmap` calcule ces lignes de manière vectorisée.
 
 Dans la fonction `jax.grad`, l'argnum devient `1 + idx_jac` car il faut considérer le nouveau premier argument `i`.
 
 Dans la fonction `vmap`, on observe un argument en plus de la fonction à mapper :
 
 - `in_axes=(0, None, None, None)` est le *mapping pattern* de `vmap` :
-  - `0` : on vectorise sur l’argument `i`
+  - `0` : on vectorise sur la dimension $0$ de l’argument `i`
   - `None` : `x, W, b` sont partagés (pas vectorisés)
 - `jnp.arange(dim_sortie)` fournit les indices $i = 0, 1, ..., \texttt{dim\_sortie}−1$ pour lesquels on veut calculer le gradient.
 
@@ -661,13 +661,12 @@ $\circ$
 ## Réponse
 
 ```{python}
-H_f_x = jax.jacfwd(jax.jacrev(f))(x, W, b)
+H_f_x_0 = jax.jacfwd(jax.jacrev(f))(x, W, b)
 H_f_x_1 = jax.jacfwd(jax.jacfwd(f))(x, W, b)
 H_f_x_2 = jax.jacrev(jax.jacrev(f))(x, W, b)
 H_f_x_3 = jax.jacrev(jax.jacfwd(f))(x, W, b)
 
-print(H_f_x, H_f_x.shape)
-
+assert jnp.allclose(H_f_x, H_f_x_0)
 assert jnp.allclose(H_f_x, H_f_x_1)
 assert jnp.allclose(H_f_x, H_f_x_2)
 assert jnp.allclose(H_f_x, H_f_x_3)
@@ -781,7 +780,7 @@ $$
 \end{align*}
 $$
 
-(où il faut définir rigoureuseument le produit $H_f(\mathbf{x})\mathbf{v}$ dans [cet article](https://arxiv.org/pdf/1911.13292)). 
+(où il faut définir rigoureuseument le produit $H_f(\mathbf{x})\mathbf{v}$ comme dans [cet article](https://arxiv.org/pdf/1911.13292)). 
 
 Leur intérêt réside dans le fait qu'on n'instancie pas la matrice hessienne dans sa globalité. On a néanmoins besoin d'instancier les matrices jacobiennes des calculs intermédiaires.
 
@@ -849,19 +848,10 @@ De plus on remarque que dans le cas de $f_1$ application linéaire (c'est notre 
 
 
 :::
- 
-
-<!--
-# Discussion de l'utilité (exemples complexes et tordus...) \[5 min\]
-
-Tous
-
-4.  Parler de l'application à des fonctions complexes sans dérivée déjà définie (fonction sans dérivée analytique, mais avec bonne approximation analytique, voire Bastien dans ZIPLN ou plus simplement des fonctions non analytiques comme ReLU et associés)
--->
 
 ---
 
-# Conclusion et conclusion \[5 minutes\]
+# Conclusion \[5 minutes\]
 
 - La dérivation **manuelle** est la plus rapide et la plus contrôlable, mais peu scalable. Ici elle est aussi longue que `jacrev`.
 - `jacrev`  est souvent préférable quand `dim_sortie`$=\dim(f(x))$ est petite (notre cas ici). Ce cadre correspond exactement à ce qui se passe dans une **couche de réseau de neurones**, et se généralise naturellement à des architectures plus profondes.
